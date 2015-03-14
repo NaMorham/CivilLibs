@@ -1,0 +1,18 @@
+technique Default
+{
+	pass P0
+	{	
+		FillMode		= SOLID;
+		CullMode		= NONE;		
+		ZEnable			= TRUE;
+		ZWriteEnable	= TRUE;
+		Lighting		= FALSE;
+		ShadeMode		= GOURAUD;
+
+		Texture[0]		= NULL;
+
+		VertexShader = NULL;
+		PixelShader  = NULL;
+	}
+}
+

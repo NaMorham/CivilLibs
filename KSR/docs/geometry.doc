@@ -1,0 +1,18 @@
+/*! \page geometry Geometry in KSR
+
+\section Geometry
+Geometry in KSR is represented by the KSRGeometry structure. This structure contains the data that represents a world, scene or any arbitrary grouping of static geometry. In can be used to store vertex, chunk and index data as well as geometry formats and space partitioning tree data.
+
+\section Chunks
+Vertex, index and texture data is stored contiguously in a single memory buffer. When reading this data, KSR requires instructions on assembling it into geometry for simulating and renderering. Chunks, represented by the KSRChunk structure, provide these instructions. A Chunk simply provides a start index and the number of vertices to read. Chunks also contain texture indices and the primitive type used to reassemble the data. The following primitive types are used by KSR.
+
+<UL>
+<LI>Line List: Assembles the chunk as a list of isolated line segments. The number of vertices indexed in this chunk must be even and not be less than two.</LI>
+<LI>List Strip: Assembles the chunk as a single polyline. The number of vertices indexed in this chunk must not be less than two.</LI>
+<LI>Triangle List: Assembles the chunk as a list of isolated triangles. The number of vertices indexed in this chunk must be a multiple of 3.</LI>
+<LI>Triangle Strip: Assembles the chunk as a triangle strip. For more information, see \ref triangles.</LI>
+<LI>Triangle Patch: TODO</LI>
+<LI>Rectangular Patch : TODO</LI>
+<LI>Polygon: Assembles the chunk as a triangle fan. For more information, see \ref triangles.</LI>
+</UL>
+*/

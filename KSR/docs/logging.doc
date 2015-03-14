@@ -1,0 +1,10 @@
+/*! \page logging Logging
+
+KSR provides logging functionality to record the actions of the program at both application and KSR system level. KSR can handle logging in two different ways. The first is logging to file. Here, log strings are appended directly to a specified log file. The second is memory logging. KSR is able to store an arbitrary number of log strings in memory at one time.
+
+To enable logging, simply pass the correct parameters to CreateKSRInterface(). These are the second and third parameters of the function. The second parameter is the logging filename. Pass a valid path and name string here to enable file logging, or pass NULL to disable it. The third paramter is the maximum number of memory-stored log strings. Once this number is exceeded, strings will be destroyed in a FIFO (First-In, First-Out) rotation. If desired, these strings can later be queried by the application for printing on consoles or log windows.
+
+The application can use this logging mechanism to log strings of its own. This is done using the function KSRLogf().
+
+For more information on creating and initialising a KSR Interface, see \ref interface and \ref tut01.
+*/

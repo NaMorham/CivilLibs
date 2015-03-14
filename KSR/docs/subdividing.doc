@@ -1,0 +1,47 @@
+/*! \page subdividing Space Partitioning
+
+3D Environments can become large and complex and it will often be a necessity to optimise rendering and simulation methods to keep large scale worlds interactive at real-time. KSR has several such methods in place which are outlined in detail below.
+
+\section frustum Frustum Culling
+KSR's first line of defence against overdraw is a simple method known as Frustum Culling. The camera's view volume is defined by six planes. Objects completely outside this volume will be ignored. This method is illustrated further below.
+
+\image HTML frustum.jpg "Object A is completely outside the frustum and will be ignored. Object B is completely inside the six planes and will not be ignored. Object C also will not be ignored as it is in intersecting collision with the frustum."
+
+Frustum Culling in KSR is enabled by default and cannot be disabled.
+
+\section partitioning Space Partitioning
+In highly complex environments, Frustum Culling alone will not be enough. Testing every object against the frustum will lead to a complexity of <i>O(n)</i>. This brings us to the method known as Space Partitioning. Here we split the world up into a series of axially-aligned cells. It is then these cells that are tested against the frustum, vastly reducing the frustum tests required.
+
+Space partitioning also provides optimisations in simulation algorithms, such as collision detection and response systems. Objects will not be tested for collision with objects that do not lie in the same cell. 
+
+KSR uses a recursive tree model for generating partitions. First, the entire world is encapsulated in one cell. This cell is then split into a series of smaller cells and each of those cells is split and so on, until some limit is reached and the recursion ends.
+
+KSR provides two different recursive space partitioning methods. Octtree Partitioning and Quadtree Partitioning. Their differences are simple; Quadtree Partitioning divides each node two dimensionally into four children, while Octtree Partitoining divides each node three dimensionally into eight. Quadtree Partitioning is most useful for environments like terrain, where the comlpexity does not differ greatly in height. Octtree is most useful for arbitrary scenes. The differences are illustrated below.
+
+\image HTML spacetree.jpg "Two Space Partitioned trees after a single iteration. Quadtree Partitioning (left) splits in two dimensions, creating four child nodes while Octree Partitioning (right) splits in three dimensions, creating eight child nodes."
+
+There are three factors that KSR considers when determining whether to continue iterating the partitioning algorithm. These are set by the application and determine how far the world should be subdivided. These limits are as follows.
+
+<UL>
+<LI>Polygon Depth: Maximum number of polygons to be contained within one node.</LI>
+<LI>Size Depth: Minimum size of one node.</LI>
+<LI>Subdivision Depth: Maximum number of subdivisions that may take place to create a node.</LI>
+</UL>
+
+Note that more than one of these parameters may be set, but only one need be satisfied to end recursion. If none are set, subdivision will not take place.
+
+These parameters are members of KSRSceneSettings.
+
+\section occlusion Occlusion Culling
+
+Although Space Partitioning and Frustum Culling can make huge increases in performance, there are more optimisiations that can be made to benefit complex scenes. TODO: More about Occlusion Culling here.
+
+KSR provides a PVS (Potentially Visible Set) based occlusion culling system. Once a partition tree is generated, a PVS may be created for each node. This set contains which nodes are visible from anywhere within this node. Only the nodes on this list will be rendered. The advantage of such a system is demonstrated below.
+
+\image HTML pvs.jpg "Nodes to be rendered are indicated by light blocks. Dark blocks indicate an obstruction that cannot be seen through. Without PVS (Left) will continue rendering nodes past the obstruction until the end of the frustum while With PVS (right) will not attempt to render any block that is beyond an obstruction."
+
+PVS predetermination at run-time can be enabled by setting a flag member in KSRSceneSettings.
+
+For more information on the parameters needed to setup Space Partitioning and PVS predetermination, see \ref interface and \ref tut01.\n
+For information on using the KRG Compiler tool to precompile Space Partitioning and PVS data, see \ref krgcompiler.
+*/

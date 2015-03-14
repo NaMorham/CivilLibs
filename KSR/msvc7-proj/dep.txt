@@ -1,0 +1,38 @@
+digraph G {
+overlap = false
+spline = true
+Interface [shape=box,style=filled,color=lightslateblue];
+FileTableEntry [shape=box,style=filled,color=lightslateblue];
+OutputEntity [shape=box,style=filled,color=lightslateblue];
+OutputGeometry [shape=box,style=filled,color=lightslateblue];
+OutputRenderGroup [shape=box,style=filled,color=lightslateblue];
+OutputScene [shape=box,style=filled,color=lightslateblue];
+OutputTreeLeaf [shape=box,style=filled,color=lightslateblue];
+OutputTreeNode [shape=box,style=filled,color=lightslateblue];
+Serialiser [shape=box,style=filled,color=lightslateblue];
+Timer [shape=box,style=filled,color=lightslateblue];
+Logger [shape=box,style=filled,color=lightslateblue];
+Renderer [shape=box,style=filled,color=lightslateblue];
+Scene [shape=box,style=filled,color=lightslateblue];
+Patch [shape=box,style=filled,color=lightslateblue];
+PatchBlock [shape=box,style=filled,color=lightslateblue];
+TextInstance [shape=box,style=filled,color=lightslateblue];
+Viewport [shape=box,style=filled,color=lightslateblue];
+SwapChain [shape=box,style=filled,color=lightslateblue];
+Font [shape=box,style=filled,color=lightslateblue];
+Light [shape=box,style=filled,color=lightslateblue];
+BoundingVolume [shape=box,style=filled,color=lightslateblue];
+CollisionInfo [shape=box,style=filled,color=lightslateblue];
+Entity [shape=box,style=filled,color=lightslateblue];
+RigidBody [shape=box,style=filled,color=lightslateblue];
+SurfaceMaterial [shape=box,style=filled,color=lightslateblue];
+ResourceManager [shape=box,style=filled,color=lightslateblue];
+Visual [shape=box,style=filled,color=lightslateblue];
+VisualSprite [shape=box,style=filled,color=lightslateblue];
+Effect [shape=box,style=filled,color=lightslateblue];
+Chunk [shape=box,style=filled,color=lightslateblue];
+Geometry [shape=box,style=filled,color=lightslateblue];
+RenderGroup [shape=box,style=filled,color=lightslateblue];
+TreeLeaf [shape=box,style=filled,color=lightslateblue];
+TreeNode [shape=box,style=filled,color=lightslateblue];
+Camera [s

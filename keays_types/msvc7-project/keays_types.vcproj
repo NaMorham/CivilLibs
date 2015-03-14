@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="7.10"
+	Name="keays_types"
+	ProjectGUID="{877D6610-7C72-446C-BA70-C115497F8ABD}"
+	RootNamespace="keays_types">
+	<Platforms>
+		<Platform
+			Name="Win32"/>
+	</Platforms>
+	<Configurations>
+		<Configuration
+			Name="Debug|Win32"
+			OutputDirectory="..\build\Debug7"
+			IntermediateDirectory="..\build\Debug7"
+			ConfigurationType="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				PreprocessorDefinitions="KEAYS_TYPES_EXPORTS,_USRDLL,_DEBUG"
+				RuntimeLibrary="5"
+				TreatWChar_tAsBuiltInType="FALSE"
+				ProgramDataBaseFileName="$(IntDir)/keays_types7D.pdb"
+				BrowseInformation="1"
+				BrowseInformationFile="$(IntDir)/"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="3"
+				CallingConvention="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				OutputFile="$(OutDir)/KeaysTypes7D.dll"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(OutDir)\$(TargetName).pdb"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copy to bin directory"
+				CommandLine="echo.
+echo copy $(TargetPath) ..\bin
+copy $(TargetPath) ..\bin
+echo copy $(OutDir)\$(TargetName).lib ..\bin
+copy $(OutDir)\$(TargetName).lib ..\bin
+echo copy $(OutDir)\$(TargetName).pdb ..\bin
+copy $(OutDir)\$(TargetName).pdb ..\bin
+echo keays_types copy... Done.
+echo.
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="..\build\Release7"
+			IntermediateDirectory="..\build\Release7"
+			ConfigurationType="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="2"
+				EnableIntrinsicFunctions="FALSE"
+				PreprocessorDefinitions="KEAYS_TYPES_EXPORTS,_USRDLL,_NDEBUG"
+				RuntimeLibrary="4"
+				TreatWChar_tAsBuiltInType="FALSE"
+				ProgramDataBaseFileName="$(IntDir)/$(TargetName).pdb"
+				BrowseInformation="1"
+				BrowseInformationFile="$(IntDir)/"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="TRUE"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				OutputFile="$(OutDir)/KeaysTypes7.dll"
+				GenerateMapFile="TRUE"
+				MapFileName="$(OutDir)\$(TargetName).map"
+				MapExports="TRUE"
+				MapLines="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copy to bin directory"
+				CommandLine="echo.
+echo copy $(TargetPath) ..\bin
+copy $(TargetPath) ..\bin
+echo copy $(OutDir)\$(TargetName).lib ..\bin
+copy $(OutDir)\$(TargetName).lib ..\bin
+echo copy $(OutDir)\$(TargetName).map ..\bin
+copy $(OutDir)\$(TargetName).map ..\bin
+echo keays_types copy... Done.
+echo.
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Debug MT|Win32"
+			OutputDirectory="..\build\Debug7mt"
+			IntermediateDirectory="..\build\Debug7mt"
+			ConfigurationType="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				PreprocessorDefinitions="KEAYS_TYPES_EXPORTS,_USRDLL,_DEBUG,_MT"
+				RuntimeLibrary="1"
+				TreatWChar_tAsBuiltInType="FALSE"
+				ProgramDataBaseFileName="$(IntDir)/$(TargetName).pdb"
+				BrowseInformation="1"
+				BrowseInformationFile="$(IntDir)/"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="3"
+				CallingConvention="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				OutputFile="$(OutDir)/KeaysTypes7mtD.dll"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(OutDir)\$(TargetName).pdb"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copy to bin directory"
+				CommandLine="echo.
+echo copy $(TargetPath) ..\bin
+copy $(TargetPath) ..\bin
+echo copy $(OutDir)\$(TargetName).lib ..\bin
+copy $(OutDir)\$(TargetName).lib ..\bin
+echo copy $(OutDir)\$(TargetName).pdb ..\bin
+copy $(OutDir)\$(TargetName).pdb ..\bin
+echo keays_types copy... Done.
+echo.
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Debug MT Dll|Win32"
+			OutputDirectory="..\build\Debug7mtDll"
+			IntermediateDirectory="..\build\Debug7mtDll"
+			ConfigurationType="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				PreprocessorDefinitions="KEAYS_TYPES_EXPORTS,_DLL,_DEBUG,_MT"
+				RuntimeLibrary="3"
+				TreatWChar_tAsBuiltInType="FALSE"
+				ProgramDataBaseFileName="$(IntDir)/$(TargetName).pdb"
+				BrowseInformation="1"
+				BrowseInformationFile="$(IntDir)/"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				OutputFile="$(OutDir)/KeaysTypes7mdD.dll"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(OutDir)\$(TargetName).pdb"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copy to bin directory"
+				CommandLine="echo.
+echo copy $(TargetPath) ..\bin
+copy $(TargetPath) ..\bin
+echo copy $(OutDir)\$(TargetName).lib ..\bin
+copy $(OutDir)\$(TargetName).lib ..\bin
+echo copy $(OutDir)\$(TargetName).pdb ..\bin
+copy $(OutDir)\$(TargetName).pdb ..\bin
+echo keays_types copy... Done.
+echo.
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release MT|Win32"
+			OutputDirectory="..\build\Release7mt"
+			IntermediateDirectory="..\build\Release7mt"
+			ConfigurationType="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="2"
+				EnableIntrinsicFunctions="FALSE"
+				PreprocessorDefinitions="KEAYS_TYPES_EXPORTS,_USRDLL,_NDEBUG,_MT"
+				RuntimeLibrary="0"
+				TreatWChar_tAsBuiltInType="FALSE"
+				ProgramDataBaseFileName="$(IntDir)/$(TargetName).pdb"
+				BrowseInformation="1"
+				BrowseInformationFile="$(IntDir)/"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="TRUE"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				OutputFile="$(OutDir)/KeaysTypes7mt.dll"
+				GenerateMapFile="TRUE"
+				MapFileName="$(OutDir)\$(TargetName).map"
+				MapExports="TRUE"
+				MapLines="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copy to bin directory"
+				CommandLine="echo.
+echo copy $(TargetPath) ..\bin
+copy $(TargetPath) ..\bin
+echo copy $(OutDir)\$(TargetName).lib ..\bin
+copy $(OutDir)\$(TargetName).lib ..\bin
+echo copy $(OutDir)\$(TargetName).map ..\bin
+copy $(OutDir)\$(TargetName).map ..\bin
+echo keays_types copy... Done.
+echo.
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release MT Dll|Win32"
+			OutputDirectory="..\build\Release7mtDll"
+			IntermediateDirectory="..\build\Release7mtDll"
+			ConfigurationType="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="2"
+				EnableIntrinsicFunctions="FALSE"
+				PreprocessorDefinitions="KEAYS_TYPES_EXPORTS,_DLL,_NDEBUG,_MT"
+				RuntimeLibrary="2"
+				TreatWChar_tAsBuiltInType="TRUE"
+				ProgramDataBaseFileName="$(IntDir)/$(TargetName).pdb"
+				BrowseInformation="1"
+				BrowseInformationFile="$(IntDir)/"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="TRUE"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				OutputFile="$(OutDir)/KeaysTypes7md.dll"
+				GenerateMapFile="TRUE"
+				MapFileName="$(OutDir)\$(TargetName).map"
+				MapExports="TRUE"
+				MapLines="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copy to bin directory"
+				CommandLine="echo.
+echo copy $(TargetPath) ..\bin
+copy $(TargetPath) ..\bin
+echo copy $(OutDir)\$(TargetName).lib ..\bin
+copy $(OutDir)\$(TargetName).lib ..\bin
+echo copy $(OutDir)\$(TargetName).map ..\bin
+copy $(OutDir)\$(TargetName).map ..\bin
+echo keays_types copy... Done.
+echo.
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+		<Filter
+			Name="Source Files"
+			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+			<File
+				RelativePath="..\src\keays_types.cpp">
+			</File>
+		</Filter>
+		<Filter
+			Name="Header Files"
+			Filter="h;hpp;hxx;hm;inl">
+			<File
+				RelativePath="..\include\keays_types.h">
+			</File>
+			<File
+				RelativePath="..\include\resource.h">
+			</File>
+		</Filter>
+		<Filter
+			Name="Resource Files"
+			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
+			<File
+				RelativePath="..\include\keays_types.rc">
+			</File>
+		</Filter>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>

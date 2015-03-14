@@ -1,0 +1,15 @@
+/*! \page triangles Triangle Strips and Fans
+
+\section strips Triangle Strips
+A Triangle Strip is a series of connected triangles. The first three points define a single triangle. From then on, every point in the strip is combined with the last two points of the last assembled triangle to create a new triangle. This way, the number of required vertices equals the number of triangles + 2. An example of this is shown below.
+
+\image HTML strip.jpg "Using a triangle strip, these six triangles can be achieved with only eight points, rather than the eighteen that a triangle list would require."
+
+\section fans Triangle Fans
+
+Similar to Triangle Strips, A Triangle Fan is a series of connected triangles. The first three points define a single triangle. From then on, every point in the strip is combined with the last point of the last assembled triangle and the first point of the first triangle. This way, the triangles form around the first point in a "fan" shape. The number of required vertices equals the number of triangles + 2. Some examples are given below.
+
+\image HTML fans01.jpg "Two examples of Triangle Fans."
+
+\image HTML fans02.jpg "A Box using one fan for each face."
+*/

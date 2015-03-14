@@ -1,0 +1,25 @@
+/*! \page tut03 Tutorial 03: Creating a Scene
+
+Before we can start loading geometry, we need to first create a KSRScene object to store it in. The KSRScene object represents a single worldspace and is responsible for the rendering and physical simulation of all geometry and entities contained within.
+
+\code
+KSRSceneSettings sceneSettings;
+sceneSettings.spacePartitionMode = CS_OCTTREE;
+sceneSettings.visibilityMode = CS_NONE;
+sceneSettings.polygonDepth = 300;
+sceneSettings.sizeDepth = 16;
+sceneSettings.subdivisionDepth = 4;
+sceneSettings.collisionTolerance = 1;
+sceneSettings.collisionPrecision = 1;
+
+LPKSRSCENE scene = NULL;
+
+if (FAILED(KSR->Scene(&sceneSettings, &scene)))
+	return E_FAIL;
+\endcode
+
+The first parameter of KSRInterface::CreateScene() is a pointer to a KSRSceneSettings structure containing the settings for this scene. If this parameter is NULL, KSR will use default settings. The third and final parameter is the address of a pointer to the KSRScene structure you wish to create.
+
+For more information on Scenes see \ref scenes.\n
+Next Tutorial: \ref tut04
+*/

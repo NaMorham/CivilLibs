@@ -1,0 +1,544 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="7.10"
+	Name="keays_math"
+	ProjectGUID="{5698CD20-5658-4B8A-A4F2-EC1597F0C9E0}"
+	RootNamespace="keays_math"
+	SccProjectName=""
+	SccLocalPath="">
+	<Platforms>
+		<Platform
+			Name="Win32"/>
+	</Platforms>
+	<Configurations>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="..\build\Release7"
+			IntermediateDirectory="..\build\Release7"
+			ConfigurationType="2"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="2"
+				AdditionalIncludeDirectories="..\..\keays_types\include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;KEAYS_MATH_EXPORTS"
+				StringPooling="TRUE"
+				RuntimeLibrary="4"
+				EnableFunctionLevelLinking="TRUE"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile=""
+				AssemblerListingLocation=""
+				ObjectFile="$(IntDir)\"
+				ProgramDataBaseFileName="$(IntDir)\"
+				BrowseInformation="1"
+				BrowseInformationFile="$(IntDir)/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/MACHINE:I386"
+				AdditionalDependencies="KeaysTypes7.lib"
+				OutputFile="$(OutDir)\KeaysMath7.dll"
+				LinkIncremental="1"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="..\..\keays_types\bin"
+				ProgramDatabaseFile="$(OutDir)\$(TargetName).pdb"
+				GenerateMapFile="TRUE"
+				MapFileName="$(OutDir)\$(TargetName).map"
+				MapExports="TRUE"
+				MapLines="TRUE"
+				ImportLibrary="$(OutDir)\$(TargetName).lib"/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="TRUE"
+				SuppressStartupBanner="TRUE"
+				TargetEnvironment="1"
+				TypeLibraryName=".\..\build\Release/keays_math7.tlb"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copy to bin directory"
+				CommandLine="echo.
+echo copy $(TargetPath) ..\bin
+copy $(TargetPath) ..\bin
+echo copy $(OutDir)\$(TargetName).lib ..\bin
+copy $(OutDir)\$(TargetName).lib ..\bin
+echo copy $(OutDir)\$(TargetName).map ..\bin
+copy $(OutDir)\$(TargetName).map ..\bin
+echo Copy keays_math files... Done.
+echo.
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="3081"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Debug|Win32"
+			OutputDirectory=".\..\build\Debug7"
+			IntermediateDirectory=".\..\build\Debug7"
+			ConfigurationType="2"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\keays_types\include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;KEAYS_MATH_EXPORTS"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="5"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile=""
+				AssemblerListingLocation=""
+				ObjectFile="$(IntDir)\"
+				ProgramDataBaseFileName="$(IntDir)\"
+				BrowseInformation="1"
+				BrowseInformationFile="$(IntDir)/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="4"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/MACHINE:I386"
+				AdditionalDependencies="KeaysTypes7D.lib"
+				OutputFile="$(OutDir)\KeaysMath7D.dll"
+				LinkIncremental="2"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="..\..\keays_types\bin"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(OutDir)\$(TargetName).pdb"
+				ImportLibrary="$(OutDir)\$(TargetName).lib"/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="TRUE"
+				SuppressStartupBanner="TRUE"
+				TargetEnvironment="1"
+				TypeLibraryName=".\..\build\Debug/keays_math7D.tlb"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copy to bin directory"
+				CommandLine="echo.
+echo copy $(TargetPath) ..\bin
+copy $(TargetPath) ..\bin
+echo copy $(OutDir)\$(TargetName).lib ..\bin
+copy $(OutDir)\$(TargetName).lib ..\bin
+echo copy $(OutDir)\$(TargetName).pdb ..\bin
+copy $(OutDir)\$(TargetName).pdb ..\bin
+echo Copy keays_math output... Done.
+echo.
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="3081"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Debug MT|Win32"
+			OutputDirectory="..\build\Debug7mt"
+			IntermediateDirectory="..\build\Debug7mt"
+			ConfigurationType="2"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\keays_types\include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;KEAYS_MATH_EXPORTS,_MT"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile=""
+				AssemblerListingLocation=""
+				ObjectFile="$(IntDir)\"
+				ProgramDataBaseFileName="$(IntDir)\"
+				BrowseInformation="1"
+				BrowseInformationFile="$(IntDir)/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="4"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/MACHINE:I386"
+				AdditionalDependencies="KeaysTypes7mtD.lib"
+				OutputFile="$(OutDir)\KeaysMath7mtD.dll"
+				LinkIncremental="2"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="..\..\keays_types\bin"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(OutDir)\$(TargetName).pdb"
+				ImportLibrary="$(OutDir)\$(TargetName).lib"/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="TRUE"
+				SuppressStartupBanner="TRUE"
+				TargetEnvironment="1"
+				TypeLibraryName=".\..\build\Debug/keays_math7D.tlb"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copy to bin directory"
+				CommandLine="echo.
+echo copy $(TargetPath) ..\bin
+copy $(TargetPath) ..\bin
+echo copy $(OutDir)\$(TargetName).lib ..\bin
+copy $(OutDir)\$(TargetName).lib ..\bin
+echo copy $(OutDir)\$(TargetName).pdb ..\bin
+copy $(OutDir)\$(TargetName).pdb ..\bin
+echo Copy keays_math output... Done.
+echo.
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="3081"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Debug MT Dll|Win32"
+			OutputDirectory="..\build\Debug7mtDll"
+			IntermediateDirectory="..\build\Debug7mtDll"
+			ConfigurationType="2"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\keays_types\include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_DLL;KEAYS_MATH_EXPORTS,_MT"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile=""
+				AssemblerListingLocation=""
+				ObjectFile="$(IntDir)\"
+				ProgramDataBaseFileName="$(IntDir)\"
+				BrowseInformation="1"
+				BrowseInformationFile="$(IntDir)/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="4"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/MACHINE:I386"
+				AdditionalDependencies="KeaysTypes7mdD.lib"
+				OutputFile="$(OutDir)\KeaysMath7mdD.dll"
+				LinkIncremental="2"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="..\..\keays_types\bin"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(OutDir)\$(TargetName).pdb"
+				ImportLibrary="$(OutDir)\$(TargetName).lib"/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="TRUE"
+				SuppressStartupBanner="TRUE"
+				TargetEnvironment="1"
+				TypeLibraryName=".\..\build\Debug/keays_math7D.tlb"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copy to bin directory"
+				CommandLine="echo.
+echo copy $(TargetPath) ..\bin
+copy $(TargetPath) ..\bin
+echo copy $(OutDir)\$(TargetName).lib ..\bin
+copy $(OutDir)\$(TargetName).lib ..\bin
+echo copy $(OutDir)\$(TargetName).pdb ..\bin
+copy $(OutDir)\$(TargetName).pdb ..\bin
+echo Copy keays_math output... Done.
+echo.
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="3081"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release MT|Win32"
+			OutputDirectory="..\build\Release7mt"
+			IntermediateDirectory="..\build\Release7mt"
+			ConfigurationType="2"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="2"
+				AdditionalIncludeDirectories="..\..\keays_types\include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;KEAYS_MATH_EXPORTS,_MT"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile=""
+				AssemblerListingLocation=""
+				ObjectFile="$(IntDir)\"
+				ProgramDataBaseFileName="$(IntDir)\"
+				BrowseInformation="1"
+				BrowseInformationFile="$(IntDir)/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/MACHINE:I386"
+				AdditionalDependencies="KeaysTypes7mt.lib"
+				OutputFile="$(OutDir)\KeaysMath7mt.dll"
+				LinkIncremental="1"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="..\..\keays_types\bin"
+				ProgramDatabaseFile="$(OutDir)\$(TargetName).pdb"
+				GenerateMapFile="TRUE"
+				MapFileName="$(OutDir)\$(TargetName).map"
+				MapExports="TRUE"
+				MapLines="TRUE"
+				ImportLibrary="$(OutDir)\$(TargetName).lib"/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="TRUE"
+				SuppressStartupBanner="TRUE"
+				TargetEnvironment="1"
+				TypeLibraryName=".\..\build\Release/keays_math7.tlb"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copy to bin directory"
+				CommandLine="echo.
+echo copy $(TargetPath) ..\bin
+copy $(TargetPath) ..\bin
+echo copy $(OutDir)\$(TargetName).lib ..\bin
+copy $(OutDir)\$(TargetName).lib ..\bin
+echo copy $(OutDir)\$(TargetName).map ..\bin
+copy $(OutDir)\$(TargetName).map ..\bin
+echo Copy keays_math files... Done.
+echo.
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="3081"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release MT Dll|Win32"
+			OutputDirectory="..\build\Release7mtDll"
+			IntermediateDirectory="..\build\Release7mtDll"
+			ConfigurationType="2"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="2"
+				AdditionalIncludeDirectories="..\..\keays_types\include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_DLL;KEAYS_MATH_EXPORTS,_MT"
+				StringPooling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile=""
+				AssemblerListingLocation=""
+				ObjectFile="$(IntDir)\"
+				ProgramDataBaseFileName="$(IntDir)\"
+				BrowseInformation="1"
+				BrowseInformationFile="$(IntDir)/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/MACHINE:I386"
+				AdditionalDependencies="KeaysTypes7md.lib"
+				OutputFile="$(OutDir)\KeaysMath7md.dll"
+				LinkIncremental="1"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="..\..\keays_types\bin"
+				ProgramDatabaseFile="$(OutDir)\$(TargetName).pdb"
+				GenerateMapFile="TRUE"
+				MapFileName="$(OutDir)\$(TargetName).map"
+				MapExports="TRUE"
+				MapLines="TRUE"
+				ImportLibrary="$(OutDir)\$(TargetName).lib"/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="TRUE"
+				SuppressStartupBanner="TRUE"
+				TargetEnvironment="1"
+				TypeLibraryName=".\..\build\Release/keays_math7.tlb"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copy to bin directory"
+				CommandLine="echo.
+echo copy $(TargetPath) ..\bin
+copy $(TargetPath) ..\bin
+echo copy $(OutDir)\$(TargetName).lib ..\bin
+copy $(OutDir)\$(TargetName).lib ..\bin
+echo copy $(OutDir)\$(TargetName).map ..\bin
+copy $(OutDir)\$(TargetName).map ..\bin
+echo Copy keays_math files... Done.
+echo.
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="3081"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+		<Filter
+			Name="Source Files"
+			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+			<File
+				RelativePath="..\src\geometry.cpp">
+			</File>
+			<File
+				RelativePath="..\src\kmCube.cpp">
+			</File>
+			<File
+				RelativePath="..\src\kmLine.cpp">
+			</File>
+		</Filter>
+		<Filter
+			Name="Header Files"
+			Filter="h;hpp;hxx;hm;inl">
+			<File
+				RelativePath="..\include\geometry.h">
+			</File>
+			<File
+				RelativePath="..\include\keays_math.h">
+			</File>
+			<File
+				RelativePath="..\include\mathhelp.h">
+			</File>
+			<File
+				RelativePath="..\include\resource.h">
+			</File>
+		</Filter>
+		<Filter
+			Name="Resource Files"
+			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
+			<File
+				RelativePath="..\include\keays_math.rc">
+			</File>
+		</Filter>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>

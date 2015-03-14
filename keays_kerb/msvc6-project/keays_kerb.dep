@@ -1,0 +1,10 @@
+# Microsoft Developer Studio Generated Dependency File, included by keays_kerb.mak
+
+..\src\keays_kerb.cpp : \
+	"..\..\keays_math\include\geometry.h"\
+	"..\..\keays_math\include\keays_math.h"\
+	"..\..\keays_math\include\mathhelp.h"\
+	"..\..\keays_types\include\keays_types.h"\
+	"..\include\keays_kerb.h"\
+	"e:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	

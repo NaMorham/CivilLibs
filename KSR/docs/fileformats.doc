@@ -1,0 +1,19 @@
+/*! \page fileformats File Formats
+
+The following are file formats supported by Save/Load routines in KSR and KSRX.
+
+Geometry Formats
+<UL>
+<LI>.KRG: Keays Real-time Geometry</LI>
+<LI>.UT: Keays Triangle DTM</LI>
+</UL>
+
+Image Formats
+<UL>
+<LI>.BMP: Microsoft Windows Bitmap image format</LI>
+<LI>.DIB: Microsoft Windows device-independant bitmap image format</LI>
+<LI>.JPG: Joint Photographics Experts Group compressed image format</LI>
+<LI>.PNG: Portable Network Graphics image format</LI>
+<LI>.TGA: Truevision image format</LI>
+</UL>
+*/

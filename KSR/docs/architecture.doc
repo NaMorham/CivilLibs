@@ -1,0 +1,10 @@
+/*! \page architecture KSR Architecture
+
+\image HTML architecture.jpg
+
+\section Win32 Application
+Go figure.
+
+\section KSR Interface
+The KSR Interface exposes KSR system functionality to the application layer.
+*/

@@ -1,0 +1,14 @@
+/*! \page gettingstarted Getting Started with KSR
+
+This section provides an introduction to the basics of KSR.
+
+<UL>
+<LI>\ref architecture\n</LI>
+<LI>\ref coordinatesystems\n</LI>
+<LI>\ref interface\n</LI>
+<LI>\ref viewports\n</LI>
+<LI>\ref scenes\n</LI>
+<LI>\ref resources\n</LI>
+<LI>\ref geometry\n</LI>
+</UL>
+*/

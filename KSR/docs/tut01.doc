@@ -1,0 +1,34 @@
+/*! \page tut01 Tutorial 01: Creating a KSR Interface
+
+To use the KSR API, you must first create an application window and then create and initialise KSR Objects. The KSR Interface is KSR's public interface to the application. For more information see \ref interface.
+
+After you have created your application window, use the CreateKSRInterface function to initialise the KSR Interface.
+
+\code
+KSRCoreSettings coreSettings;
+coreSettings.deviceType = CS_HAL;
+
+if (FAILED(CreateKSRInterface(hWndMain, "log.txt", 256, &coreSettings, &KSR)))
+	return E_FAIL;
+\endcode
+
+The first parameter passed to CreateKSRInterface should be a valid handle to the application window. The second is the path and name of the log file that will be created by KSR. This parameter may be NULL if you do not wish KSR to log to a file. The third parameter is the maximum number of log entries to store in memory. This is used to stop memory wastage in the event of an unexpected application logging misuse. The fourth parameter is a pointer to a KSRCoreSettings structure, which contains the settings used to create the KSR Interface. If you leave this parameter NULL, KSR will use default settings. The fourth and final parameter is a pointer to the KSRInterface structure you wish to create.
+
+Now that you have initialised your KSR Interface, you way wish to set up its Update call. KSRInterface::Update() is responsible for updating objects in the world.
+
+\code
+if (FAILED(KSR->Update()))
+	return E_FAIL;
+\endcode
+
+Once you have set up the Update call you way wish to do the same with its Render call. KSRInterface::Render() is responsible for rendering all currently active viewports.
+
+\code
+if (FAILED(KSR->Render()))
+	return E_FAIL;
+\endcode
+
+For more information on Creating a KSR Interface see \ref interface.\n
+Next Tutorial: \ref tut02
+
+*/

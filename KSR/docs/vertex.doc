@@ -1,0 +1,27 @@
+/*! \page vertex Vertex Types
+
+Real-time applications can often have different requirements when it comes to vertex data structures. Rather than waste memory, KSR provides several vertex structures and formats to KSR Applications.
+
+\section structures Data Structures
+The following data structures are available in KSR.
+<UL>
+<LI>VERTEX_DIFFUSE_TEX1</LI>
+<LI>VERTEX_NORMAL_TEX1</LI>
+<LI>VERTEX_NORMAL_DIFFUSE_TEX1</LI>
+<LI>VERTEX_DIFFUSE_TEX2</LI>
+<LI>VERTEX_NORMAL_TEX2</LI>
+<LI>VERTEX_NORMAL_DIFFUSE_TEX2</LI>
+<LI>VERTEX_POINT</LI>
+</UL>
+
+\section formats Flexible Vertex Formats
+A Flexible Vertex Format (FVF) code describes the contents order of a vertex. It is necessary to provide KSR when required with a FVF code to describe the format of the vertex data you are using. Below are the FVF codes provided by KSR.
+<UL>
+<LI>FVF_DIFFUSE_TEX1</LI>
+<LI>FVF_NORMAL_TEX1</LI>
+<LI>FVF_NORMAL_DIFFUSE_TEX1</LI>
+<LI>FVF_DIFFUSE_TEX2</LI>
+<LI>FVF_NORMAL_TEX2</LI>
+<LI>FVF_POINT</LI>
+</UL>
+*/

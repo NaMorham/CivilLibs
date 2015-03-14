@@ -1,0 +1,50 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "keays_math", "keays_math.vcproj", "{6E90F827-C957-4DF3-9EFD-3DC807B7FEDF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{877D6610-7C72-446C-BA70-C115497F8ABD} = {877D6610-7C72-446C-BA70-C115497F8ABD}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "keays_types", "..\..\keays_types\msvc7-project\keays_types.vcproj", "{877D6610-7C72-446C-BA70-C115497F8ABD}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Debug MT = Debug MT
+		Debug MT Dll = Debug MT Dll
+		Release = Release
+		Release MT = Release MT
+		Release MT Dll = Release MT Dll
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{6E90F827-C957-4DF3-9EFD-3DC807B7FEDF}.Debug.ActiveCfg = Debug|Win32
+		{6E90F827-C957-4DF3-9EFD-3DC807B7FEDF}.Debug.Build.0 = Debug|Win32
+		{6E90F827-C957-4DF3-9EFD-3DC807B7FEDF}.Debug MT.ActiveCfg = Debug MT|Win32
+		{6E90F827-C957-4DF3-9EFD-3DC807B7FEDF}.Debug MT.Build.0 = Debug MT|Win32
+		{6E90F827-C957-4DF3-9EFD-3DC807B7FEDF}.Debug MT Dll.ActiveCfg = Debug MT Dll|Win32
+		{6E90F827-C957-4DF3-9EFD-3DC807B7FEDF}.Debug MT Dll.Build.0 = Debug MT Dll|Win32
+		{6E90F827-C957-4DF3-9EFD-3DC807B7FEDF}.Release.ActiveCfg = Release|Win32
+		{6E90F827-C957-4DF3-9EFD-3DC807B7FEDF}.Release.Build.0 = Release|Win32
+		{6E90F827-C957-4DF3-9EFD-3DC807B7FEDF}.Release MT.ActiveCfg = Release MT|Win32
+		{6E90F827-C957-4DF3-9EFD-3DC807B7FEDF}.Release MT.Build.0 = Release MT|Win32
+		{6E90F827-C957-4DF3-9EFD-3DC807B7FEDF}.Release MT Dll.ActiveCfg = Release MT Dll|Win32
+		{6E90F827-C957-4DF3-9EFD-3DC807B7FEDF}.Release MT Dll.Build.0 = Release MT Dll|Win32
+		{877D6610-7C72-446C-BA70-C115497F8ABD}.Debug.ActiveCfg = Debug|Win32
+		{877D6610-7C72-446C-BA70-C115497F8ABD}.Debug.Build.0 = Debug|Win32
+		{877D6610-7C72-446C-BA70-C115497F8ABD}.Debug MT.ActiveCfg = Debug MT|Win32
+		{877D6610-7C72-446C-BA70-C115497F8ABD}.Debug MT.Build.0 = Debug MT|Win32
+		{877D6610-7C72-446C-BA70-C115497F8ABD}.Debug MT Dll.ActiveCfg = Debug MT Dll|Win32
+		{877D6610-7C72-446C-BA70-C115497F8ABD}.Debug MT Dll.Build.0 = Debug MT Dll|Win32
+		{877D6610-7C72-446C-BA70-C115497F8ABD}.Release.ActiveCfg = Release|Win32
+		{877D6610-7C72-446C-BA70-C115497F8ABD}.Release.Build.0 = Release|Win32
+		{877D6610-7C72-446C-BA70-C115497F8ABD}.Release MT.ActiveCfg = Release MT|Win32
+		{877D6610-7C72-446C-BA70-C115497F8ABD}.Release MT.Build.0 = Release MT|Win32
+		{877D6610-7C72-446C-BA70-C115497F8ABD}.Release MT Dll.ActiveCfg = Release MT Dll|Win32
+		{877D6610-7C72-446C-BA70-C115497F8ABD}.Release MT Dll.Build.0 = Release MT Dll|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

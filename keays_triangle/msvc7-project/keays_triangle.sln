@@ -1,0 +1,67 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "keays_triangle", "keays_triangle.vcproj", "{F509C9EB-BA4C-4BAC-8500-A3AD2CC8FEE3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5698CD20-5658-4B8A-A4F2-EC1597F0C9E0} = {5698CD20-5658-4B8A-A4F2-EC1597F0C9E0}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "keays_types", "..\..\keays_types\msvc7-project\keays_types.vcproj", "{877D6610-7C72-446C-BA70-C115497F8ABD}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "keays_math", "..\..\keays_math\msvc7-project\keays_math.vcproj", "{5698CD20-5658-4B8A-A4F2-EC1597F0C9E0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{877D6610-7C72-446C-BA70-C115497F8ABD} = {877D6610-7C72-446C-BA70-C115497F8ABD}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Debug MT = Debug MT
+		Debug MT Dll = Debug MT Dll
+		Release = Release
+		Release MT = Release MT
+		Release MT Dll = Release MT Dll
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{F509C9EB-BA4C-4BAC-8500-A3AD2CC8FEE3}.Debug.ActiveCfg = Debug|Win32
+		{F509C9EB-BA4C-4BAC-8500-A3AD2CC8FEE3}.Debug.Build.0 = Debug|Win32
+		{F509C9EB-BA4C-4BAC-8500-A3AD2CC8FEE3}.Debug MT.ActiveCfg = Debug MT|Win32
+		{F509C9EB-BA4C-4BAC-8500-A3AD2CC8FEE3}.Debug MT.Build.0 = Debug MT|Win32
+		{F509C9EB-BA4C-4BAC-8500-A3AD2CC8FEE3}.Debug MT Dll.ActiveCfg = Debug MT Dll|Win32
+		{F509C9EB-BA4C-4BAC-8500-A3AD2CC8FEE3}.Debug MT Dll.Build.0 = Debug MT Dll|Win32
+		{F509C9EB-BA4C-4BAC-8500-A3AD2CC8FEE3}.Release.ActiveCfg = Release|Win32
+		{F509C9EB-BA4C-4BAC-8500-A3AD2CC8FEE3}.Release.Build.0 = Release|Win32
+		{F509C9EB-BA4C-4BAC-8500-A3AD2CC8FEE3}.Release MT.ActiveCfg = Release MT|Win32
+		{F509C9EB-BA4C-4BAC-8500-A3AD2CC8FEE3}.Release MT.Build.0 = Release MT|Win32
+		{F509C9EB-BA4C-4BAC-8500-A3AD2CC8FEE3}.Release MT Dll.ActiveCfg = Release MT Dll|Win32
+		{F509C9EB-BA4C-4BAC-8500-A3AD2CC8FEE3}.Release MT Dll.Build.0 = Release MT Dll|Win32
+		{877D6610-7C72-446C-BA70-C115497F8ABD}.Debug.ActiveCfg = Debug|Win32
+		{877D6610-7C72-446C-BA70-C115497F8ABD}.Debug.Build.0 = Debug|Win32
+		{877D6610-7C72-446C-BA70-C115497F8ABD}.Debug MT.ActiveCfg = Debug MT|Win32
+		{877D6610-7C72-446C-BA70-C115497F8ABD}.Debug MT.Build.0 = Debug MT|Win32
+		{877D6610-7C72-446C-BA70-C115497F8ABD}.Debug MT Dll.ActiveCfg = Debug MT Dll|Win32
+		{877D6610-7C72-446C-BA70-C115497F8ABD}.Debug MT Dll.Build.0 = Debug MT Dll|Win32
+		{877D6610-7C72-446C-BA70-C115497F8ABD}.Release.ActiveCfg = Release|Win32
+		{877D6610-7C72-446C-BA70-C115497F8ABD}.Release.Build.0 = Release|Win32
+		{877D6610-7C72-446C-BA70-C115497F8ABD}.Release MT.ActiveCfg = Release MT|Win32
+		{877D6610-7C72-446C-BA70-C115497F8ABD}.Release MT.Build.0 = Release MT|Win32
+		{877D6610-7C72-446C-BA70-C115497F8ABD}.Release MT Dll.ActiveCfg = Release MT Dll|Win32
+		{877D6610-7C72-446C-BA70-C115497F8ABD}.Release MT Dll.Build.0 = Release MT Dll|Win32
+		{5698CD20-5658-4B8A-A4F2-EC1597F0C9E0}.Debug.ActiveCfg = Debug|Win32
+		{5698CD20-5658-4B8A-A4F2-EC1597F0C9E0}.Debug.Build.0 = Debug|Win32
+		{5698CD20-5658-4B8A-A4F2-EC1597F0C9E0}.Debug MT.ActiveCfg = Debug MT|Win32
+		{5698CD20-5658-4B8A-A4F2-EC1597F0C9E0}.Debug MT.Build.0 = Debug MT|Win32
+		{5698CD20-5658-4B8A-A4F2-EC1597F0C9E0}.Debug MT Dll.ActiveCfg = Debug MT Dll|Win32
+		{5698CD20-5658-4B8A-A4F2-EC1597F0C9E0}.Debug MT Dll.Build.0 = Debug MT Dll|Win32
+		{5698CD20-5658-4B8A-A4F2-EC1597F0C9E0}.Release.ActiveCfg = Release|Win32
+		{5698CD20-5658-4B8A-A4F2-EC1597F0C9E0}.Release.Build.0 = Release|Win32
+		{5698CD20-5658-4B8A-A4F2-EC1597F0C9E0}.Release MT.ActiveCfg = Release MT|Win32
+		{5698CD20-5658-4B8A-A4F2-EC1597F0C9E0}.Release MT.Build.0 = Release MT|Win32
+		{5698CD20-5658-4B8A-A4F2-EC1597F0C9E0}.Release MT Dll.ActiveCfg = Release MT Dll|Win32
+		{5698CD20-5658-4B8A-A4F2-EC1597F0C9E0}.Release MT Dll.Build.0 = Release MT Dll|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

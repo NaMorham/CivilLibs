@@ -1,0 +1,19 @@
+/*! \page tut04 Tutorial 04: Loading Resources
+
+Before we can create geometry and entities to fill our world, me must first create and initialise any resources we wish to use. First, we will load textures from files. The following example assumes that filenames is a valid array of type std::string, representing the filenames and paths of textures to open.
+
+\code
+int *textureIDs = new int[numTexturesToOpen];
+
+for (int i = 0; i < numTexturesToOpen; i++)
+{
+	if (FAILED(KSR->LoadTextureFromFile(filenames[i].c_str(), &textureIDs[i])))
+		return E_FAIL;
+}
+\endcode
+
+We have now loaded the textures into memory and have stored the unique identifiers for each in textureIDs. From here on, geometry can use these textures by specifying an index that corresponds to a previously loaded texture.
+
+For more information on Resources, see \ref resources.\n
+Next Tutorial: \ref tut05
+*/

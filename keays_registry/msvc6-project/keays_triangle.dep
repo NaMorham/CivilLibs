@@ -1,0 +1,20 @@
+# Microsoft Developer Studio Generated Dependency File, included by keays_triangle.mak
+
+..\src\triangle.cpp : \
+	"..\..\keays_math\include\geometry.h"\
+	"..\..\keays_math\include\keays_math.h"\
+	"..\..\keays_math\include\mathhelp.h"\
+	"..\..\keays_types\include\keays_types.h"\
+	"..\include\triangle.h"\
+	"l:\include\leakwatcher.h"\
+	
+
+..\src\UTFile.cpp : \
+	"..\..\keays_math\include\geometry.h"\
+	"..\..\keays_math\include\keays_math.h"\
+	"..\..\keays_math\include\mathhelp.h"\
+	"..\..\keays_types\include\keays_types.h"\
+	"..\include\triangle.h"\
+	"..\include\UTFile.h"\
+	"l:\include\leakwatcher.h"\
+	

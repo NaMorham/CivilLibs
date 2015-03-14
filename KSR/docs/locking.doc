@@ -1,0 +1,23 @@
+/*! \page locking Gaining Access to Geometry Data
+
+It is possible within KSR to gain access to data stored within geometry buffers. This made possible by the Lock() and Unlock() methods available exposed by KSRGeometry, KSRScene and KSRVisual.
+
+During a lock, KSR copies the data within a buffer to non-volatile system memory. Here, the data can be modified safely. When the Unlock() call is made, the original data is updated and the ambiguous memory freed. Note that every Lock() call must have an Unlock() call. Failing to Unlock will result in memory leaks and may cause your application to crash.
+
+\code
+KSRChunk *pChunks = NULL;
+VERTEX_NORMAL_TEX1 *pVerts = NULL;
+int *pIndices = NULL;
+
+if (FAILED(geometry->Lock((LPVOID*)&pChunks, (LPVOID*)&pVerts, (LPVOID*)&pIndices)))
+	return E_FAIL;
+
+for (int i = pChunks[0].startIndex; i < pChunks[0].startIndex + pChunks[0].numVerts; i++)
+	pVerts[pIndices[i]].position += pVerts[pIndices[i]].normal * 2;
+
+if (FAILED(geometry->Unlock()))
+	return E_FAIL;
+\endcode
+
+In this example we want to scale the vertices of the first chunk. We have a geometry buffer filled with valid chunk, vertex and index data. We are modifying the data for the first chunk by using the chunk's startIndex and numVerts members to interpret the vertex and index data.
+*/

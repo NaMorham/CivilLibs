@@ -1,0 +1,31 @@
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "keays_types", "keays_types.vcproj", "{430B84AE-694F-442D-A534-E0E48D90C3BC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug MT Dll|Win32 = Debug MT Dll|Win32
+		Debug MT|Win32 = Debug MT|Win32
+		Debug|Win32 = Debug|Win32
+		Release MT Dll|Win32 = Release MT Dll|Win32
+		Release MT|Win32 = Release MT|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{430B84AE-694F-442D-A534-E0E48D90C3BC}.Debug MT Dll|Win32.ActiveCfg = Debug MT Dll|Win32
+		{430B84AE-694F-442D-A534-E0E48D90C3BC}.Debug MT Dll|Win32.Build.0 = Debug MT Dll|Win32
+		{430B84AE-694F-442D-A534-E0E48D90C3BC}.Debug MT|Win32.ActiveCfg = Debug MT|Win32
+		{430B84AE-694F-442D-A534-E0E48D90C3BC}.Debug MT|Win32.Build.0 = Debug MT|Win32
+		{430B84AE-694F-442D-A534-E0E48D90C3BC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{430B84AE-694F-442D-A534-E0E48D90C3BC}.Debug|Win32.Build.0 = Debug|Win32
+		{430B84AE-694F-442D-A534-E0E48D90C3BC}.Release MT Dll|Win32.ActiveCfg = Release MT Dll|Win32
+		{430B84AE-694F-442D-A534-E0E48D90C3BC}.Release MT Dll|Win32.Build.0 = Release MT Dll|Win32
+		{430B84AE-694F-442D-A534-E0E48D90C3BC}.Release MT|Win32.ActiveCfg = Release MT|Win32
+		{430B84AE-694F-442D-A534-E0E48D90C3BC}.Release MT|Win32.Build.0 = Release MT|Win32
+		{430B84AE-694F-442D-A534-E0E48D90C3BC}.Release|Win32.ActiveCfg = Release|Win32
+		{430B84AE-694F-442D-A534-E0E48D90C3BC}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

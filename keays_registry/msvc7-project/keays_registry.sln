@@ -1,0 +1,21 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "keays_registry", "keays_registry.vcproj", "{2152503D-B15C-48E7-9329-30EE97BA4CBC}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{2152503D-B15C-48E7-9329-30EE97BA4CBC}.Debug.ActiveCfg = Debug|Win32
+		{2152503D-B15C-48E7-9329-30EE97BA4CBC}.Debug.Build.0 = Debug|Win32
+		{2152503D-B15C-48E7-9329-30EE97BA4CBC}.Release.ActiveCfg = Release|Win32
+		{2152503D-B15C-48E7-9329-30EE97BA4CBC}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

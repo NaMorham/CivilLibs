@@ -1,0 +1,33 @@
+/*! \mainpage Keays Simulation & Rendering API Documentation
+
+\section introduction Introduction
+KSR is an Application Programming Interface (API) which provides systems to simplify the creation of high-performance, real-time 3D applications.
+
+This documentation is divided into the following sections.
+
+\section usermanual User Manual
+<UL>
+<LI>\ref version\n</LI>
+<LI>\ref gettingstarted\n</LI>
+<LI>\ref advancedtopics\n</LI>
+<LI>\ref ksrx\n</LI>
+<LI>\ref tools\n</LI>
+</UL>
+
+\section ksrreference KSR Reference
+Blah.
+
+\section ksrxreference KSRX Reference
+Blah.
+
+\section tutorials Tutorials
+<UL>
+<LI>\ref tut01\n</LI>
+<LI>\ref tut02\n</LI>
+<LI>\ref tut03\n</LI>
+<LI>\ref tut04\n</LI>
+<LI>\ref tut05\n</LI>
+</UL>
+
+\section samples Samples
+Blah.*/

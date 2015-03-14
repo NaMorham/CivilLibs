@@ -1,0 +1,77 @@
+/*! \page tut05 Tutorial 05: Loading Static Geometry
+
+Before we can add geometry to the scene we must create and initialise it. First, we must decide what vertex type we are going to use. For this example, we will use VERTEX_NORMAL_TEX2, a vertex with an XYZ position, an XYZ normal vector and two sets of texture coordinates. We will not be using any index data in this example.
+
+\code
+VERTEX_NORMAL_TEX2 vertices[4];
+KSRChunk chunk;
+\endcode
+
+Now we must fill the geometry objects with useful data.
+
+\code
+vertices[0].position = Vector3( 0, 0,  0);
+vertices[1].position = Vector3( 0, 0, 10);
+vertices[2].position = Vector3(10, 0,  0);
+vertices[3].position = Vector3(10, 0, 10);
+
+vertices[0].normal = Vector3(0, 1, 0);
+vertices[1].normal = Vector3(0, 1, 0);
+vertices[2].normal = Vector3(0, 1, 0);
+vertices[3].normal = Vector3(0, 1, 0);
+
+vertices[0].uv[0] = Vector3(0, 0);
+vertices[0].uv[1] = Vector3(0, 0);
+vertices[1].uv[0] = Vector3(0, 1);
+vertices[1].uv[1] = Vector3(0, 1);
+vertices[2].uv[0] = Vector3(1, 0);
+vertices[2].uv[1] = Vector3(1, 0);
+vertices[3].uv[0] = Vector3(1, 1);
+vertices[3].uv[1] = Vector3(1, 1);
+
+chunk.idTexture0 = 0;
+chunk.idTexture1 = 1;
+chunk.startIndex = 0;
+chunk.numVerts = 4;
+chunk.type = FT_POLYGON;
+\endcode
+
+The next step is to pass this data to a KSRScene. Before any data is passed, a call to KSRScene::InitGeometry should be made. This will tell KSR what data formats you are using for this scene. Once you have done this, you may begin making calls to KSRScene::InsertGeometry(). InsertGeometry appends the given data to the scene memory buffers.
+
+\code
+if (FAILED(scene->InitGeometry(sizeof(VERTEX_NORMAL_TEX2), FVF_NORMAL_TEX2, IT_32)))
+	return E_FAIL;
+if (FAILED(scene->InsertGeometry(1, 4, 0, &chunk, vertices, NULL)))
+	return E_FAIL;
+\endcode
+
+Alternatively, you could call an overloaded KSRScene::InsertGeometry() function that takes a pointer to one single KSRGeometry structure. In this example, the KSRGeometry structure stores the data we passed in our original KSRInterface::InsertGeometry() call. Passing the data this way makes the call somewhat less obtuse and if necessary will allow us to store this data in a more organised fashion. When using this method we no longer need to manually call KSRInterface::InitGeometry(). Therefore, this step can now implemented as follows.
+
+\code
+KSRGeometry geometry;
+geometry->vertexLength = sizeof(VERTEX_NORMAL_TEX2);
+geometry->vertexFormat = FVF_NORMAL_TEX2;
+geometry->indexLength  = 4;
+geometry->numChunks = 1;
+geometry->numVertices = 4;
+geometry->numIndices = 0;
+geometry->chunks = &chunk;
+geometry->vertices = vertices;
+geometry->indices = NULL;
+
+if (FAILED(KSR->InsertGeometry(&geometry)))
+	return E_FAIL;
+\endcode
+
+These two methods bear identical results, although their use may better suit the design of one application over another.
+
+Once our world has been given some data, we may wish to subdivide it. Doing this will allow the world to be split up into a tree of smaller nodes and will sort static geometry data into these nodes, allowing for increased performance. For more information, see \ref subdividing.
+
+\code
+if (FAILED(KSR->SubdivideWorld()))
+	return E_FAIL;
+\endcode
+
+For more information on Static Geometry see \ref geometry.\n
+Next Tutorial: \ref tut05
+*/

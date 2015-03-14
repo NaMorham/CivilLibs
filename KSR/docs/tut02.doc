@@ -1,0 +1,43 @@
+/*! \page tut02 Tutorial 02: Creating a Viewport
+
+Once you have created your application window and initialised your KSR Interface, you may begin creating viewports for rendering to.
+
+\code
+KSRViewportSettings vps;
+vps.width = 1024;
+vps.height = 768;
+vps.viewWidth = 1000;
+vps.viewHeight = 1000;
+vps.pointSize = 10;
+vps.nearClipPlane = 1;
+vps.farClipPlane = 1000000;
+vps.fogStart = 50;
+vps.fogEnd = 2000;
+vps.bgColour = 0x00000000;
+vps.fogColour = 0xff22aa55;
+vps.fov = 80;
+vps.cullMode = VS_CCW;
+vps.projectionMode = VS_PERSPECTIVE;
+vps.fillMode = VS_SOLID;
+vps.shadeMode = VS_GOURAUD;
+vps.pointMode = VS_STATIC;
+vps.depthStencilMode = VS_ZBUFFER;
+vps.fog = true;
+vps.lighting = false;
+vps.textures = true;
+vps.magfiltering = true;
+vps.mipmapping = true;
+vps.multiSampling = true;
+vps.drawSpacePartition = false;
+
+LPKSRVIEWPORT viewport = NULL;
+
+if (FAILED(KSR->CreateViewport(hWndMain, &vps, &viewport)))
+	return E_FAIL;
+\endcode
+
+The first parameter of KSRInterface::CreateViewport() is a valid handle to the window you wish the viewport to render on. This does not have to be the top-level application window but can instead be a child window or control. The second parameter is a pointer to a KSRCoreSettings structure containing the initial settings for this viewport. If this parameter is NULL, KSR will use default settings. The third and final parameter is a pointer to the KSRViewport structure you wish to create.
+
+For more information on Viewports see \ref viewports.\n
+Next Tutorial: \ref tut03
+*/

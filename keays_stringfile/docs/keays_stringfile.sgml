@@ -1,0 +1,545 @@
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook V4.2//EN">
+
+<article>
+	<articleinfo>
+		<title>keays::stringfile Technical Documentation</title>
+			<author>
+      			<firstname>Karl</firstname>
+      			<surname>Janke</surname>
+      			<email>karl@keays.com.au</email>
+    		</author>
+  	</articleinfo>
+
+ 	<section>
+  		<title>Introduction</title>
+	  	<para> This document, along with the source code and its comments should help you
+	  			to understand how and why keays::stringfile works and exists. It contains several
+	  			sections. The first of the gives an introduction to the actual
+	  			<link linkend='string-record'>String Record</link>. It gives a high level view of the
+	  			indivial data structure used to store point information.
+	  	</para>
+
+	  	<para>
+	  		The next section, <link linkend='file-types'> File Types </link> contains documentation
+	  		the explains various file formats that use the String Record as their underlying data
+	  		 structure.
+	  	</para>
+
+	  	<para>
+	  		The final section, <link linkend='implementation-details'> Implementation Details </link>
+	  		documents the implementation.
+	  	</para>
+ 	</section>
+
+  	<section id='string-record'>
+  		<title>The String Record</title>
+		<note>
+			<para> This section will attempt to be implementation agonistic but will probably have a C/C++ leaning.</para>
+		</note>
+		<section>
+			<title> Overview </title>
+
+			<para>
+				The single string record is the building block of the string file. It is known
+				by many different names:
+			</para>
+
+			<itemizedlist mark='-' spacing='compact'>
+				<listitem>
+					<para>UR Record</para>
+				</listitem>
+				<listitem >
+					<para>Point</para>
+				</listitem>
+				<listitem>
+					<para>String Record</para>
+				</listitem>
+			</itemizedlist>
+
+			<para>
+				It stores all information about a point. It's format is as follows:
+			</para>
+
+			<table frame='all'>
+				<title>String Record Format</title>
+				<tgroup cols='3' align='center' colsep='1' rowsep='1'>
+					<thead>
+						<row>
+							<entry>Member</entry>
+							<entry>Type</entry>
+							<entry>Size (Bytes)</entry>
+							<entry>Short Description</entry>
+						</row>
+					</thead>
+
+					<tbody>
+						<row>
+							<entry>String Number</entry>
+							<entry>Integer</entry>
+							<entry>4</entry>
+							<entry>This is the string that this point belongs to.</entry>
+						</row>
+						<row>
+							<entry>Point Number</entry>
+							<entry>Integer</entry>
+							<entry>4</entry>
+							<entry>The number of this point</entry>
+						</row>
+						<row>
+							<entry>Easting</entry>
+							<entry>Double</entry>
+							<entry>8</entry>
+							<entry>Position East</entry>
+						</row>
+						<row>
+							<entry>Northing</entry>
+							<entry>Double</entry>
+							<entry>8</entry>
+							<entry>Position North</entry>
+						</row>
+						<row>
+							<entry>Altitude/RL</entry>
+							<entry>Double</entry>
+							<entry>8</entry>
+							<entry>Position Vertically</entry>
+						</row>
+						<row>
+							<entry>Plot Code</entry>
+							<entry>Character</entry>
+							<entry>4</entry>
+							<entry>What type of point this is</entry>
+						</row>
+						<row>
+							<entry>Notes</entry>
+							<entry>Character</entry>
+							<entry>12</entry>
+							<entry>Extra User information</entry>
+						</row>
+						<row>
+							<entry>Contour Point Plot</entry>
+							<entry>Character</entry>
+							<entry>1</entry>
+							<entry>If this is a point should it be visible in contour plots?</entry>
+						</row>
+						<row>
+							<entry>Contour String Plot</entry>
+							<entry>Character</entry>
+							<entry>1</entry>
+							<entry>If this is a string should it be visible in contour plots?</entry>
+						</row>
+						<row>
+							<entry>Feature Plot Plot</entry>
+							<entry>Character</entry>
+							<entry>1</entry>
+							<entry>If this is a point should it be visible in feature plots?</entry>
+						</row>
+						<row>
+							<entry>Feature String Plot</entry>
+							<entry>Character</entry>
+							<entry>1</entry>
+							<entry>If this is a string should it be visible in feature plots?</entry>
+						</row>
+						<row>
+							<entry>Unknown/Junk</entry>
+							<entry>?</entry>
+							<entry>4</entry>
+							<entry>These junk bytes purpose is unknown</entry>
+						</row>
+					</tbody>
+				</tgroup>
+			</table>
+		</section>
+
+		<section>
+			<title> Details </title>
+
+			<para> Where members of the string record require further explanation they are given here.
+			</para>
+
+			<section>
+				<title> String Number </title>
+				<para>
+					If the string number is 0 it means that the point is not on a string, but is a single point.
+					For any other value of the string number it is a string. A string is formed by drawing lines
+					between the points that have the same string number. The direction of this string should
+					be taken as the order of points in the file/memory.
+				</para>
+			</section>
+
+
+			<section>
+				<title> Point Number </title>
+				<para>
+					The	point number is only cosmetic and can be used by the user to help organize their strings.
+					It doesn't
+					determine string direction or any other important characteristics of the string.
+				</para>
+			</section>
+
+			<section>
+				<title> Plot Code </title>
+				<para>
+					When the record is plotted in feature mode the plot code can be used to find replacement
+					artwork. This is so a point with plot code TREE could be plotted as such.
+				</para>
+			</section>
+
+			<section>
+				<title> Contour Point Plot </title>
+				<para>
+					While this is a character field it only has two possible valid values:
+						<literal>Y</literal> and
+						<literal>N</literal>. If it is
+					 <literal>Y</literal> and this point is a single point then it should be drawn
+					 in contour plot mode. If it is
+					 <literal>N</literal> and this point is a single point it should not be drawn in contour plot mode.
+				</para>
+			</section>
+
+			<section>
+				<title> Contour String Plot </title>
+				<para>
+					There are four possible values for the contour string plot:
+
+					<variablelist>
+						<varlistentry>
+							<term>
+								<literal>S (Selected)</literal>
+							</term>
+							<listitem>
+								<para>
+									If this point is part of a string and we are in contour mode then draw the string.
+								</para>
+							</listitem>
+						</varlistentry>
+
+						<varlistentry>
+							<term>
+								<literal>U (Unselected)</literal>
+							</term>
+							<listitem>
+								<para>
+									If this point is part of a string then don't draw it in contour mode.
+								</para>
+							</listitem>
+						</varlistentry>
+
+						<varlistentry>
+							<term>
+								<literal>B (Boundary String)</literal>
+							</term>
+							<listitem>
+								<para>
+									This point is part of a the string that forms the boundary of this model.
+								</para>
+							</listitem>
+						</varlistentry>
+
+						<varlistentry>
+								<term>
+									<literal>I (Internal Polygon)</literal>
+								</term>
+								<listitem>
+									<para>
+										This point is part of a string that forms an internal polygon. Used by the triangulation routine.
+									</para>
+								</listitem>
+						</varlistentry>
+					</variablelist>
+				</para>
+			</section>
+
+			<section>
+				<title> Feature Point Plot </title>
+				<para>
+					This is exactly like the Contour Point Point except that it applies to Feature mode.
+				</para>
+			</section>
+
+			<section>
+				<title> Feature String Plot </title>
+				<para>
+					Unlike the contour string plot there are two valid values for the feature string plot:
+					<literal>S</literal> and <literal>U</literal>. These two however maintain the same
+					meaning as contour string plot, except that it applies to feature plot mode.
+				</para>
+			</section>
+
+		</section>
+
+	</section>
+
+  	<section id='file-types'>
+  		<title>File formats</title>
+  		<para>
+  		There are two main formats that store string records. These are the
+  		<link linkend='universal-record'>Universal Record</link> and
+  		<link linkend='transfer-record'>Transfer Record</link>. It is worth noting that because these file formats were intiially developed to be save and loaded by FORTAN that a fixed length approach is taken to everything. Further more strings are not null terminated as C/C++ expects, so extra care has to be taken with them.
+  		</para>
+  		<section id='universal-record'>
+  			<title> Universal Record (UR) File Format </title>
+  			<para> The Universal Record file format is a binary file format. It is the binary representation of
+  			 		the string record structure written to disk.
+  			</para>
+			<para>
+				The UR file format is logically divided into 56 byte blocks. The first four blocks (224 bytes) make up a header that is explained in the table below. The rest of the file is made up of
+				<link linkend='string-record'>String Records</link> as described in the preceding section.
+			</para>
+
+
+		<table frame='all'>
+				<title>UR File Header Format</title>
+				<tgroup cols='14' align='center' colsep='1' rowsep='1'>
+					<colspec colname="c1">
+					<colspec colname='c2'>
+					<colspec colname='c3'>
+					<colspec colname='c4'>
+					<colspec colname='c5'>
+					<colspec colname='c6'>
+					<colspec colname='c7'>
+					<colspec colname="c8">
+					<colspec colname='c9'>
+					<colspec colname='c10'>
+					<colspec colname='c11'>
+					<colspec colname='c12'>
+					<colspec colname='c13'>
+					<colspec colname='c14'>
+					<colspec colname='c15'>
+					<thead>
+						<row>
+							<entry>0</entry>
+							<entry>4</entry>
+							<entry>8</entry>
+							<entry>12</entry>
+							<entry>16</entry>
+							<entry>20</entry>
+							<entry>24</entry>
+							<entry>28</entry>
+							<entry>32</entry>
+							<entry>36</entry>
+							<entry>40</entry>
+							<entry>44</entry>
+							<entry>48</entry>
+							<entry>52</entry>
+							<entry>56</entry>
+						</row>
+					</thead>
+
+					<tbody>
+						<row>
+							<entry namest="c1" nameend="c6">File Version</entry>
+							<entry namest="c7" nameend="c15">Junk</entry>
+						</row>
+						<row>
+							<entry namest="c1" nameend="c2">Number of Records</entry>
+							<entry namest="c3" nameend="c15">Junk</entry>
+						</row>
+						<row>
+							<entry namest="c1" nameend="c10">Title</entry>
+							<entry namest="c11" nameend="c15">Junk</entry>
+						</row>
+						<row>
+							<entry namest="c1" nameend="c10">Company</entry>
+							<entry namest="c11" nameend="c15">Junk</entry>
+						</row>
+						<row>
+							<entry namest="c1" nameend="c15">String Record</entry>
+						</row>
+						<row>
+							<entry namest="c1" nameend="c15">String Record</entry>
+						</row>
+						<row>
+							<entry namest="c1" nameend="c15">........</entry>
+						</row>
+					</tbody>
+				</tgroup>
+			</table>
+
+			<section id='transfer-record'><title>File Version</title>
+				<para>
+					This is a 20 byte character string that describes the version of the file. The current version is <literal>Version 2.2 and over</literal>. Anything other than this is not recognized as being a valid file version. There are most likely older, previous versions. However I have not ever encountered them so am unable to document them here.
+				</para>
+
+			</section>
+
+			<section><title>Title</title>
+				<para>
+					This is a header field that specifies the title of the model. It is a 40 byte character string.
+				</para>
+			</section>
+
+			<section><title>Company</title>
+				<para>
+					This is a header field that specifies the company that designed the model. It is a 40 byte character string.
+				</para>
+			</section>
+
+			<section><title>Junk</title>
+				<para>
+					The junk areas of the header should be zero but are more likely to be random, junk memory.
+				</para>
+			</section>
+
+  		</section>
+  		<section>
+  			<title> Transfer Record (TR) File Format </title>
+  			<para> The transfer record file format is a human readable, text file format. It is line based, i.e each string record is on a separate line. There is a basic header line, but it is inconsistently  implemented across the different KEAYS programs. Depending on it for any versioning information is futile. It is suggested that the first line of the file simply be discarded before beginning parsing of the string records. Their is no way to determine the number of records in the file, just keep reading lines until there are no more.
+  			</para>
+
+  			<para>
+  				The format of the records is a fixed length format. This means that each field of the record is a fixed length. Depending on the length of the data there might be space between records but this is not guaranteed, or even likely. To add to this confusion some records do have space between them. The following table gives the length (in characters) of each field and where any spaces fall.
+  			</para>
+			<table frame='all'>
+				<title>TR File Format</title>
+				<tgroup cols='2' align='center' colsep='1' rowsep='1'>
+					<thead>
+						<row>
+							<entry>Field</entry>
+							<entry>Character Length</entry>
+						</row>
+					</thead>
+
+					<tbody>
+						<row>
+							<entry>String Number</entry>
+							<entry>6</entry>
+						</row>
+						<row>
+							<entry>Point Number</entry>
+							<entry>6</entry>
+						</row>
+						<row>
+							<entry>Easting</entry>
+							<entry>13</entry>
+						</row>
+						<row>
+							<entry>Northing</entry>
+							<entry>13</entry>
+						</row>
+						<row>
+							<entry>Altitude</entry>
+							<entry>10</entry>
+						</row>
+						<row>
+							<entry>Fixed Space</entry>
+							<entry>1</entry>
+						</row>
+						<row>
+							<entry>Plot Code</entry>
+							<entry>4</entry>
+						</row>
+						<row>
+							<entry>Fixed Space</entry>
+							<entry>1</entry>
+						</row>
+						<row>
+							<entry>Notes</entry>
+							<entry>12</entry>
+						</row>
+						<row>
+							<entry>Contour Point Plot</entry>
+							<entry>1</entry>
+						</row>
+						<row>
+							<entry>Contour String Plot</entry>
+							<entry>1</entry>
+						</row>
+						<row>
+							<entry>Feature Plot Plot</entry>
+							<entry>1</entry>
+						</row>
+						<row>
+							<entry>Feature String Plot</entry>
+							<entry>1</entry>
+						</row>
+					</tbody>
+				</tgroup>
+			</table>
+
+			<para>
+				Note that the double precision numbers (Easting, Northing, Altitude) will generally have 4 digits of precision after the decimal place. However if the number is so large that it exceeds this then the precision following the decimal point will be reduced in favour of preserving the whole component of the number.
+			</para>
+
+			<example><title>An Example TR File</title>
+				<para>
+					<programlisting>
+KEAYS	Version 2.2 and over	wxTRFile Reader/Writer
+     0     0       0.0000       0.0000    0.0000                  NUNU
+     1     1       1.0000       1.0000    1.0000 P    N           YSYS
+    22    22      22.0000      22.0000   22.0000 PP   NN          YSYS
+   333   333     333.0000     333.0000  333.0000 PPP  NNN         YSYS
+  4444  4444    4444.0000    4444.0000 4444.0000 PPPP NNNN        YSYS
+ 55555 55555   55555.0000   55555.000055555.0000 PPPP NNNNN       YSYS
+666666666666  666666.0000  666666.0000666666.000 PPPP NNNNNN      YSYS
+666666666666 7777777.0000  777777.00007777777.00 PPPP NNNNNNN     YSYS
+66666666666688888888.000088888888.000088888888.0 PPPP NNNNNNNN    YSYS
+666666666666999999999.000999999999.000999999999. PPPP NNNNNNNNN   YSYS
+6666666666661010101010.001010101010.001010101010 PPPP NNNNNNNNNN  YSYS
+66666666666612121212121.012121212121.01010101010 PPPP NNNNNNNNNNN YSYS
+666666666666131313131313.131313131313.1010101010 PPPP NNNNNNNNNNNNYSYS
+123456123456123456789123412345678912341234567890 PPPP NNNNNNNNNNNNYSYS
+					</programlisting>
+				This contrived example demonstrates the limits of the TR file format.
+				</para>
+			</example>
+
+  		</section>
+  	</section>
+
+	<section id='implementation-details'>
+		<title>Implemenation Specific Details</title>
+		<para>
+			There are several classes that make up the keays::stringfile library. There are described here along with any other implementation errata. The keays::stringfile library is made up of the Data, File, URFile and TRFile objects. Their is also a keays::stringfile::wx namespace in the keays::stringfile library that includes BSPFile, URFile and TRFile objects.
+		</para>
+
+		<section>
+			<title>keays::stringfile</title>
+			<para></para>
+
+			<section>
+				<title>keays::stringfile::Data</title>
+				<para>The Data object is a container that contains string records. Its provides methods to operate on these records. Supported operations include adding, removing and changing records. Other methods exist for finding the closest record to a point, of if a point lies on a line between two points. </para>
+			</section>
+
+			<section>
+				<title>keays::stringfile::File</title>
+				<para>The abstract class provides an interface that objects wishing to save or load string records from a keays::stringfile::Data object must implement. </para>
+			</section>
+
+			<section>
+				<title>keays::stringfile::URFile</title>
+				<para>This object is not implemented yet.</para>
+			</section>
+
+			<section>
+				<title>keays::stringfile::TRFile</title>
+				<para>This object is not implemented yet.</para>
+			</section>
+		</section>
+
+		<section>
+			<title>keays::stringfile::wx namespace</title>
+			<para>
+				A ::wx section was added to the keays::stringfile namespace because of the need of loading routines to give user feedback such as progress dialogs and message boxes for errors. This section depends on <ulink url="http://www.wxwidgets.org">wxWidgets</ulink>. Also wxWidgets includes other classes that were used, including wxString and file handling related classes.
+			</para>
+
+			<section>
+				<title>keays::stringfile::wx::TRFile</title>
+				<para>Supports loading and saving to TR files.</para>
+			</section>
+
+			<section>
+				<title>keays::stringfile::wx::URFile</title>
+				<para>Supports loading and saving to UR files.</para>
+			</section>
+
+			<section>
+				<title>keays::stringfile::wx::BSPFile</title>
+				<para> The BSPFile object allows the loading of the .bsp format used by the Quake series of games. It has only been tested with Quake 3 maps. Saving is not supported. </para>
+			</section>
+
+		</section>
+
+	</section>
+</article>
+

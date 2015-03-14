@@ -1,0 +1,40 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KSRX", "..\..\KSRX\msvc7-proj\KSRX.vcproj", "{A0B4A9DA-B023-4BE5-99A4-4B1D59AA447B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{54EA8D2F-8DB5-4694-814A-716AD66666DC} = {54EA8D2F-8DB5-4694-814A-716AD66666DC}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KSR", "KeaysToolkit.vcproj", "{54EA8D2F-8DB5-4694-814A-716AD66666DC}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Debug MT DLL = Debug MT DLL
+		Release = Release
+		Release MT DLL = Release MT DLL
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{A0B4A9DA-B023-4BE5-99A4-4B1D59AA447B}.Debug.ActiveCfg = Debug|Win32
+		{A0B4A9DA-B023-4BE5-99A4-4B1D59AA447B}.Debug.Build.0 = Debug|Win32
+		{A0B4A9DA-B023-4BE5-99A4-4B1D59AA447B}.Debug MT DLL.ActiveCfg = Debug MT DLL|Win32
+		{A0B4A9DA-B023-4BE5-99A4-4B1D59AA447B}.Debug MT DLL.Build.0 = Debug MT DLL|Win32
+		{A0B4A9DA-B023-4BE5-99A4-4B1D59AA447B}.Release.ActiveCfg = Release|Win32
+		{A0B4A9DA-B023-4BE5-99A4-4B1D59AA447B}.Release.Build.0 = Release|Win32
+		{A0B4A9DA-B023-4BE5-99A4-4B1D59AA447B}.Release MT DLL.ActiveCfg = Release MT DLL|Win32
+		{A0B4A9DA-B023-4BE5-99A4-4B1D59AA447B}.Release MT DLL.Build.0 = Release MT DLL|Win32
+		{54EA8D2F-8DB5-4694-814A-716AD66666DC}.Debug.ActiveCfg = Debug|Win32
+		{54EA8D2F-8DB5-4694-814A-716AD66666DC}.Debug.Build.0 = Debug|Win32
+		{54EA8D2F-8DB5-4694-814A-716AD66666DC}.Debug MT DLL.ActiveCfg = Debug MT DLL|Win32
+		{54EA8D2F-8DB5-4694-814A-716AD66666DC}.Debug MT DLL.Build.0 = Debug MT DLL|Win32
+		{54EA8D2F-8DB5-4694-814A-716AD66666DC}.Release.ActiveCfg = Release|Win32
+		{54EA8D2F-8DB5-4694-814A-716AD66666DC}.Release.Build.0 = Release|Win32
+		{54EA8D2F-8DB5-4694-814A-716AD66666DC}.Release MT DLL.ActiveCfg = Release MT DLL|Win32
+		{54EA8D2F-8DB5-4694-814A-716AD66666DC}.Release MT DLL.Build.0 = Release MT DLL|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

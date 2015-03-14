@@ -1,0 +1,98 @@
+Microsoft Developer Studio Workspace File, Format Version 6.00
+# WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
+
+###############################################################################
+
+Project: "EffectFramework"=".\EffectFramework\EffectFramework.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name KeaysToolkit
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name KSRX
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "KSRX"="..\KSRX\KSRX.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name KeaysToolkit
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "KeaysToolkit"=".\KeaysToolkit.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "Quake3 BSP"=".\Quake3 BSP\Quake3 BSP.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name KeaysToolkit
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name KSRX
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "UT Loader"=".\UT Loader\UT Loader.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name KeaysToolkit
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name KSRX
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Global:
+
+Package=<5>
+{{{
+}}}
+
+Package=<3>
+{{{
+}}}
+
+###############################################################################
+

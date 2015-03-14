@@ -1,0 +1,10 @@
+/*! \page ksrx Keays Simulation & Renderering Extensions (KSRX)
+
+The KSR Extension API is a utility library that provides routines to assist the intergration of KSR features into Win32 Applications.
+
+\section fileio File I/O
+Some stuff on the Save/Load functions here.
+
+For a full list of file formats supported by KSRX, see \ref fileformats.\n
+
+*/

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding = "Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="7.00"
+	Name="keays_triangle"
+	SccProjectName=""
+	SccLocalPath="">
+	<Platforms>
+		<Platform
+			Name="Win32"/>
+	</Platforms>
+	<Configurations>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory=".\..\build\Release"
+			IntermediateDirectory=".\..\build\Release"
+			ConfigurationType="2"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..\keays_types\include,..\..\keays_math\include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;KEAYS_TRIANGLE_EXPORTS"
+				StringPooling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
+				PrecompiledHeaderFile=".\..\build\Release/keays_triangle.pch"
+				AssemblerListingLocation=".\..\build\Release/"
+				ObjectFile=".\..\build\Release/"
+				ProgramDataBaseFileName=".\..\build\Release/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/MACHINE:I386"
+				AdditionalDependencies="odbc32.lib odbccp32.lib keays_types.lib keays_math.lib"
+				OutputFile=".\..\build\Release/keays_triangle.dll"
+				LinkIncremental="1"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="..\..\keays_types\bin,..\..\keays_math\bin"
+				ProgramDatabaseFile=".\..\build\Release/keays_triangle.pdb"
+				GenerateMapFile="TRUE"
+				MapFileName=".\..\build\Release/keays_triangle.map"
+				ImportLibrary=".\..\build\Release/keays_triangle.lib"/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="TRUE"
+				SuppressStartupBanner="TRUE"
+				TargetEnvironment="1"
+				TypeLibraryName=".\..\build\Release/keays_triangle.tlb"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="copy to bin directory (RELEASE)"
+				CommandLine="copy $(OutDir)\keays_triangle.dll ..\bin
+copy $(OutDir)\keays_triangle.lib ..\bin
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="3081"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+		</Configuration>
+		<Configuration
+			Name="Debug|Win32"
+			OutputDirectory=".\..\build\Debug"
+			IntermediateDirectory=".\..\build\Debug"
+			ConfigurationType="2"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\keays_types\include,..\..\keays_math\include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;KEAYS_TRIANGLE_EXPORTS"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				PrecompiledHeaderFile=".\..\build\Debug/keays_triangle.pch"
+				AssemblerListingLocation=".\..\build\Debug/"
+				ObjectFile=".\..\build\Debug/"
+				ProgramDataBaseFileName=".\..\build\Debug/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="4"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/MACHINE:I386"
+				AdditionalDependencies="odbc32.lib odbccp32.lib keays_typesD.lib keays_mathD.lib"
+				OutputFile="..\build\Debug/keays_triangleD.dll"
+				LinkIncremental="2"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="..\..\keays_types\bin,..\..\keays_math\bin"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile=".\..\build\Debug/keays_triangleD.pdb"
+				ImportLibrary=".\..\build\Debug/keays_triangleD.lib"/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="TRUE"
+				SuppressStartupBanner="TRUE"
+				TargetEnvironment="1"
+				TypeLibraryName=".\..\build\Debug/keays_triangle.tlb"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copy to bin directory (DEBUG)"
+				CommandLine="copy $(OutDir)\keays_triangleD.dll ..\bin
+copy $(OutDir)\keays_triangleD.lib ..\bin
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="3081"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+		</Configuration>
+	</Configurations>
+	<Files>
+		<Filter
+			Name="Source Files"
+			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+			<File
+				RelativePath="..\src\UTFile.cpp">
+			</File>
+			<File
+				RelativePath="..\src\triangle.cpp">
+			</File>
+		</Filter>
+		<Filter
+			Name="Header Files"
+			Filter="h;hpp;hxx;hm;inl">
+			<File
+				RelativePath="..\include\UTFile.h">
+			</File>
+			<File
+				RelativePath="..\include\keays_triangle.h">
+			</File>
+			<File
+				RelativePath="..\include\triangle.h">
+			</File>
+		</Filter>
+		<File
+			RelativePath=".\ReadMe.txt">
+		</File>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>
