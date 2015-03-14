@@ -14,8 +14,10 @@
 #include <keays_types.h>	// keays types includes
 #include <math.h>				// system math includes (sin/cos/abs etc)
 #include <stdio.h>
+#ifdef _WIN32
 #include <windows.h>
 #include <tchar.h>
+#endif
 
 namespace ktf = keays::types::Float;
 
