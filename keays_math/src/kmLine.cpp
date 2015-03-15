@@ -22,18 +22,18 @@ static char THIS_FILE[] = __FILE__;
 
 #pragma warning(disable : 4786) // ignore the long name warning associated with stl stuff
 
-using namespace std;		// to get access to std:: stuff
-
 namespace keays
 {
 namespace math
 {
+    namespace ktf = keays::types::Float;
+    namespace kt = keays::types;
 
 //--------------------------------------------------------------
 Line::Line()
 {
-	start = VectorD3(0,0,0);
-	end = VectorD3(1,0,0);
+	start = kt::VectorD3(0,0,0);
+    end = kt::VectorD3(1, 0, 0);
 }
 
 //--------------------------------------------------------------
@@ -44,14 +44,14 @@ Line::Line(const Line &ln)
 }
 
 //--------------------------------------------------------------
-Line::Line(const VectorD2 &st, const VectorD2 &en)
+Line::Line(const kt::VectorD2 &st, const kt::VectorD2 &en)
 {
 	start = st;
 	end = en;
 }
 
 //--------------------------------------------------------------
-Line::Line(const VectorD3 &st, const VectorD3 &en)
+Line::Line(const kt::VectorD3 &st, const kt::VectorD3 &en)
 {
 	start = st;
 	end = en;
@@ -66,15 +66,15 @@ const Line &Line::operator=(const Line &rhs)
 }
 
 //--------------------------------------------------------------
-Line::operator VectorD3() const
+Line::operator keays::types::VectorD3() const
 {
 	return end - start;
 }
 
 //--------------------------------------------------------------
-Line::operator VectorD2() const
+Line::operator keays::types::VectorD2() const
 {
-	return VectorD2(end.x - start.x, end.y - start.y);
+    return keays::types::VectorD2(end.x - start.x, end.y - start.y);
 }
 
 //--------------------------------------------------------------
@@ -125,7 +125,7 @@ const Line &Line::ExtendMid(const double &newLength)
 	} else
 	{
 		double halfLen = newLength / 2.0;
-		VectorD3 adjust = (end - start).GetNormalised() * halfLen;
+        keays::types::VectorD3 adjust = (end - start).GetNormalised() * halfLen;
 		start = mid - adjust;
 		end = mid + adjust;
 	}
@@ -197,40 +197,41 @@ const double Line::GetGrade() const
 }
 
 //--------------------------------------------------------------
-const VectorD3 Line::GetMidPoint() const
+const keays::types::VectorD3 Line::GetMidPoint() const
 {
 	double x, y, z;
 	x = (end.x + start.x) / 2;
 	y = (end.y + start.y) / 2;
 	z = (end.z + start.z) / 2;
-	return VectorD3(x, y, z);
+    return keays::types::VectorD3(x, y, z);
 }
 
 //-----------------------------------------------------------------------------
-bool Line::PointOnLine(const VectorD2 &pt, const double &tolerance) const
+bool Line::PointOnLine(const keays::types::VectorD2 &pt, const double &tolerance) const
 {
-	VectorD2 rEnd, rPt;
+    keays::types::VectorD2 rEnd, rPt;
 
 	rEnd = RotatePoint(end.XY());
 	rPt = RotatePoint(pt);
 
-	if (Float::EqualTo((rPt.y - pt.y), 0.0, tolerance))
+    if (keays::types::Float::EqualTo((rPt.y - pt.y), 0.0, tolerance))
 		return true;
 	else
 		return false;
 }
 
 //--------------------------------------------------------------
-bool Line::PointOnSegment(const VectorD2 &pt, const double &tolerance) const
+bool Line::PointOnSegment(const keays::types::VectorD2 &pt, const double &tolerance) const
 {
-	VectorD2 rEnd, rPt;
+    keays::types::VectorD2 rEnd, rPt;
 
 	rEnd = RotatePoint(end.XY());
 	rPt = RotatePoint(pt);
 
-	if (Float::EqualTo((rPt.y - start.y), 0.0, tolerance))
+    if (keays::types::Float::EqualTo((rPt.y - start.y), 0.0, tolerance))
 	{
-		if (Float::GreaterOrEqual(rPt.x, start.x, tolerance) && Float::LessOrEqual(rPt.x, rEnd.x, tolerance))
+        if (keays::types::Float::GreaterOrEqual(rPt.x, start.x, tolerance) && 
+            keays::types::Float::LessOrEqual(rPt.x, rEnd.x, tolerance))
 			return true;
 	}
 
@@ -238,22 +239,23 @@ bool Line::PointOnSegment(const VectorD2 &pt, const double &tolerance) const
 }
 
 //--------------------------------------------------------------
-bool Line::PointNear(const VectorD2 &pt, double &distance, const double &tolerance) const
+bool Line::PointNear(const keays::types::VectorD2 &pt, double &distance, const double &tolerance) const
 {
-	const VectorD2 rPt = RotatePoint(pt);
+    const keays::types::VectorD2 rPt = RotatePoint(pt);
 
-	return (Float::LessOrEqual((rPt.y - start.y), distance, tolerance));
+    return (keays::types::Float::LessOrEqual((rPt.y - start.y), distance, tolerance));
 }
 
 //--------------------------------------------------------------
-bool Line::PointNearSegment(const VectorD2 &pt, double &distance, const double &tolerance) const
+bool Line::PointNearSegment(const keays::types::VectorD2 &pt, double &distance, const double &tolerance) const
 {
-	const VectorD2 rPt = RotatePoint(pt);
-	const VectorD2 rEnd = RotatePoint(pt);
+    const keays::types::VectorD2 rPt = RotatePoint(pt);
+    const keays::types::VectorD2 rEnd = RotatePoint(pt);
 
-	if (Float::LessOrEqual((rPt.y - start.y), distance, tolerance))
+    if (keays::types::Float::LessOrEqual((rPt.y - start.y), distance, tolerance))
 	{
-		if (Float::GreaterOrEqual(rPt.x, start.x) && Float::LessOrEqual(rPt.x, rEnd.x, tolerance))
+        if (keays::types::Float::GreaterOrEqual(rPt.x, start.x) && 
+            keays::types::Float::LessOrEqual(rPt.x, rEnd.x, tolerance))
 		{
 			return true;
 		} else
@@ -261,14 +263,15 @@ bool Line::PointNearSegment(const VectorD2 &pt, double &distance, const double &
 			// it might be near the ends
 			const double sDistance = Dist2D(start.XY(), pt);
 			const double eDistance = Dist2D(end.XY(), pt);
-			return (Float::LessOrEqual(sDistance, distance, tolerance) || Float::LessOrEqual(eDistance, distance, tolerance));
+            return (keays::types::Float::LessOrEqual(sDistance, distance, tolerance) || 
+                    keays::types::Float::LessOrEqual(eDistance, distance, tolerance));
 		}
 	}
 	return false;
 }
 
 //--------------------------------------------------------------
-bool Line::GetPointHeight(const VectorD3 &pt, double &height) const
+bool Line::GetPointHeight(const keays::types::VectorD3 &pt, double &height) const
 {
 	if (GetLength2D() == 0.0) // we are vertical
 	{
@@ -300,13 +303,13 @@ bool Line::GetPointHeight(const VectorD3 &pt, double &height) const
 
 
 //--------------------------------------------------------------
-const VectorD2 Line::RotatePoint(const VectorD2 &pt) const
+const keays::types::VectorD2 Line::RotatePoint(const keays::types::VectorD2 &pt) const
 {
 	return RotatePointXY(start.XY(), end.XY(), pt);
 }
 
 //--------------------------------------------------------------
-const VectorD2 Line::UnrotatePoint(const VectorD2 &pt) const
+const keays::types::VectorD2 Line::UnrotatePoint(const keays::types::VectorD2 &pt) const
 {
 	return UnRotatePointXY(start.XY(), end.XY(), pt);
 }
@@ -314,26 +317,33 @@ const VectorD2 Line::UnrotatePoint(const VectorD2 &pt) const
 //--------------------------------------------------------------
 const Line Line::CalcOffset(const double &dist, const eSideSelections side)
 {
-	if (side == SIDE_NONE)
-		return *this;
-
-	VectorD2 perp((end - start).GetNormalised().XY().GetPerpendicular(side == SIDE_RIGHT) * dist);
+    if (side == SIDE_NONE)
+    {
+        return *this;
+    }
+    keays::types::VectorD2 perp((end - start).GetNormalised().XY().GetPerpendicular(side == SIDE_RIGHT) * dist);
 
 	return Line(start + perp, end + perp);
 }
 
 //--------------------------------------------------------------
-const Line Line::CalcOffset(const double &dist, const VectorD2 &pt)
+const Line Line::CalcOffset(const double &dist, const keays::types::VectorD2 &pt)
 {
 	double testDist;
 
 	testDist = GetPerpendicularDist(start.XY(), end.XY(), pt);
-	if (0 == testDist)
-		return *this;
-	else if (0 < testDist)
-		return CalcOffset(dist, SIDE_RIGHT);
-	else
-		return CalcOffset(dist, SIDE_LEFT);
+    if (0 == testDist)
+    {
+        return *this;
+    }
+    else if (0 < testDist)
+    {
+        return CalcOffset(dist, SIDE_RIGHT);
+    }
+    else
+    {
+        return CalcOffset(dist, SIDE_LEFT);
+    }
 }
 
 }	// namespace keays

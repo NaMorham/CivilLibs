@@ -24,8 +24,6 @@
 #define KEAYS_MATH_EXPORTS_API __declspec(dllimport)
 #endif
 
-using namespace keays::types;
-
 // Not sure where ubyte is defined (if anywhere). So redefine here.
 #if !defined(ubyte)
 #define ubyte unsigned char
@@ -88,14 +86,14 @@ enum KEAYS_MATH_EXPORTS_API eSideSelections
 
 /*! 
 	\brief The Line class represents a line in 3 dimensional space.
-	Effectively a point pair, using VectorD3.
+	Effectively a point pair, using keays::types::VectorD3.
  */
 class KEAYS_MATH_EXPORTS_API Line
 {
 public:
 	/*!
 		\brief Basic Constructor.
-		Constructs a simple line with 2 VectorD3 points [ 0, 0, 0 ] [ 1, 0, 0 ].
+		Constructs a simple line with 2 keays::types::VectorD3 points [ 0, 0, 0 ] [ 1, 0, 0 ].
 	 */
 	Line();
 
@@ -107,20 +105,20 @@ public:
 	Line(const Line &ln);
 
 	/*!
-		\brief Constructor (2 VectorD2 points).
+		\brief Constructor (2 keays::types::VectorD2 points).
 
 		\param st [In] - A constant reference to a <b>VectorD2</b> point for the start of the line.
 		\param en [In] - A constant reference to a <b>VectorD2</b> point for the end of the line.
 	 */
-	Line(const VectorD2 &st, const VectorD2 &en);
+    Line(const keays::types::VectorD2 &st, const keays::types::VectorD2 &en);
 
 	/*!
-		\brief Constructor (2 VectorD3 points).
+		\brief Constructor (2 keays::types::VectorD3 points).
 
-		\param st [In] - A constant reference to a VectorD3 point for the start of the line.
-		\param en [In] - A constant reference to a VectorD3 point for the end of the line.
+		\param st [In] - A constant reference to a keays::types::VectorD3 point for the start of the line.
+		\param en [In] - A constant reference to a keays::types::VectorD3 point for the end of the line.
 	 */
-	Line(const VectorD3 &st, const VectorD3 &en);
+    Line(const keays::types::VectorD3 &st, const keays::types::VectorD3 &en);
 
 	/*!
 		\brief Assignment operator.
@@ -133,18 +131,18 @@ public:
 	const Line &operator=(const Line &rhs);
 
 	/*!
-		\brief Casting operator to VectorD3.
+		\brief Casting operator to keays::types::VectorD3.
 
 		\return the 3D direction Vector representing the line.
 	 */
-	operator VectorD3() const;
+    operator keays::types::VectorD3() const;
 
 	/*!
-		\brief Casting operator to VectorD2.
+		\brief Casting operator to keays::types::VectorD2.
 
 		\return the 2D direction Vector representing the line.
 	 */
-	operator VectorD2() const;
+    operator keays::types::VectorD2() const;
 
 	/*
 		\defgroup lineUtilityFunctions Utility Functions
@@ -250,59 +248,59 @@ public:
 
 		\return a constant <b>VectorD3</b> representing the position of the midpoint
 	 */
-	const VectorD3 GetMidPoint() const;
+    const keays::types::VectorD3 GetMidPoint() const;
 
 	/*!
 		\brief Determine if a point is on the Line in the XY plane
 
-		\param        pt [In] - A constant reference to a VectorD2 point to test.
+		\param        pt [In] - A constant reference to a keays::types::VectorD2 point to test.
 		\param tolerance [In] - A constant reference to a <b>double</b> indicating the tolerance to use in the test.
 
 		\return true if the point is on the line
 	 */
-	bool PointOnLine(const VectorD2 &pt, const double &tolerance) const;
+    bool PointOnLine(const keays::types::VectorD2 &pt, const double &tolerance) const;
 
 	/*!
 		\brief Determine if a point is on the Line Segment in the XY plane
 
-		\param        pt [In] - A constant reference to a VectorD2 point to test.
+		\param        pt [In] - A constant reference to a keays::types::VectorD2 point to test.
 		\param tolerance [In] - A constant reference to a <b>double</b> indicating the tolerance to use in the test.
 
 		\return true if the point is on the line
 	 */
-	bool PointOnSegment(const VectorD2 &pt, const double &tolerance) const;
+    bool PointOnSegment(const keays::types::VectorD2 &pt, const double &tolerance = keays::types::Float::TOLERANCE) const;
 
 	/*!
 		\brief Determine if a point is within a given distance of a line.
 
-		\param        pt [In]  - A constant reference to a VectorD3 point to test.
+		\param        pt [In]  - A constant reference to a keays::types::VectorD3 point to test.
 		\param  distance [Out] - A reference to a <b>double</b> specifying the test distance.
 		\param tolerance [In]  - A constant reference to a <b>double</b> indicating the tolerance to use in the test.
 
 		\return true if the point is on the line, and the line is not vertical.
 	 */
-	bool PointNear(const VectorD2 &pt, double &distance, const double &tolerance = Float::TOLERANCE) const;
+    bool PointNear(const keays::types::VectorD2 &pt, double &distance, const double &tolerance = keays::types::Float::TOLERANCE) const;
 
 	/*!
 		\brief Determine if a point is within a given distance of a line segment.
 
-		\param        pt [In]  - A constant reference to a VectorD3 point to test.
+		\param        pt [In]  - A constant reference to a keays::types::VectorD3 point to test.
 		\param  diatsnce [Out] - A reference to a <b>double</b> specifying the test distance.
 		\param tolerance [In]  - A constant reference to a <b>double</b> indicating the tolerance to use in the test.
 
 		\return true if the point is on the line, and the line is not vertical.
 	 */
-	bool PointNearSegment(const VectorD2 &pt, double &distance, const double &tolerance = Float::TOLERANCE) const;
+    bool PointNearSegment(const keays::types::VectorD2 &pt, double &distance, const double &tolerance = keays::types::Float::TOLERANCE) const;
 
 	/*!
 		\brief Calculate the height of a specified point if it lies on the line.
 
-		\param     pt [In]  - A constant reference to a VectorD3 point to get the height for.
+		\param     pt [In]  - A constant reference to a keays::types::VectorD3 point to get the height for.
 		\param height [Out] - A reference to a <b>double</b> to receive the height value.
 
 		\return true if the point is on the line, and the line is not vertical.
 	 */
-	bool GetPointHeight(const VectorD3 &pt, double &height) const;
+    bool GetPointHeight(const keays::types::VectorD3 &pt, double &height) const;
 
 	/*!
 		\brief Rotate a point using the line as a reference.
@@ -310,11 +308,11 @@ public:
 		parallel to the X axis, using the start position as a base point.  This is the inverse of the UnrotatePt 
 		member function.
 
-		\param pt [In] - A constant reference to a VectorD2 representing the point to rotate.
+		\param pt [In] - A constant reference to a keays::types::VectorD2 representing the point to rotate.
 
-		\return A constant VectorD2 at the rotated location.
+		\return A constant keays::types::VectorD2 at the rotated location.
 	 */
-	const VectorD2 RotatePoint(const VectorD2 &pt) const;
+    const keays::types::VectorD2 RotatePoint(const keays::types::VectorD2 &pt) const;
 
 	/*!
 		\brief Unrotate a point using the line as a reference.
@@ -322,11 +320,11 @@ public:
 		from lying parallel to the X axis, back to its original position, using the start position as a base 
 		point.  This is the inverse of the RotatePt member function.
 
-		\param pt [In] - A constant reference to a VectorD2 representing the point to unrotate.
+		\param pt [In] - A constant reference to a keays::types::VectorD2 representing the point to unrotate.
 
-		\return A constant VectorD2 at the unrotated location.
+		\return A constant keays::types::VectorD2 at the unrotated location.
 	 */
-	const VectorD2 UnrotatePoint(const VectorD2 &pt) const;
+    const keays::types::VectorD2 UnrotatePoint(const keays::types::VectorD2 &pt) const;
 
 	/*!
 		\brief Generate a parallel offset a given distance from an existing line
@@ -342,15 +340,15 @@ public:
 		\brief Generate a parallel offset a given distance from an existing line
 
 		\param	dist [In] - A constant reference to a <b>double</b> specifying the distance to offset.
-		\param	  pt [In] - A constant reference to a VectorD2 as a reference point to determine the side to offset.
+		\param	  pt [In] - A constant reference to a keays::types::VectorD2 as a reference point to determine the side to offset.
 
 		\return	The generated offset Line.
 	 */
-	const Line CalcOffset(const double &dist, const VectorD2 &pt);
+    const Line CalcOffset(const double &dist, const keays::types::VectorD2 &pt);
 
 	//----------------------------------------------
-	VectorD3 start,	//!< The VectorD3 representing the start of the line.
-			 end;	//!< The VectorD3 representing the end of the line.
+    keays::types::VectorD3 start,	//!< The keays::types::VectorD3 representing the start of the line.
+		                   end;	    //!< The keays::types::VectorD3 representing the end of the line.
 };
 
 //!	\brief A rectangle structure for testing points/bounds using doubles.
@@ -362,21 +360,23 @@ struct KEAYS_MATH_EXPORTS_API RectD
 		\param	  top [In] - A constant reference to a <b>double</b> specifying the top edge of the rectangle.
 		\param bottom [In] - A constant reference to a <b>double</b> specifying the bottom edge of the rectangle.
 	 */
-	RectD(const double &left = -Float::INVALID_DOUBLE, const double &right  =  Float::INVALID_DOUBLE,
-		  const double &top  =  Float::INVALID_DOUBLE, const double &bottom = -Float::INVALID_DOUBLE);
+    RectD(const double &left = -keays::types::Float::INVALID_DOUBLE, 
+          const double &right = keays::types::Float::INVALID_DOUBLE,
+          const double &top = keays::types::Float::INVALID_DOUBLE, 
+          const double &bottom = -keays::types::Float::INVALID_DOUBLE);
 
 	/*!
-		\param min [In] - A constant reference to a VectorD2 specifying the bottom-left (minimum) corner of the rectangle.
-		\param max [In] - A constant reference to a VectorD2 specifying the top-right (maximum) corner of the rectangle.
+		\param min [In] - A constant reference to a keays::types::VectorD2 specifying the bottom-left (minimum) corner of the rectangle.
+		\param max [In] - A constant reference to a keays::types::VectorD2 specifying the top-right (maximum) corner of the rectangle.
 	 */
-	RectD(const VectorD2 &min, const VectorD2 &max);
+    RectD(const keays::types::VectorD2 &min, const keays::types::VectorD2 &max);
 
 	/*!
-		\param    min [In] - A constant reference to a VectorD2 specifying the bottom-left (minimum) corner of the rectangle.
+		\param    min [In] - A constant reference to a keays::types::VectorD2 specifying the bottom-left (minimum) corner of the rectangle.
 		\param  width [In] - A constant reference to a double specifiying the width of the rectangle.
 		\param height [In] - A constant reference to a double specifiying the height of the rectangle.
 	 */
-	RectD(const VectorD2 &min, const double &width, const double &height);
+    RectD(const keays::types::VectorD2 &min, const double &width, const double &height);
 
 	/*!
 		\brief The Copy Constructor - duplicates an existing RectD.
@@ -488,14 +488,14 @@ struct KEAYS_MATH_EXPORTS_API RectD
 	//! \brief Get a <b>double</b> representing the the center of the rectangle in the Y dimension.
 	const double GetCenterY() const;
 
-	//! \brief Get a VectorD3 representing the center of the RectD.
-	const VectorD2 GetCenter() const;
+	//! \brief Get a keays::types::VectorD3 representing the center of the RectD.
+    const keays::types::VectorD2 GetCenter() const;
 
-	//! \brief Get a VectorD2 representing the bottom-left (minimum) corner of the RectD.
-	const VectorD2 GetMin() const;
+	//! \brief Get a keays::types::VectorD2 representing the bottom-left (minimum) corner of the RectD.
+    const keays::types::VectorD2 GetMin() const;
 
-	//! \brief Get a VectorD2 representing the top-right (maximum) corner of the RectD.
-	const VectorD2 GetMax() const;
+	//! \brief Get a keays::types::VectorD2 representing the top-right (maximum) corner of the RectD.
+    const keays::types::VectorD2 GetMax() const;
 
 	//! \brief Calculate the Area of the rectangle.
 	const double CalcArea() const;
@@ -512,9 +512,9 @@ struct KEAYS_MATH_EXPORTS_API RectD
 	/*!
 		\overload
 
-		\param pt [In] - A constant reference to a VectorD2 representing the point.
+		\param pt [In] - A constant reference to a keays::types::VectorD2 representing the point.
 	 */
-	void IncludePoint(const VectorD2 &pt);
+    void IncludePoint(const keays::types::VectorD2 &pt);
 
 	/*!
 		\brief Test to see if a point is inside the rectangle.
@@ -525,15 +525,15 @@ struct KEAYS_MATH_EXPORTS_API RectD
 
 		\return true if the point is inside the rectangle
 	 */
-	bool PointInside(const double &x, const double &y, const double &tolerance = Float::TOLERANCE) const;
+    bool PointInside(const double &x, const double &y, const double &tolerance = keays::types::Float::TOLERANCE) const;
 
 	/*!
 		\overload
 
-		\param        pt [In] - A constant reference to a VectorD2 representing the point.
+		\param        pt [In] - A constant reference to a keays::types::VectorD2 representing the point.
 		\param tolerance [In] - A constant reference to a <b>double</b> representing the tolerance to use in the test [optional].
 	 */
-	bool PointInside(const VectorD2 &pt, const double &tolerance = Float::TOLERANCE) const
+    bool PointInside(const keays::types::VectorD2 &pt, const double &tolerance = keays::types::Float::TOLERANCE) const
 	{
 		return PointInside(pt.x, pt.y, tolerance);
 	}
@@ -637,23 +637,26 @@ struct KEAYS_MATH_EXPORTS_API Cube : public RectD
 		\param   base [In] - A constant reference to a <b>double</b> specifying the base of the Cube.
 		\param   roof [In] - A constant reference to a <b>double</b> specifying the roof of the Cube.
 	 */
-	Cube(const double &left = -Float::INVALID_DOUBLE, const double &right  =  Float::INVALID_DOUBLE,
-		 const double &top  =  Float::INVALID_DOUBLE, const double &bottom = -Float::INVALID_DOUBLE,
-		 const double &base = -Float::INVALID_DOUBLE, const double &roof   =  Float::INVALID_DOUBLE);
+    Cube(const double &left = -keays::types::Float::INVALID_DOUBLE,
+         const double &right = keays::types::Float::INVALID_DOUBLE,
+         const double &top = keays::types::Float::INVALID_DOUBLE, 
+         const double &bottom = -keays::types::Float::INVALID_DOUBLE,
+         const double &base = -keays::types::Float::INVALID_DOUBLE, 
+         const double &roof = keays::types::Float::INVALID_DOUBLE);
 
 	/*!
-		\param	 min [In] - A constant reference to a VectorD3 specifying the bottom-left-base (minimum) corner of the Cube.
-		\param	 max [In] - A conatsnt reference to a VectorD3 specifying the top-right-roof (maximum) corner of the Cube.
+		\param	 min [In] - A constant reference to a keays::types::VectorD3 specifying the bottom-left-base (minimum) corner of the Cube.
+		\param	 max [In] - A conatsnt reference to a keays::types::VectorD3 specifying the top-right-roof (maximum) corner of the Cube.
 	 */
-	Cube(const VectorD3 &min, const VectorD3 &max);
+    Cube(const keays::types::VectorD3 &min, const keays::types::VectorD3 &max);
 
 	/*!
-		\param    min [In] - A VectorD3 specifying the bottom-left-base (minimum) corner of the Cube.
+		\param    min [In] - A keays::types::VectorD3 specifying the bottom-left-base (minimum) corner of the Cube.
 		\param  width [In] - A constant reference to a <b>double</b> specifiying the width of the Cube (x-axis).
 		\param height [In] - A constant reference to a <b>double</b> specifiying the height of the Cube (y-axis).
 		\param  depth [In] - A constant reference to a <b>double</b> specifiying the depth of the Cube (z-axis).
 	 */
-	Cube(const VectorD3 &min, const double &width, const double &height, const double &depth);
+    Cube(const keays::types::VectorD3 &min, const double &width, const double &height, const double &depth);
 
 	/*!
 		\brief The Copy Constructor - duplicates an existing RectD.
@@ -724,14 +727,14 @@ struct KEAYS_MATH_EXPORTS_API Cube : public RectD
 	//! \brief Get a <b>double</b> representing the center of the Cube in the Z dimension.
 	const double GetCenterZ() const;
 
-	//! \brief Get a VectorD3 representing the center of the Cube.
-	const VectorD3 GetCenter() const;
+	//! \brief Get a keays::types::VectorD3 representing the center of the Cube.
+    const keays::types::VectorD3 GetCenter() const;
 
-	//! \brief Get a VectorD3 representing the bottom-left-base (minimum) corner of the Cube.
-	const VectorD3 GetMin() const;
+	//! \brief Get a keays::types::VectorD3 representing the bottom-left-base (minimum) corner of the Cube.
+    const keays::types::VectorD3 GetMin() const;
 
-	//! \brief Get a VectorD3 representing the top-right-roof (maximum) corner of the Cube.
-	const VectorD3 GetMax() const;
+	//! \brief Get a keays::types::VectorD3 representing the top-right-roof (maximum) corner of the Cube.
+    const keays::types::VectorD3 GetMax() const;
 
 	//! \brief Get a RectD representing the extents in the XY plane.
 	const RectD XY() const;
@@ -755,9 +758,9 @@ struct KEAYS_MATH_EXPORTS_API Cube : public RectD
 	/*!
 		\overload
 
-		\param pt [In] - A constant reference to a VectorD3 representing the point.
+		\param pt [In] - A constant reference to a keays::types::VectorD3 representing the point.
 	 */
-	inline void IncludePoint(const VectorD3 &pt)
+    inline void IncludePoint(const keays::types::VectorD3 &pt)
 	{
 		IncludePoint(pt.x, pt.y, pt.z);
 	}
@@ -772,15 +775,20 @@ struct KEAYS_MATH_EXPORTS_API Cube : public RectD
 
 		\return true if the point is inside the Cube
 	 */
-	bool PointInside(const double &x, const double &y, const double &z, const double &tolerance = Float::TOLERANCE) const;
+    bool PointInside(const double &x, const double &y, const double &z, 
+                     const double &tolerance = keays::types::Float::TOLERANCE) const;
 
 	/*!
 		\overload
 
-		\param        pt [In] - A constant reference to a VectorD3 representing the point.
+		\param        pt [In] - A constant reference to a keays::types::VectorD3 representing the point.
 		\param tolerance [In] - A constant reference to a <b>double</b> representing the tolerance to use in the test [optional].
 	 */
-	inline bool PointInside(const VectorD3 &pt, const double &tolerance = Float::TOLERANCE) const { return PointInside(pt.x, pt.y, pt.z, tolerance); }
+    inline bool PointInside(const keays::types::VectorD3 &pt, 
+                            const double &tolerance = keays::types::Float::TOLERANCE) const 
+    { 
+        return PointInside(pt.x, pt.y, pt.z, tolerance);
+    }
 
 	/*!
 		\brief Add the extents of an existing cube to the current one.
@@ -813,7 +821,7 @@ struct KEAYS_MATH_EXPORTS_API Cube : public RectD
 		\param   roof [In] - A constant reference to a <b>double</b> indicating the amount to adjust the roof.
 	 */
 	void Expand(const double &left, const double &right, const double &top,
-				 const double &bottom, const double &base, const double &roof);
+				const double &bottom, const double &base, const double &roof);
 
 	/*!
 		\overload
@@ -1313,7 +1321,8 @@ enum KEAYS_MATH_EXPORTS_API eAngleComparisons
 	\return One of (ANGLE_EQUAL | ANGLE_OPPOSITE | ANGLE_CW | ANGLE_CCW)
  */
 KEAYS_MATH_EXPORTS_API const eAngleComparisons
-AngleIsClockwiseEx(const double &refAngle, const double &testAngle, const double &tolerance = Float::TOLERANCE,
+AngleIsClockwiseEx(const double &refAngle, const double &testAngle, 
+                   const double &tolerance = keays::types::Float::TOLERANCE,
 				   double *diffAngle = NULL);
 
 /*!
@@ -1327,7 +1336,8 @@ AngleIsClockwiseEx(const double &refAngle, const double &testAngle, const double
 
 	\note	Equal and opposite angles are not considered clockwise for the purposes of this function, as a result it will return false for these cases.
  */
-inline bool AngleIsClockwise(const double &refAngle, const double &testAngle, const double &tolerance = Float::TOLERANCE)
+inline bool AngleIsClockwise(const double &refAngle, const double &testAngle, 
+                             const double &tolerance = keays::types::Float::TOLERANCE)
 {
 	return (AngleIsClockwiseEx(refAngle, testAngle, tolerance) == ANGLE_CW); 
 }
@@ -1343,7 +1353,8 @@ inline bool AngleIsClockwise(const double &refAngle, const double &testAngle, co
 
 	\note	Equal and opposite angles are not considered counter clockwise for the purposes of this function, as a result it will return false for these cases.
  */
-inline bool AngleIsCounterClockwise(const double &refAngle, const double &testAngle, const double &tolerance = Float::TOLERANCE)
+inline bool AngleIsCounterClockwise(const double &refAngle, const double &testAngle, 
+                                    const double &tolerance = keays::types::Float::TOLERANCE)
 {
 	return (AngleIsClockwiseEx(refAngle, testAngle, tolerance) == ANGLE_CCW);
 }
@@ -1411,7 +1422,7 @@ extern KEAYS_MATH_EXPORTS_API const double DEFAULT_INTERVAL_LEN;	//!< A default 
 //============  GENERATING POINTS  ============================
 /*!
 	\brief Generate a series of points in an arc around a specifed point.
-	Generates an arc of VectorD3 pts around a specifed point, with a given radius.  Depending on combinations of 
+	Generates an arc of keays::types::VectorD3 pts around a specifed point, with a given radius.  Depending on combinations of 
 	values and arguments, the fuction will.
 	<UL>
 		<LI>append or replace points in the result, generate.</LI>
@@ -1419,11 +1430,11 @@ extern KEAYS_MATH_EXPORTS_API const double DEFAULT_INTERVAL_LEN;	//!< A default 
 		<LI>include extra angles that do not fall on the specified interval.</LI>
 	</UL>
 
-	\param              center [In]  - A constant reference to a VectorD3 specifying the center position.
+	\param              center [In]  - A constant reference to a keays::types::VectorD3 specifying the center position.
 	\param              radius [In]  - A constant reference to a <b>double</b> specifying the radius.
 	\param       startAngleRad [In]  - A constant reference to a <b>double</b> specifying the start angle.
 	\param         endAngleRad [In]  - A constant reference to a <b>double</b> specifying the end angle.
-	\param              result [I/O] - A reference to a Polyline3D.
+	\param              result [I/O] - A reference to a  keays::types::Polyline3D.
 	\param     intervalRadians [In]  - A constant reference to a <b>double</b> specifying the interval angle.
 	\param         clearResult [In]  - A <b>bool</b> indicating if the result vector should be cleared.
 	\param          doEndPoint [In]  - A <b>bool</b> indicating if the last point should also be generated.
@@ -1435,14 +1446,14 @@ extern KEAYS_MATH_EXPORTS_API const double DEFAULT_INTERVAL_LEN;	//!< A default 
 	\return true if successful.
  */
 KEAYS_MATH_EXPORTS_API bool
-GenArcPointsRad(const VectorD3 &center, const double &radius, const double &startAngleRad,
-				const double &endAngleRad, Polyline3D &result, const double &intervalRadians,
+GenArcPointsRad(const keays::types::VectorD3 &center, const double &radius, const double &startAngleRad,
+                const double &endAngleRad, keays::types::Polyline3D &result, const double &intervalRadians,
 				const bool clearResult, const bool doEndPoint, const eAngleDirections direction,
 				double *importantAnglesList = NULL, const int numImportantAngles = 0, bool isCircle = false);
 
 /*!
 	\brief Generate a series of points in an arc around a specifed point in a Clockwise direction.
-	Generates an arc of VectorD3 pts around a specifed point, with a given radius.  Depending on combinations of 
+	Generates an arc of keays::types::VectorD3 pts around a specifed point, with a given radius.  Depending on combinations of 
 	values and arguments, the fuction will.
 	<UL>
 		<LI>append or replace points in the result, generate.</LI>
@@ -1450,7 +1461,7 @@ GenArcPointsRad(const VectorD3 &center, const double &radius, const double &star
 		<LI>include extra angles that do not fall on the specified interval.</LI>
 	</UL>
 
-	\param              center [In]  - A constant reference to a VectorD3 specifying the center position.
+	\param              center [In]  - A constant reference to a keays::types::VectorD3 specifying the center position.
 	\param              radius [In]  - A constant reference to a <b>double</b> specifying the radius.
 	\param circleStartAngleRad [In]  - A constant reference to a <b>double</b> specifying the start angle of the circle the arc is on in radians.
 	\param         intervalRad [In]  - A constant reference to a <b>double</b> specifying the interval angle in radians.
@@ -1459,21 +1470,21 @@ GenArcPointsRad(const VectorD3 &center, const double &radius, const double &star
 	\param            isCircle [In]  - A <b>boolean</b> value indicating if we are generating an arc or a full circle.
 	\param       genStartPoint [In]  - A <b>bool</b> indicating if the first point should be generated (allows for the arc to be tacked onto the end of an existing polyline).
 	\param         genEndPoint [In]  - A <b>bool</b> indicating if the last point should also be generated.
-	\param                 pts [I/O] - A reference to a Polyline3D for the generated points.
+	\param                 pts [I/O] - A reference to a  keays::types::Polyline3D for the generated points.
 	\param importantAnglesList [I/O] - A pointer to an array of <b>doubles</b> specifying the important angles to include
 	\param  numImportantAngles [In]  - An <b>int</b> indicating the number of important angles in the array.  This value is ignored if <I>importantAnglesList</I> is NULL.
 
 	\return True if successful.
  */
 KEAYS_MATH_EXPORTS_API bool
-GenArcPointsRadCWEx(const VectorD3 &center, const double &radius, const double &circleStartAngleRad,
+GenArcPointsRadCWEx(const keays::types::VectorD3 &center, const double &radius, const double &circleStartAngleRad,
 					const double &intervalRad, const double &arcStartAngleRad, const double &arcEndAngleRad,
 					const bool isCircle, const bool genStartPoint, const bool genEndPoint,
-					Polyline3D &pts, double *importantAngles = NULL, const int numImportantAngles = 0);
+                    keays::types::Polyline3D &pts, double *importantAngles = NULL, const int numImportantAngles = 0);
 
 /*!
 	\brief Generate a series of points in an arc around a specifed point in a Counter Clockwise direction.
-	Generates an arc of VectorD3 pts around a specifed point, with a given radius.  Depending on combinations of 
+	Generates an arc of keays::types::VectorD3 pts around a specifed point, with a given radius.  Depending on combinations of 
 	values and arguments, the fuction will.
 	<UL>
 		<LI>append or replace points in the result, generate.</LI>
@@ -1481,7 +1492,7 @@ GenArcPointsRadCWEx(const VectorD3 &center, const double &radius, const double &
 		<LI>include extra angles that do not fall on the specified interval.</LI>
 	</UL>
 
-	\param              center [In]  - A constant reference to a VectorD3 specifying the center position.
+	\param              center [In]  - A constant reference to a keays::types::VectorD3 specifying the center position.
 	\param              radius [In]  - A constant reference to a <b>double</b> specifying the radius.
 	\param circleStartAngleRad [In]  - A constant reference to a <b>double</b> specifying the start angle of the circle the arc is on in radians.
 	\param         intervalRad [In]  - A constant reference to a <b>double</b> specifying the interval angle in radians.
@@ -1490,21 +1501,21 @@ GenArcPointsRadCWEx(const VectorD3 &center, const double &radius, const double &
 	\param            isCircle [In]  - A <b>boolean</b> value indicating if we are generating an arc or a full circle.
 	\param       genStartPoint [In]  - A <b>bool</b> indicating if the first point should be generated (allows for the arc to be tacked onto the end of an existing polyline).
 	\param         genEndPoint [In]  - A <b>bool</b> indicating if the last point should also be generated.
-	\param                 pts [I/O] - A reference to a Polyline3D for the generated points.
+	\param                 pts [I/O] - A reference to a  keays::types::Polyline3D for the generated points.
 	\param importantAnglesList [I/O] - A pointer to an array of <b>doubles</b> specifying the important angles to include.
 	\param  numImportantAngles [In]  - An <b>int</b> indicating the number of important angles in the array.  This value is ignored if <I>importantAnglesList</I> is NULL.
 
 	\return True if successful.
  */
 KEAYS_MATH_EXPORTS_API bool
-GenArcPointsRadCCWEx(const VectorD3 &center, const double &radius, const double &circleStartAngleRad,
+GenArcPointsRadCCWEx(const keays::types::VectorD3 &center, const double &radius, const double &circleStartAngleRad,
 					 const double &intervalRad, const double &arcStartAngleRad, const double &arcEndAngleRad,
 					 const bool isCircle, const bool genStartPoint, const bool genEndPoint,
-					 Polyline3D &pts, double *importantAngles = NULL, const int numImportantAngles = 0);
+                     keays::types::Polyline3D &pts, double *importantAngles = NULL, const int numImportantAngles = 0);
 
 /*!
 	\brief Generate a series of points in an arc around a specifed point.
-	Generates an arc of VectorD3 pts around a specifed point, with a given radius.  Depending on combinations of 
+	Generates an arc of keays::types::VectorD3 pts around a specifed point, with a given radius.  Depending on combinations of 
 	values and arguments, the fuction will.
 	<UL>
 		<LI>Append or replace points in the result, generate.</LI>
@@ -1512,7 +1523,7 @@ GenArcPointsRadCCWEx(const VectorD3 &center, const double &radius, const double 
 		<LI>Include extra angles that do not fall on the specified interval.</LI>
 	</UL>
 
-	\param              center [In]  - A constant reference to a VectorD3 specifying the center position.
+	\param              center [In]  - A constant reference to a keays::types::VectorD3 specifying the center position.
 	\param              radius [In]  - A constant reference to a <b>double</b> specifying the radius.
 	\param circleStartAngleRad [In]  - A constant reference to a <b>double</b> specifying the start angle.
 	\param         intervalRad [In]  - A constant reference to a <b>double</b> specifying the interval angle.
@@ -1522,26 +1533,26 @@ GenArcPointsRadCCWEx(const VectorD3 &center, const double &radius, const double 
 	\param       genStartPoint [In]  - A constant boolean value indicating if the first point of the arc should be generated.
 	\param         genEndPoint [In]  - A constant boolean value indicating if the last point of the arc should be generated.
 	\param                 dir [In]  - One of (CW | CCW) indicating the direction for generating the points.
-	\param                 pts [I/O] - A reference to a Polyline3D.
+	\param                 pts [I/O] - A reference to a  keays::types::Polyline3D.
 	\param     importantAngles [I/O] - A pointer to an array of <b>tImportantAngle</b>elements specifying the important angles to include.
 	\param  numImportantAngles [In]  - An <b>int</b> indicating the number of important angles in the array.  This value is ignored if <I>importantAnglesList</I> is NULL.
 
 	\return True if successful.
  */
 KEAYS_MATH_EXPORTS_API bool
-GenArcPointsRadEx(const VectorD3 &center, const double &radius, const double &circleStartAngleRad,
+GenArcPointsRadEx(const keays::types::VectorD3 &center, const double &radius, const double &circleStartAngleRad,
 				  const double &intervalRad, const double &arcStartAngleRad, const double &arcEndAngleRad,
 				  const bool isCircle, const bool genStartPoint, const bool genEndPoint,
-				  const eAngleDirections dir, Polyline3D &pts, double *importantAngles = NULL,
+                  const eAngleDirections dir, keays::types::Polyline3D &pts, double *importantAngles = NULL,
 				  const int numImportantAngles = 0);
 
 /*!
 	\brief Generate a series of points in an circle around a specifed point.
-	Generates an circle of VectorD3 pts around a specifed point, with a given radius and direction.
+	Generates an circle of keays::types::VectorD3 pts around a specifed point, with a given radius and direction.
 
-	\param              center [In]  - A constant reference to a VectorD3 specifying the center position.
+	\param              center [In]  - A constant reference to a keays::types::VectorD3 specifying the center position.
 	\param              radius [In]  - A constant reference to a <b>double</b> specifying the radius.
-	\param              result [Out] - A reference to a Polyline3D for the resulting points.
+	\param              result [Out] - A reference to a  keays::types::Polyline3D for the resulting points.
 	\param     intervalRadians [In]  - A constant reference to a <b>double</b> specifying the interval angle.
 	\param           direction [In]  - One of (CW | CCW) indicating the direction for generating the points.
 	\param          startAngle [In]  - A constant reference to a <b>double</b> specifying the start angle (in radians).
@@ -1551,7 +1562,7 @@ GenArcPointsRadEx(const VectorD3 &center, const double &radius, const double &ci
 	\return True if successful.
  */
 inline bool
-GenCircle(const VectorD3 &center, const double &radius, Polyline3D &result,
+GenCircle(const keays::types::VectorD3 &center, const double &radius, keays::types::Polyline3D &result,
 		  const double &intervalRadians = DEFAULT_INTERVAL_RAD, const eAngleDirections direction = CCW,
 		  const double &startAngle = 0, double *importantAnglesList = NULL, const int numImportantAngles = 0)
 {
@@ -1561,14 +1572,14 @@ GenCircle(const VectorD3 &center, const double &radius, Polyline3D &result,
 
 /*!
 	\brief Generate a series of points in an circle around a specifed point.
-	Generates an circle of VectorD3 pts around a specifed point, with a given radius and direction.
+	Generates an circle of keays::types::VectorD3 pts around a specifed point, with a given radius and direction.
 
-	\param              center [In]  - A constant reference to a VectorD3 specifying the center position.
+	\param              center [In]  - A constant reference to a keays::types::VectorD3 specifying the center position.
 	\param              radius [In]  - A constant reference to a <b>double</b> specifying the radius.
 	\param circleStartAngleRad [In]  - A constant reference to a <b>double</b> specifying the start angle.
 	\param         intervalRad [In]  - A constant reference to a <b>double</b> specifying the interval angle.
 	\param           direction [In]  - One of (CW | CCW) indicating the direction for generating the points.
-	\param              result [Out] - A reference to a Polyline3D for the resulting points.
+	\param              result [Out] - A reference to a  keays::types::Polyline3D for the resulting points.
 	\param       genStartPoint [In]  - A constant boolean value indicating if the first point of the arc should be generated.
 	\param         genEndPoint [In]  - A constant boolean value indicating if the last point of the arc should be generated.
 	\param     importantAngles [I/O] - A pointer to an array of <b>tImportantAngle</b>elements specifying the important angles to include.
@@ -1576,8 +1587,8 @@ GenCircle(const VectorD3 &center, const double &radius, Polyline3D &result,
 
 	\return True if successful.
  */
-inline bool GenCircleEx(const VectorD3 &center, const double &radius, const double &circleStartAngleRad,
-						const double &intervalRad, const eAngleDirections direction, Polyline3D &result,
+inline bool GenCircleEx(const keays::types::VectorD3 &center, const double &radius, const double &circleStartAngleRad,
+                        const double &intervalRad, const eAngleDirections direction, keays::types::Polyline3D &result,
 						const bool genStartPoint, const bool genEndPoint, double *importantAngles = NULL,
 						const int numImportantAngles = 0)
 {
@@ -1587,17 +1598,18 @@ inline bool GenCircleEx(const VectorD3 &center, const double &radius, const doub
 
 /*!
 	\brief Generate height values for series of points.
-	Generates height values for a series of VectorD3 pts given a center point, a direction of fall, and a percentage gradient.
+	Generates height values for a series of keays::types::VectorD3 pts given a center point, a direction of fall, and a percentage gradient.
 
-	\param    center [In]  - A constant reference to a VectorD3 specifying a point on the plane.
+	\param    center [In]  - A constant reference to a keays::types::VectorD3 specifying a point on the plane.
 	\param fallAngle [In]  - A constant reference to a <b>double</b> representing the direction of fall (in radians).
 	\param   fallPct [In]  - A constant reference to a <b>double</b> representing the gradient of fall of the plane.
-	\param       pts [I/O] - A reference to a Polyline3D points to generate heights for.
+	\param       pts [I/O] - A reference to a  keays::types::Polyline3D points to generate heights for.
 
 	\return True if successful.
  */
 KEAYS_MATH_EXPORTS_API bool
-GenPointsHeight(const VectorD3 &center, const double &fallAngle, const double &fallPct, Polyline3D &pts);
+GenPointsHeight(const keays::types::VectorD3 &center, const double &fallAngle, 
+                const double &fallPct, keays::types::Polyline3D &pts);
 
 /*!
 	\overload
@@ -1606,22 +1618,23 @@ GenPointsHeight(const VectorD3 &center, const double &fallAngle, const double &f
 	\param p_cGrades [In] - A constant pointer to a tGradeSegmentList object containing the extra grades to calc.
  */
 KEAYS_MATH_EXPORTS_API bool
-GenPointsHeight(const VectorD3 &center, const double &fallAngle, const double &fallPct, Polyline3D &pts,
+GenPointsHeight(const keays::types::VectorD3 &center, const double &fallAngle, const double &fallPct,  keays::types::Polyline3D &pts,
 				 const tGradeSegmentList *p_cGrades);
 
 /*!
 	\brief Generate height values for a point.
-	Generates height values for a VectorD3 point given a center point, a direction of fall, and a percentage gradient
+	Generates height values for a keays::types::VectorD3 point given a center point, a direction of fall, and a percentage gradient
 
-	\param    center [In]  - A constant reference to a VectorD3 specifying the center of the fall.
+	\param    center [In]  - A constant reference to a keays::types::VectorD3 specifying the center of the fall.
 	\param fallAngle [In]  - A constant reference to a <b>double</b> direction of fall (in radians).
 	\param   fallPct [In]  - A constant reference to a <b>double</b> specifying gradient.
-	\param        pt [I/O] - A reference to a VectorD3 point to generate height for.
+	\param        pt [I/O] - A reference to a keays::types::VectorD3 point to generate height for.
 
 	\return True if successful.
  */
 KEAYS_MATH_EXPORTS_API bool
-GenPointHeight(const VectorD3 &center, const double &fallAngle, const double &fallPct, VectorD3 &pt);
+GenPointHeight(const keays::types::VectorD3 &center, const double &fallAngle, 
+               const double &fallPct, keays::types::VectorD3 &pt);
 
 /*!
 	\overload
@@ -1630,35 +1643,40 @@ GenPointHeight(const VectorD3 &center, const double &fallAngle, const double &fa
 	\param p_cGrades [In]  - A constant pointer to a tGradeSegmentList object containing the extra grades to calc.
  */
 KEAYS_MATH_EXPORTS_API bool
-GenPointHeight(const VectorD3 &center, const double &fallAngle, const double &fallPct, VectorD3 &pt, const tGradeSegmentList *p_cGrades);
+GenPointHeight(const keays::types::VectorD3 &center, const double &fallAngle, 
+               const double &fallPct, keays::types::VectorD3 &pt,
+               const tGradeSegmentList *p_cGrades);
 
 /*!
 	\brief Generate more points on an existing polyline.
 	Calculate more points in 3D space that fit along the given polyline. Polyline must contain at least two points and interval must be greater than 0.
 
-	\param                polyline [In]  - A constant reference to a Polyline3D that represent the polyline to generate points on.
+	\param                polyline [In]  - A constant reference to a  keays::types::Polyline3D that represent the polyline to generate points on.
 	\param                interval [In]  - A constant reference to a <b>double</b> representing the distance along the polyline that each point will occur at.
-	\param            generatedPts [Out] - A reference to a Polyline3D that the generated points are pushed onto.
+	\param            generatedPts [Out] - A reference to a  keays::types::Polyline3D that the generated points are pushed onto.
 	\param        bIncludeOriginal [In]  - A constant boolean flag indicating if the original points from polyline will be included.
 	\param minDistanceFromOriginal [In]  - A constant refernce to a double precision number specifying the minimum distance a generated point must be from an existing point to be included.
 
 	\return true if successful.
  */
 KEAYS_MATH_EXPORTS_API bool
-GenDivisons(const Polyline3D &polyline, const double &interval, Polyline3D &generatedPts,
-			 const bool bIncludeOriginal = false, const double &minDistanceFromOriginal = 0.01);
+GenDivisons(const keays::types::Polyline3D &polyline, const double &interval,
+            keays::types::Polyline3D &generatedPts,
+			const bool bIncludeOriginal = false, 
+            const double &minDistanceFromOriginal = 0.01);
 
 /*!
 	\brief Generate a parallel offset a given distance from an existing line.
 
-	\param	 pt1 [In] - A constant reference to a VectorD2 specifying the start of the line.
-	\param	 pt2 [In] - A constant reference to a VectorD2 specifying the end of the line.
+	\param	 pt1 [In] - A constant reference to a keays::types::VectorD2 specifying the start of the line.
+	\param	 pt2 [In] - A constant reference to a keays::types::VectorD2 specifying the end of the line.
 	\param	dist [In] - A constant reference to a <b>double</b> specifying the distance to offset.
 	\param	side [In] - One of SIDE_LEFT or SIDE_RIGHT to determine which side to offset. Side is determined by the direction of the source polyline.
 
 	\return	False on failure, true on success.
  */
-inline const Line Offset(const VectorD2 &pt1, const VectorD2 &pt2, const double &dist, const eSideSelections side)
+inline const Line Offset(const keays::types::VectorD2 &pt1, const keays::types::VectorD2 &pt2, 
+                         const double &dist, const eSideSelections side)
 {
 	return Line(pt1, pt2).CalcOffset(dist, side);
 }
@@ -1666,14 +1684,14 @@ inline const Line Offset(const VectorD2 &pt1, const VectorD2 &pt2, const double 
 /*!
 	\brief Generate a parallel offset a given distance from an existing line.
 
-	\param   pt1 [In] - A constant reference to a VectorD2 specifying the start of the line.
-	\param   pt2 [In] - A constant reference to a VectorD2 specifying the end of the line.
+	\param   pt1 [In] - A constant reference to a keays::types::VectorD2 specifying the start of the line.
+	\param   pt2 [In] - A constant reference to a keays::types::VectorD2 specifying the end of the line.
 	\param  dist [In] - A constant reference to a <b>double</b> specifying the distance to offset.
-	\param refPt [In] - A constant reference to a VectorD2 as a reference point to determine the side to offset.
+	\param refPt [In] - A constant reference to a keays::types::VectorD2 as a reference point to determine the side to offset.
 
 	\return	False on failure, true on success.
  */
-inline const Line Offset(const VectorD2 &pt1, const VectorD2 &pt2, const double &dist, const VectorD2 &refPt)
+inline const Line Offset(const keays::types::VectorD2 &pt1, const keays::types::VectorD2 &pt2, const double &dist, const keays::types::VectorD2 &refPt)
 {
 	return Line(pt1, pt2).CalcOffset(dist, refPt);
 }
@@ -1682,69 +1700,69 @@ inline const Line Offset(const VectorD2 &pt1, const VectorD2 &pt2, const double 
 /*!
 	\brief Calculate a position in 2D space, given a bearing (in radians) and a distance.
 
-	\param     base [In] - a constant reference to a VectorD2 specifying the base point for the operation.
+	\param     base [In] - a constant reference to a keays::types::VectorD2 specifying the base point for the operation.
 	\param distance [In] - a double specifying the distance for generation.
 	\param  radians [In] - a double specifying a bearing in radians.
 
-	\return	a VectorD2 specifying the generated point.
+	\return	a keays::types::VectorD2 specifying the generated point.
  */
-KEAYS_MATH_EXPORTS_API const VectorD2
-GenPolarPosRad(const VectorD2 &base, const double &distance, const double &radians);
+KEAYS_MATH_EXPORTS_API const keays::types::VectorD2
+GenPolarPosRad(const keays::types::VectorD2 &base, const double &distance, const double &radians);
 
 /*!
 	\overload Calculate a position in 3D space on a 2D plane, given a bearing (in radians) and a distance.
 
-	\param base [In] - a VectorD2 specifying the base point for the operation.
+	\param base [In] - a keays::types::VectorD2 specifying the base point for the operation.
 
-	\return	a VectorD3 specifying the generated point.
+	\return	a keays::types::VectorD3 specifying the generated point.
  */
-KEAYS_MATH_EXPORTS_API const VectorD3
-GenPolarPosRad(const VectorD3 &base, const double &distance, const double &radians);
+KEAYS_MATH_EXPORTS_API const keays::types::VectorD3
+GenPolarPosRad(const keays::types::VectorD3 &base, const double &distance, const double &radians);
 
 /*!
 	\brief Calculate a position in 3D space, given a bearing (radians), an zenith (radians) and a distance.
 
-	\param     base [In] - a VectorD2 specifying the base point for the operation.
+	\param     base [In] - a keays::types::VectorD2 specifying the base point for the operation.
 	\param distance [In] - a double specifying the distance for generation.
 	\param  bearing [In] - a double specifying a bearing in radians.
 	\param   zenith [In] - a double specifying an zenith in radians.
 
-	\return	a VectorD2 specifying the generated point.
+	\return	a keays::types::VectorD2 specifying the generated point.
  */
-KEAYS_MATH_EXPORTS_API const VectorD3
-GenPolarPosRad(const VectorD3 &base, const double &distance, const double &bearing, const double &zenith);
+KEAYS_MATH_EXPORTS_API const keays::types::VectorD3
+GenPolarPosRad(const keays::types::VectorD3 &base, const double &distance, const double &bearing, const double &zenith);
 
-//VectorD3 GetPolarPosRad(const VectorD3 base, const double &distance, const double &radians, const double &strike, const double &dip)
+//VectorD3 GetPolarPosRad(const keays::types::VectorD3 base, const double &distance, const double &radians, const double &strike, const double &dip)
 
 /*! \brief Calculate a position in 2D space, given a bearing (in degrees) and a distance.
 
-	\param     base [In] - a VectorD2 specifying the base point for the operation.
+	\param     base [In] - a keays::types::VectorD2 specifying the base point for the operation.
 	\param distance [In] - a double specifying the distance for generation.
 	\param  degrees [In] - a double specifying a bearing in degrees.
 
-	\return	a VectorD2 specifying the generated point.
+	\return	a keays::types::VectorD2 specifying the generated point.
  */
-KEAYS_MATH_EXPORTS_API const VectorD2
-GenPolarPos(const VectorD2 &base, const double &distance, const double &degrees);
+KEAYS_MATH_EXPORTS_API const keays::types::VectorD2
+GenPolarPos(const keays::types::VectorD2 &base, const double &distance, const double &degrees);
 
 /*!
 	\brief Generate vectors perpendicular to the specified polyline, in the XY plane.
 
-	\param       polyline [In]  - a constant reference to a Polyline3D represengint the polyline to calculate from.
-	\param   pPerpVectors [Out] - A pointer to a STL::vector of VectorD3's to receive the resulting perpendicular vectors.
+	\param       polyline [In]  - a constant reference to a  keays::types::Polyline3D represengint the polyline to calculate from.
+	\param   pPerpVectors [Out] - A pointer to a STL::vector of keays::types::VectorD3's to receive the resulting perpendicular vectors.
 	\param averageVectors [In]  - a boolean flag indicating if the vectors should be averaged between points.
 	\param       isClosed [In]  - a boolean flag indicating if the polyline is closed, and the start and end vectors should be averaged.
 
-	\return a constant pointer to the STL::vector of VectorD3's or NULL on failure.
+	\return a constant pointer to the STL::vector of keays::types::VectorD3's or NULL on failure.
  */
-KEAYS_MATH_EXPORTS_API const Polyline3D *
-GeneratePerpendicularVectors(const Polyline3D &polyline, Polyline3D *pPerpVectors,
-							  bool averageVectors = true, bool isClosed = false);
+KEAYS_MATH_EXPORTS_API const keays::types::Polyline3D *
+GeneratePerpendicularVectors(const keays::types::Polyline3D &polyline,  keays::types::Polyline3D *pPerpVectors,
+							 bool averageVectors = true, bool isClosed = false);
 
 /*!
 	\brief Insert a new point at a given chainage from the start of the polyline.
 
-	\param    pPolyline [I/O] - a pointer to a Polyline3D to have the point inserted.
+	\param    pPolyline [I/O] - a pointer to a  keays::types::Polyline3D to have the point inserted.
 	\param     chainage [In]  - a constant reference to a <b>double</b> specifying the distance from the begining of the string to insert.
 	\param pInsertIndex [In]  - a pointer to a <b>size_t</b> to receive the index the point was inserted at. If a point already.
 								exists at that chainage it is the index of that point.
@@ -1752,7 +1770,7 @@ GeneratePerpendicularVectors(const Polyline3D &polyline, Polyline3D *pPerpVector
 	\return	true if the point was successfully inserted, false otherwise.
  */
 KEAYS_MATH_EXPORTS_API bool
-InsertPoint(Polyline3D *pPolyline, const double &chainage, size_t *pInsertIndex = NULL);
+InsertPoint(keays::types::Polyline3D *pPolyline, const double &chainage, size_t *pInsertIndex = NULL);
 
 /*!
 	\overload
@@ -1760,20 +1778,20 @@ InsertPoint(Polyline3D *pPolyline, const double &chainage, size_t *pInsertIndex 
 	\param pPolyline [I/O] - a pointer to a Polyline2D to have the point inserted.
  */
 KEAYS_MATH_EXPORTS_API bool
-InsertPoint(Polyline2D *pPolyline, const double &chainage, size_t *pInsertIndex = NULL);
+InsertPoint(keays::types::Polyline2D *pPolyline, const double &chainage, size_t *pInsertIndex = NULL);
 
 /*!
 	\brief Insert a points at a given interval from the start of the polyline.
 
-	\param   srcPolyline [In]  - a constant reference to a Polyline3D as the source (reference) polyline.
-	\param pDestPolyline [Out] - a pointer to a Polyline3D to have the points inserted.
+	\param   srcPolyline [In]  - a constant reference to a  keays::types::Polyline3D as the source (reference) polyline.
+	\param pDestPolyline [Out] - a pointer to a  keays::types::Polyline3D to have the points inserted.
 	\param      chainage [In]  - a constant reference to a <b>double</b> specifying the interval to use.
 	\param  pInsertIndex [In]  - a pointer to an <b>int</b> to receive the number of points added.
 
 	\return	true if the point was successfully inserted, false otherwise.
  */
 KEAYS_MATH_EXPORTS_API bool
-InsertPoints(const Polyline3D &srcPolyline, Polyline3D *pDestPolyline, const double &interval, int *pNumPtsAdded = NULL);
+InsertPoints(const keays::types::Polyline3D &srcPolyline,  keays::types::Polyline3D *pDestPolyline, const double &interval, int *pNumPtsAdded = NULL);
 
 /*!
  	\overload
@@ -1782,7 +1800,8 @@ InsertPoints(const Polyline3D &srcPolyline, Polyline3D *pDestPolyline, const dou
  	\param pDestPolyline [Out] - a pointer to a Polyline2D to have the points inserted.
  */
 KEAYS_MATH_EXPORTS_API bool
-InsertPoints(const Polyline2D &srcPolyline, Polyline2D *pDestPolyline, const double &interval, int *pNumPtsAdded = NULL);
+InsertPoints(const keays::types::Polyline2D &srcPolyline, keays::types::Polyline2D *pDestPolyline, 
+             const double &interval, int *pNumPtsAdded = NULL);
 //! @}
 
 //==========================  UTILITY FUNCTIONS  ==============================
@@ -1794,34 +1813,34 @@ InsertPoints(const Polyline2D &srcPolyline, Polyline2D *pDestPolyline, const dou
 	\brief Calculate the 2D Distance between 2 points.
 	Calculate the 2D Distance between 2 2D points in the X/Y plane.
 
-	\param start [in]  - a constant reference to a VectorD2 point.
-	\param   end [in]  - a constant reference to a VectorD2 point.
+	\param start [in]  - a constant reference to a keays::types::VectorD2 point.
+	\param   end [in]  - a constant reference to a keays::types::VectorD2 point.
 
 	\return a <b>double</b> representing the distance between the points.
  */
-inline double Dist2D(const VectorD2 &start, const VectorD2 &end)
+inline double Dist2D(const keays::types::VectorD2 &start, const keays::types::VectorD2 &end)
 { return sqrt(((end.x-start.x)*(end.x-start.x)) + ((end.y-start.y)*(end.y-start.y))); }
 
 /*!
 	\overload Calculate the 2D Distance between 2 points.
 	Calculate the 2D Distance between 2 3D points in the X/Y plane.
 
-	\param start [in]  - a constant reference to a VectorD3 point.
-	\param   end [in]  - a constant reference to a VectorD3 point.
+	\param start [in]  - a constant reference to a keays::types::VectorD3 point.
+	\param   end [in]  - a constant reference to a keays::types::VectorD3 point.
  */
-inline double Dist2D(const VectorD3 &start, const VectorD3 &end)
+inline double Dist2D(const keays::types::VectorD3 &start, const keays::types::VectorD3 &end)
 { return sqrt(((end.x-start.x)*(end.x-start.x)) + ((end.y-start.y)*(end.y-start.y))); }
 
 /*!
 	\brief Calculate the 3D Distance between 2 points.
 	Calculate the 3D Distance between 2 3D points in the X/Y plane.
 
-	\param start [in]  - a constant reference to a VectorD3 point.
-	\param   end [in]  - a constant reference to a VectorD3 point.
+	\param start [in]  - a constant reference to a keays::types::VectorD3 point.
+	\param   end [in]  - a constant reference to a keays::types::VectorD3 point.
 
 	\return a <b>double</b> representing the distance between the points.
  */
-inline double Distance(const VectorD3 &start, const VectorD3 &end)
+inline double Distance(const keays::types::VectorD3 &start, const keays::types::VectorD3 &end)
 {
 	return sqrt(((end.x-start.x)*(end.x-start.x)) +
 				 ((end.y-start.y)*(end.y-start.y)) +
@@ -1831,59 +1850,59 @@ inline double Distance(const VectorD3 &start, const VectorD3 &end)
 /*!
 	\brief Calculate the Magnitude of a vector.
 
-	\param vec [in]  - a constant reference to a VectorD3 point.
+	\param vec [in]  - a constant reference to a keays::types::VectorD3 point.
 
 	\return a <b>double</b> representing the distance between the points.
  */
-inline double Magnitude(const VectorD3 &vec)
+inline double Magnitude(const keays::types::VectorD3 &vec)
 { return sqrt((vec.x*vec.x) + (vec.y*vec.y) + (vec.z*vec.z)	); }
 
 /*!
 	\brief Calculate the 2D Direction between 2 points.
 	Calculate the 2D Direction (Bearing) between 2 2D points in the X/Y plane.
 
-	\param start [in]  - a constant reference to a VectorD2 point.
-	\param   end [in]  - a constant reference to a VectorD2 point.
+	\param start [in]  - a constant reference to a keays::types::VectorD2 point.
+	\param   end [in]  - a constant reference to a keays::types::VectorD2 point.
 
 	\return a <b>double</b> representing the direction between the points (in radians).
  */
 KEAYS_MATH_EXPORTS_API const double
-Direction(const VectorD2 &start, const VectorD2 &end);
+Direction(const keays::types::VectorD2 &start, const keays::types::VectorD2 &end);
 
 /*!
 	\overload
 	Calculate the 2D Direction (Bearing) between 2 3D points in the X/Y plane.
 
-	\param start [in]  - a constant reference to a VectorD3 point.
-	\param   end [in]  - a constant reference to a VectorD3 point.
+	\param start [in]  - a constant reference to a keays::types::VectorD3 point.
+	\param   end [in]  - a constant reference to a keays::types::VectorD3 point.
 
 	\return a <b>double</b> representing the direction between the points (in radians).
  */
 KEAYS_MATH_EXPORTS_API const double
-Direction(const VectorD3 &start, const VectorD3 &end);
+Direction(const keays::types::VectorD3 &start, const keays::types::VectorD3 &end);
 
 /*!
 	\brief Calculate the Sin of the Zenith between 2 points.
 	Calculate the Sin of the Zenith (Ratio of height over length) between 2 3D points.
 
-	\param start [in]  - a constant reference to a VectorD3 point.
-	\param   end [in]  - a constant reference to a VectorD3 point.
+	\param start [in]  - a constant reference to a keays::types::VectorD3 point.
+	\param   end [in]  - a constant reference to a keays::types::VectorD3 point.
 
 	\return a <b>double</b> representing the sin of the zenith between the points (in radians).
  */
 KEAYS_MATH_EXPORTS_API const double
-ZenithSin(const VectorD3 &start, const VectorD3 &end);
+ZenithSin(const keays::types::VectorD3 &start, const keays::types::VectorD3 &end);
 
 /*!
 	\brief Calculate the Zenith between 2 points.
 	Calculate the Zenith (Angle of elevation) between 2 3D points.
 
-	\param start [in]  - a constant reference to a VectorD3 point.
-	\param   end [in]  - a constant reference to a VectorD3 point.
+	\param start [in]  - a constant reference to a keays::types::VectorD3 point.
+	\param   end [in]  - a constant reference to a keays::types::VectorD3 point.
 
 	\return a <b>double</b> representing the direction between the points (in radians).
  */
-inline double Zenith(const VectorD3 &start, const VectorD3 &end)
+inline double Zenith(const keays::types::VectorD3 &start, const keays::types::VectorD3 &end)
 {
 	return asin(ZenithSin(start, end));
 }
@@ -1892,37 +1911,37 @@ inline double Zenith(const VectorD3 &start, const VectorD3 &end)
 	\brief Calculate the Grade between 2 points.
 	Calculate the Grade (gradient) between 2 3D points.
 
-	\param start [in]  - a constant reference to a VectorD3 point.
-	\param   end [in]  - a constant reference to a VectorD3 point.
+	\param start [in]  - a constant reference to a keays::types::VectorD3 point.
+	\param   end [in]  - a constant reference to a keays::types::VectorD3 point.
 
 	\return a <b>double</b> representing the gradient between the points.
  */
 KEAYS_MATH_EXPORTS_API const double
-Grade(const VectorD3 &start, const VectorD3 &end);
+Grade(const keays::types::VectorD3 &start, const keays::types::VectorD3 &end);
 
 /*!
 	\brief Calculate the 2D Length of a polyline.
 
-	\param      pts [In]  - a constant reference to a Polyline3D points.
+	\param      pts [In]  - a constant reference to a  keays::types::Polyline3D points.
 	\param    index [In]  - a constant <b>integer</b> giving the index to determine the length to.
 	\param forwards [In]  - a constant <b>boolean</b> indicating if the length should be calculated from the begining or end of the vector.
 
 	\return a <b>double</b> representing the length from the begining or end of the polyline.
  */
 KEAYS_MATH_EXPORTS_API const double
-Length2D(const Polyline3D &pts, const size_t index, const bool forwards);
+Length2D(const keays::types::Polyline3D &pts, const size_t index, const bool forwards);
 
 /*!
 	\brief Calculate the 3D Length of a polyline.
 
-	\param      pts [In]  - a constant reference to a Polyline3D points.
+	\param      pts [In]  - a constant reference to a  keays::types::Polyline3D points.
 	\param    index [In]  - a constant <b>integer</b> giving the index to determine the length to.
 	\param forwards [In]  - a constant <b>boolean</b> indicating if the length should be calculated from the begining or end of the vector.
 
 	\return a <b>double</b> representing the length from the begining or end of the polyline.
  */
 KEAYS_MATH_EXPORTS_API const double
-Length3D(const Polyline3D &pts, const size_t index, const bool forwards);
+Length3D(const keays::types::Polyline3D &pts, const size_t index, const bool forwards);
 
 /*!
 	\overload
@@ -1930,65 +1949,65 @@ Length3D(const Polyline3D &pts, const size_t index, const bool forwards);
 	\param      pts [In]  - a constant reference to a Polyline2D points.
  */
 KEAYS_MATH_EXPORTS_API const double
-Length2D(const Polyline2D &pts, const size_t index, const bool forwards);
+Length2D(const keays::types::Polyline2D &pts, const size_t index, const bool forwards);
 
 /*!
 	\brief Normalise the Vector given by the two points specified
-	This is mearly a convenience wrapper function for class functions from VectorD3.
+	This is mearly a convenience wrapper function for class functions from keays::types::VectorD3.
 
-	\param base [In] - A constant reference to a VectorD3 specifying the base point of the vector to normalise.
-	\param  tip [In] - A constant reference to a VectorD3 specifying the point at the tip of the vector to normalise.
+	\param base [In] - A constant reference to a keays::types::VectorD3 specifying the base point of the vector to normalise.
+	\param  tip [In] - A constant reference to a keays::types::VectorD3 specifying the point at the tip of the vector to normalise.
 
-	\return A constant VectorD3 representing the normalised vector from base to tip.
+	\return A constant keays::types::VectorD3 representing the normalised vector from base to tip.
  */
-inline const VectorD3
-Normalise(const VectorD3 &base, const VectorD3 &tip)
+inline const keays::types::VectorD3
+Normalise(const keays::types::VectorD3 &base, const keays::types::VectorD3 &tip)
 {
 	return (tip - base).GetNormalised();
 }
 
 /*!
-	\brief Calculate the cross product of 2 VectorD3's
+	\brief Calculate the cross product of 2 keays::types::VectorD3's
 
-	\param A [In] - A constant reference to a VectorD3 specifying the first Vector of the cross product.
-	\param B [In] - A constant reference to a VectorD3 specifying the second Vector of the cross product.
+	\param A [In] - A constant reference to a keays::types::VectorD3 specifying the first Vector of the cross product.
+	\param B [In] - A constant reference to a keays::types::VectorD3 specifying the second Vector of the cross product.
 
-	\return A constant VectorD3 representing the cross product of the two vectors.
+	\return A constant keays::types::VectorD3 representing the cross product of the two vectors.
  */
-KEAYS_MATH_EXPORTS_API const VectorD3
-Cross(const VectorD3 &A, const VectorD3 &B);
+KEAYS_MATH_EXPORTS_API const keays::types::VectorD3
+Cross(const keays::types::VectorD3 &A, const keays::types::VectorD3 &B);
 
 /*!
-	\brief Calculate the Dot product of 2 VectorD2's.
+	\brief Calculate the Dot product of 2 keays::types::VectorD2's.
 
-	\param A [In] - A constant reference to a VectorD2 specifying the first Vector of the dot product.
-	\param B [In] - A constant reference to a VectorD2 specifying the second Vector of the dot product.
+	\param A [In] - A constant reference to a keays::types::VectorD2 specifying the first Vector of the dot product.
+	\param B [In] - A constant reference to a keays::types::VectorD2 specifying the second Vector of the dot product.
 
 	\return A <b>double</b> representing the dot product. [ Equivalent to \f$\|A\| \|B\|\cos(\theta)\f$ ].
  */
 KEAYS_MATH_EXPORTS_API const double
-Dot(const VectorD2 &A, const VectorD2 &B);
+Dot(const keays::types::VectorD2 &A, const keays::types::VectorD2 &B);
 
 /*!
-	\brief Calculate the Dot product of 2 VectorD3's.
+	\brief Calculate the Dot product of 2 keays::types::VectorD3's.
 
-	\param A [In] - A constant reference to a VectorD3 specifying the first Vector of the dot product.
-	\param B [In] - A constant reference to a VectorD3 specifying the second Vector of the dot product.
+	\param A [In] - A constant reference to a keays::types::VectorD3 specifying the first Vector of the dot product.
+	\param B [In] - A constant reference to a keays::types::VectorD3 specifying the second Vector of the dot product.
 
 	\return A <b>double</b> representing the dot product. [ Equivalent to \f$\|A\| \|B\|\cos(\theta)\f$ ].
  */
 KEAYS_MATH_EXPORTS_API const double
-Dot(const VectorD3 &A, const VectorD3 &B);
+Dot(const keays::types::VectorD3 &A, const keays::types::VectorD3 &B);
 
 /*!
-	\brief Project a VectorD3 onto another VectorD3.
+	\brief Project a keays::types::VectorD3 onto another keays::types::VectorD3.
 
-	\param subj [In]  - A constant reference to the VectorD3 to project.
-	\param  obj [In]  - A constant reference to the VectorD3 to project ONTO.
+	\param subj [In]  - A constant reference to the keays::types::VectorD3 to project.
+	\param  obj [In]  - A constant reference to the keays::types::VectorD3 to project ONTO.
 
-	\return the projected VectorD3.
+	\return the projected keays::types::VectorD3.
  */
-inline const VectorD3 Project(const VectorD3 &subj, const VectorD3 &obj)
+inline const keays::types::VectorD3 Project(const keays::types::VectorD3 &subj, const keays::types::VectorD3 &obj)
 {
 	return subj.GetNormalised() * (Dot(subj, obj) / Magnitude(obj));
 }
@@ -1997,34 +2016,34 @@ inline const VectorD3 Project(const VectorD3 &subj, const VectorD3 &obj)
 	\brief Calculate the height of a point on a given plane.
 	This will only fail if the plane is vertical.
 
-	\param       normal [In]  - a VectorD3 specifying the normal to the plane.
-	\param pointOnPlane [In]  - a VectorD3 poisiotn vector specifying a known point onm the plane.
-	\param        point [In]  - a VectorD2 specifying the 2D point to project up to the plane.
+	\param       normal [In]  - a keays::types::VectorD3 specifying the normal to the plane.
+	\param pointOnPlane [In]  - a keays::types::VectorD3 poisiotn vector specifying a known point onm the plane.
+	\param        point [In]  - a keays::types::VectorD2 specifying the 2D point to project up to the plane.
 	\param       result [Out] - A reference to a double to receive the resulting height.
 
 	\return true if successful.
  */
 KEAYS_MATH_EXPORTS_API bool
-PointHeightOnPlane(const VectorD3 &normal, const VectorD3 &pointOnPlane, const VectorD2 &point, double &result);
+PointHeightOnPlane(const keays::types::VectorD3 &normal, const keays::types::VectorD3 &pointOnPlane, const keays::types::VectorD2 &point, double &result);
 
 /*!
 	\brief Calculate the height of a point on a given plane.
 	This will only fail if the plane is vertical.
 
-	\param      a [In]  - a VectorD3 specifying the position of the first point defining the plane.
-	\param      b [In]  - a VectorD3 specifying the position of the second point defining the plane.
-	\param      c [In]  - a VectorD3 specifying the position of the third point defining the plane.
-	\param  point [In]  - a VectorD2 specifying the 2D point to project up to the plane.
+	\param      a [In]  - a keays::types::VectorD3 specifying the position of the first point defining the plane.
+	\param      b [In]  - a keays::types::VectorD3 specifying the position of the second point defining the plane.
+	\param      c [In]  - a keays::types::VectorD3 specifying the position of the third point defining the plane.
+	\param  point [In]  - a keays::types::VectorD2 specifying the 2D point to project up to the plane.
 	\param result [Out] - A reference to a double to receive the resulting height.
 
 	\return true if successful.
  */
 inline bool
-PointHeightOnPlaneTri(const VectorD3 &a, const VectorD3 &b, const VectorD3 &c, const VectorD2 &point,
+PointHeightOnPlaneTri(const keays::types::VectorD3 &a, const keays::types::VectorD3 &b, const keays::types::VectorD3 &c, const keays::types::VectorD2 &point,
 					   double &result)
 {
 	// calc the normal and a vector on the plane
-	VectorD3 normal = Cross((a - c), (b - c));
+    keays::types::VectorD3 normal = Cross((a - c), (b - c));
 	return PointHeightOnPlane(normal, c, point, result);
 }
 
@@ -2032,13 +2051,13 @@ PointHeightOnPlaneTri(const VectorD3 &a, const VectorD3 &b, const VectorD3 &c, c
 	\brief Calculate the height of a point on a given plane.
 	This will only fail if the plane is vertical.
 
-	\param    tri [In]  - an array of 3 VectorD3's specifying the triangle defining the plane.
-	\param  point [In]  - a VectorD2 specifying the 2D point to project up to the plane.
+	\param    tri [In]  - an array of 3 keays::types::VectorD3's specifying the triangle defining the plane.
+	\param  point [In]  - a keays::types::VectorD2 specifying the 2D point to project up to the plane.
 	\param result [Out] - A reference to a double to receive the resulting height.
 
 	\return true if successful.
  */
-inline bool PointHeightOnPlaneTri(const VectorD3 tri[3], VectorD2 &point, double &result)
+inline bool PointHeightOnPlaneTri(const keays::types::VectorD3 tri[3], keays::types::VectorD2 &point, double &result)
 {
 	return PointHeightOnPlaneTri(tri[0], tri[1], tri[2], point, result);
 }
@@ -2046,7 +2065,7 @@ inline bool PointHeightOnPlaneTri(const VectorD3 tri[3], VectorD2 &point, double
 /*!
 	\brief Calculate the vector from basePoint to point.
  */
-inline const VectorD3 VectorFrom(const VectorD3 &basePoint, const VectorD3 &point)
+inline const keays::types::VectorD3 VectorFrom(const keays::types::VectorD3 &basePoint, const keays::types::VectorD3 &point)
 {
 	return point - basePoint;
 }
@@ -2057,23 +2076,23 @@ inline const VectorD3 VectorFrom(const VectorD3 &basePoint, const VectorD3 &poin
 	<b>ref</b> had been rotated from its current position to be level (new line would be <b>base</b> to
 	[Dist2D(base, ref), 0, 0].  This is a 2D operation, and as mentioned in the function name occurs in the X/Y plane.
 
-	\param	  base [In]  - a constant reference to a VectorD2 representing the base point for the rotation.
-	\param	   ref [In]  - a constant reference to a VectorD2 representing the refence point for the rotation, (this determines how much origPt is rotated).
-	\param	origPt [In]  - a constant reference to a VectorD2 representing the point to be rotated.
+	\param	  base [In]  - a constant reference to a keays::types::VectorD2 representing the base point for the rotation.
+	\param	   ref [In]  - a constant reference to a keays::types::VectorD2 representing the refence point for the rotation, (this determines how much origPt is rotated).
+	\param	origPt [In]  - a constant reference to a keays::types::VectorD2 representing the point to be rotated.
 
-	\return a constant VectorD2 representing the new, rotated point.
+	\return a constant keays::types::VectorD2 representing the new, rotated point.
  */
-KEAYS_MATH_EXPORTS_API const VectorD2
-RotatePointXY(const VectorD2 &base, const VectorD2 &ref, const VectorD2 &origPt);
+KEAYS_MATH_EXPORTS_API const keays::types::VectorD2
+RotatePointXY(const keays::types::VectorD2 &base, const keays::types::VectorD2 &ref, const keays::types::VectorD2 &origPt);
 
 /*!
 	\overload
 
-	\param	  base [In]  - a constant reference to a VectorD3 representing the base point for the rotation.
-	\param	   ref [In]  - a constant reference to a VectorD3 representing the reference point for the rotation, (this determines how much origPt is rotated).
-	\param	origPt [In]  - a constant reference to a VectorD3 representing the point to be rotated.
+	\param	  base [In]  - a constant reference to a keays::types::VectorD3 representing the base point for the rotation.
+	\param	   ref [In]  - a constant reference to a keays::types::VectorD3 representing the reference point for the rotation, (this determines how much origPt is rotated).
+	\param	origPt [In]  - a constant reference to a keays::types::VectorD3 representing the point to be rotated.
  */
-inline const VectorD2 RotatePointXY(const VectorD3 &base, const VectorD3 &ref, const VectorD3 &origPt)
+inline const keays::types::VectorD2 RotatePointXY(const keays::types::VectorD3 &base, const keays::types::VectorD3 &ref, const keays::types::VectorD3 &origPt)
 {
 	return RotatePointXY(base.XY(), ref.XY(), origPt.XY());
 }
@@ -2084,52 +2103,58 @@ inline const VectorD2 RotatePointXY(const VectorD3 &base, const VectorD3 &ref, c
 	[Dist2D(base, ref), 0, 0] had been rotated to be a line from <b>base</b> to <b>ref</b>.  This is a 2D operation,
 	and as mentioned in the function name occurs in the X/Y plane.
 
-	\param	  base [In]  - a constant reference to a VectorD2 representing the base point for the rotation.
-	\param	   ref [In]  - a constant reference to a VectorD2 representing the refence point for the rotation, (this determines how much origPt is rotated).
-	\param	origPt [In]  - a constant reference to a VectorD2 representing the point to be rotated.
+	\param	  base [In]  - a constant reference to a keays::types::VectorD2 representing the base point for the rotation.
+	\param	   ref [In]  - a constant reference to a keays::types::VectorD2 representing the refence point for the rotation, (this determines how much origPt is rotated).
+	\param	origPt [In]  - a constant reference to a keays::types::VectorD2 representing the point to be rotated.
 
-	\return a constant VectorD2 representing the new, un-rotated point.
+	\return a constant keays::types::VectorD2 representing the new, un-rotated point.
  */
-KEAYS_MATH_EXPORTS_API const VectorD2
-UnRotatePointXY(const VectorD2 &base, const VectorD2 &ref, const VectorD2 &origPt);
+KEAYS_MATH_EXPORTS_API const keays::types::VectorD2
+UnRotatePointXY(const keays::types::VectorD2 &base, const keays::types::VectorD2 &ref, const keays::types::VectorD2 &origPt);
 
 /*!
 	\overload
 
-	\param	  base [In]  - a constant reference to a VectorD3 representing the base point for the rotation.
-	\param	   ref [In]  - a constant reference to a VectorD3 representing the refence point for the rotation, (this determines how much origPt is rotated).
-	\param	origPt [In]  - a constant reference to a VectorD3 representing the point to be un-rotated.
+	\param	  base [In]  - a constant reference to a keays::types::VectorD3 representing the base point for the rotation.
+	\param	   ref [In]  - a constant reference to a keays::types::VectorD3 representing the refence point for the rotation, (this determines how much origPt is rotated).
+	\param	origPt [In]  - a constant reference to a keays::types::VectorD3 representing the point to be un-rotated.
  */
-inline const VectorD2 UnRotatePointXY(const VectorD3 &base, const VectorD3 &ref, const VectorD3 &origPt)
+inline const keays::types::VectorD2 
+UnRotatePointXY(const keays::types::VectorD3 &base, 
+                const keays::types::VectorD3 &ref, const keays::types::VectorD3 &origPt)
 {
-	return UnRotatePointXY(VectorD2(base), VectorD2(ref), VectorD2(origPt));
+    return UnRotatePointXY(keays::types::VectorD2(base), keays::types::VectorD2(ref), keays::types::VectorD2(origPt));
 }
 
 /*!
 	\brief Indicate which side (if any) a point is to the a line (in the X/Y plane).
 
-	\param     start [In]  - A constant reference to a VectorD3 point specifying the start of the line.
-	\param       end [In]  - A constant reference to a VectorD3 point specifying the end of the line.
-	\param        pt [In]  - A constant reference to a VectorD3 point to test.
+	\param     start [In]  - A constant reference to a keays::types::VectorD3 point specifying the start of the line.
+	\param       end [In]  - A constant reference to a keays::types::VectorD3 point specifying the end of the line.
+	\param        pt [In]  - A constant reference to a keays::types::VectorD3 point to test.
 	\param tolerance [In]  - A constant reference to a <b>double</b> representing the tolerance value to use for the test [optional].
 	\param pDistance [Out] - A pointer to a <b>double</b> to receive the distance of the point from the line [optional].
 
 	\return One of (SIDE_LEFT | SIDE_NONE | SIDE_RIGHT) indicating the side the point is on.  NB: SIDE_NONE indicates the point is on the line.
  */
 KEAYS_MATH_EXPORTS_API const eSideSelections
-PointOnSide(const VectorD3 &start, const VectorD3 &end, const VectorD3 &pt, const double &tolerance = Float::TOLERANCE, double *pDistance = NULL);
+PointOnSide(const keays::types::VectorD3 &start, const keays::types::VectorD3 &end, 
+            const keays::types::VectorD3 &pt, const double &tolerance = keays::types::Float::TOLERANCE, 
+            double *pDistance = NULL);
 
 /*!
 	\overload
 
-	\param     start [In]  - A constant reference to a VectorD2 point specifying the start of the line.
-	\param       end [In]  - A constant reference to a VectorD2 point specifying the end of the line.
-	\param        pt [In]  - A constant reference to a VectorD2 point to test.
+	\param     start [In]  - A constant reference to a keays::types::VectorD2 point specifying the start of the line.
+	\param       end [In]  - A constant reference to a keays::types::VectorD2 point specifying the end of the line.
+	\param        pt [In]  - A constant reference to a keays::types::VectorD2 point to test.
 	\param tolerance [In]  - A constant reference to a <b>double</b> representing the tolerance value to use for the test [optional].
 	\param pDistance [Out] - A pointer to a <b>double</b> to receive the distance of the point from the line [optional].
  */
 KEAYS_MATH_EXPORTS_API const eSideSelections
-PointOnSide(const VectorD2 &start, const VectorD2 &end, const VectorD2 &pt, const double &tolerance = Float::TOLERANCE, double *pDistance = NULL);
+PointOnSide(const keays::types::VectorD2 &start, const keays::types::VectorD2 &end, 
+            const keays::types::VectorD2 &pt, const double &tolerance = keays::types::Float::TOLERANCE, 
+            double *pDistance = NULL);
 
 /*!
 	\brief Sort an array of angles into order based on start angle and direction.
@@ -2178,8 +2203,8 @@ AngleFromChordLength(const double &radius, const double &chordLen, const eAngleD
 
 	/bug When generating lines for a smaller line (i.e inside a curve) and the parallel distance is too big compared to the size of the curve it will screw up.
 
-	\param    points [In]  - A Polyline3D containing the 3D points for the existing polyline.
-	\param    result [Out] - A Polyline3D containing the 3D points for the resulting polyline.
+	\param    points [In]  - A  keays::types::Polyline3D containing the 3D points for the existing polyline.
+	\param    result [Out] - A  keays::types::Polyline3D containing the 3D points for the resulting polyline.
 	\param  distance [In]  - A double specifying the distance to offset.
 	\param      side [In]  - One of SIDE_LEFT or SIDE_RIGHT to determine which side to offset. Side is determined by the direction of the source polyline.
 	\param zDistance [In]  - A double specifying the vertical (z) distance to offset.
@@ -2188,7 +2213,7 @@ AngleFromChordLength(const double &radius, const double &chordLen, const eAngleD
 	\return	False on failure, true on success.
  */
 KEAYS_MATH_EXPORTS_API bool
-ParallelPolylineOffset(const Polyline3D &points, Polyline3D &result,
+ParallelPolylineOffset(const keays::types::Polyline3D &points,  keays::types::Polyline3D &result,
 					   const double &distance, const eSideSelections side, const double &zDistance = 0.0, bool closed = false);
 
 #if 0
@@ -2212,56 +2237,59 @@ ParallelPolylineOffset(const Polyline2D & points, Polyline2D &result,
 /*!
 	\brief Calculate the perpendicular distance from an arbitary point to a line.
 
-	\param	lnStart [In]  - A constant reference to a VectorD2 specifying the start point of the line.
-	\param	  lnEnd [In]  - A constant reference to a VectorD2 specifying the the end point for the line.
-	\param	     pt [In]  - A constant reference to a VectorD2 specifying the point to calculate for.
+	\param	lnStart [In]  - A constant reference to a keays::types::VectorD2 specifying the start point of the line.
+	\param	  lnEnd [In]  - A constant reference to a keays::types::VectorD2 specifying the the end point for the line.
+	\param	     pt [In]  - A constant reference to a keays::types::VectorD2 specifying the point to calculate for.
 
 	\return	A double representing the distance, -ve means the point is on the left of the line.
  */
 KEAYS_MATH_EXPORTS_API const double
-GetPerpendicularDist(const VectorD2 &lnStart, const VectorD2 &lnEnd, const VectorD2 &pt);
+GetPerpendicularDist(const keays::types::VectorD2 &lnStart, const keays::types::VectorD2 &lnEnd, const keays::types::VectorD2 &pt);
 
 /*!
 	\brief Calculate the perpendicular distance from an arbitary point to a line.
 
-	\param   lnStart [In]  - A constant reference to a VectorD2 specifying the start point of the line.
-	\param     lnEnd [In]  - A constant reference to a VectorD2 specifying the the end point for the line.
-	\param        pt [In]  - A constant reference to a VectorD2 specifying the point to calculate for.
-	\param    result [Out] - A reference to a VectorD2 to receive the calculated point.
+	\param   lnStart [In]  - A constant reference to a keays::types::VectorD2 specifying the start point of the line.
+	\param     lnEnd [In]  - A constant reference to a keays::types::VectorD2 specifying the the end point for the line.
+	\param        pt [In]  - A constant reference to a keays::types::VectorD2 specifying the point to calculate for.
+	\param    result [Out] - A reference to a keays::types::VectorD2 to receive the calculated point.
 	\param pDistance [Out] - An optional pointer to a <b>double</b> to receive the perpedicular distance the point was from the line.
 
 	\return	An int indicating success (S_INTERSECT) or an error code if the operation failed.
  */
 KEAYS_MATH_EXPORTS_API const int
-GetPerpendicularIntersect(const VectorD2 &lnStart, const VectorD2 &lnEnd, const VectorD2 &pt, VectorD2 &result, double *pDistance = NULL);
+GetPerpendicularIntersect(const keays::types::VectorD2 &lnStart, const keays::types::VectorD2 &lnEnd, 
+                          const keays::types::VectorD2 &pt, 
+                          keays::types::VectorD2 &result, double *pDistance = NULL);
 
 /*!
 	\brief Calculate the perpendicular distance from an arbitary point to a line.
 
 	\param  polyline [In]  - A constant reference to a Polyline2D specifying the data for the polyline.
-	\param        pt [In]  - A constant reference to a VectorD2 specifying the point to calculate for.
-	\param    result [Out] - A reference to a VectorD2 to receive the calculated point.
+	\param        pt [In]  - A constant reference to a keays::types::VectorD2 specifying the point to calculate for.
+	\param    result [Out] - A reference to a keays::types::VectorD2 to receive the calculated point.
 	\param pDistance [Out] - An optional pointer to a <b>double</b> to receive the perpedicular distance the point was from the line.
 	\param pChainage [Out] - An optional pointer to a <b>double</b> to receive the chainage of the point from start of the polyline.
 
 	\return	True if a point was found.
  */
 KEAYS_MATH_EXPORTS_API const bool
-GetPerpendicularIntersect(const Polyline2D &polyline, const VectorD2 &pt, VectorD2 &result, double *pDistance = NULL, double *pChainage = NULL);
+GetPerpendicularIntersect(const keays::types::Polyline2D &polyline, const keays::types::VectorD2 &pt, 
+                          keays::types::VectorD2 &result, double *pDistance = NULL, double *pChainage = NULL);
 
 /*!
 	\brief Calculate the perpendicular distance from an arbitary point to a line.
 
-	\param  polyline [In]  - A constant reference to a Polyline3D specifying the data for the polyline.
-	\param        pt [In]  - A constant reference to a VectorD2 specifying the point to calculate for.
-	\param    result [Out] - A reference to a VectorD2 to receive the calculated point.
+	\param  polyline [In]  - A constant reference to a  keays::types::Polyline3D specifying the data for the polyline.
+	\param        pt [In]  - A constant reference to a keays::types::VectorD2 specifying the point to calculate for.
+	\param    result [Out] - A reference to a keays::types::VectorD2 to receive the calculated point.
 	\param pDistance [Out] - An optional pointer to a <b>double</b> to receive the perpedicular distance the point was from the line.
 	\param pChainage [Out] - An optional pointer to a <b>double</b> to receive the chainage of the point from start of the polyline.
 
 	\return	True if a point was found.
  */
 KEAYS_MATH_EXPORTS_API const bool
-GetPerpendicularIntersect(const Polyline3D &polyline, const VectorD2 &pt, VectorD3 &result, double *pDistance = NULL, double *pChainage = NULL);
+GetPerpendicularIntersect(const keays::types::Polyline3D &polyline, const keays::types::VectorD2 &pt, keays::types::VectorD3 &result, double *pDistance = NULL, double *pChainage = NULL);
 
 //-----------------------------------------------------------------------------
 /*!
@@ -2269,7 +2297,8 @@ GetPerpendicularIntersect(const Polyline3D &polyline, const VectorD2 &pt, Vector
  */
 struct KEAYS_MATH_EXPORTS_API PerpTestData
 {
-	PerpTestData(const int segmentStartIndex, const VectorD3 &intersectPoint, const double &chainage, const double &distance, bool onSegment)
+	PerpTestData(const int segmentStartIndex, const keays::types::VectorD3 &intersectPoint, 
+                 const double &chainage, const double &distance, bool onSegment)
 	:	m_segmentStartIndex(segmentStartIndex),
 		m_intersectPoint(intersectPoint),
 		m_chainage(chainage),
@@ -2281,26 +2310,26 @@ struct KEAYS_MATH_EXPORTS_API PerpTestData
 
 	bool operator<(const PerpTestData &rhs)
 	{
-		return Float::Less(m_distance, rhs.m_distance, ms_tolerance);
+        return keays::types::Float::Less(m_distance, rhs.m_distance, ms_tolerance);
 	}
 
 	bool operator>(const PerpTestData &rhs)
 	{
-		return Float::Greater(m_distance, rhs.m_distance, ms_tolerance);
+        return keays::types::Float::Greater(m_distance, rhs.m_distance, ms_tolerance);
 	}
 
 	bool operator<=(const PerpTestData &rhs)
 	{
-		return Float::LessOrEqual(m_distance, rhs.m_distance, ms_tolerance);
+        return keays::types::Float::LessOrEqual(m_distance, rhs.m_distance, ms_tolerance);
 	}
 
 	bool operator>=(const PerpTestData &rhs)
 	{
-		return Float::GreaterOrEqual(m_distance, rhs.m_distance, ms_tolerance);
+        return keays::types::Float::GreaterOrEqual(m_distance, rhs.m_distance, ms_tolerance);
 	}
 
 	int m_segmentStartIndex;		//!< the index in the polyline that precedes the segment that this point lies upon.
-	VectorD3
+    keays::types::VectorD3
 			m_intersectPoint;		//!< the nearest point on this segment. (may be a vertex).
 	double m_chainage;				//!< the chainage to m_intersectPoint from the begining of the polyline.
 	double m_distance;				//!< the distance from the test point to m_intersectPoint.
@@ -2312,24 +2341,26 @@ struct KEAYS_MATH_EXPORTS_API PerpTestData
 /*!
 	\brief Generate a polyline from the given polyline, and remove duplicate points.
 
-	\param sourcePolyline [In] - A constant reference to a Polyline3D.
+	\param sourcePolyline [In] - A constant reference to a  keays::types::Polyline3D.
 	\param      tolerance [In] - A constant reference to a double precision value specifying the tolerance value to use for double precision boolean comparisions.
 
-	\return	A constant Polyline3D representing the source polyline with the duplicates removed
+	\return	A constant  keays::types::Polyline3D representing the source polyline with the duplicates removed
  */
-KEAYS_MATH_EXPORTS_API const Polyline3D
-RemoveDuplicates(const Polyline3D &sourcePolyline, const double &tolerance = Float::TOLERANCE);
+KEAYS_MATH_EXPORTS_API const keays::types::Polyline3D
+RemoveDuplicates(const keays::types::Polyline3D &sourcePolyline, 
+                 const double &tolerance = keays::types::Float::TOLERANCE);
 
 /*!
 	\brief Remove duplicate points from a given polyline.
 
-	\param sourcePolyline [In] - A pointer to a Polyline3D to remove the duplicate points removed.
+	\param sourcePolyline [In] - A pointer to a  keays::types::Polyline3D to remove the duplicate points removed.
 	\param      tolerance [In] - A constant reference to a double precision value specifying the tolerance value to use for double precision boolean comparisions.
 
-	\return	A constant Polyline3D representing the source polyline with the duplicates removed
+	\return	A constant  keays::types::Polyline3D representing the source polyline with the duplicates removed
  */
-KEAYS_MATH_EXPORTS_API const Polyline3D *
-RemoveDuplicates(Polyline3D *sourcePolyline, const double &tolerance = Float::TOLERANCE);
+KEAYS_MATH_EXPORTS_API const keays::types::Polyline3D *
+RemoveDuplicates(keays::types::Polyline3D *sourcePolyline, 
+                 const double &tolerance = keays::types::Float::TOLERANCE);
 
 /*!
 	\brief Calculate the nearest point on a polyline.
@@ -2342,9 +2373,9 @@ RemoveDuplicates(Polyline3D *sourcePolyline, const double &tolerance = Float::TO
 
 	\warning This function assumes that the polyline it has been given has had duplicates removed from it already, it's behaviour is unspecified if it still has duplicate, consecutive vertices.
 
-	\param     testPolyline [In]  - A constant reference to a Polyline3D for use as the reference polyline.
-	\param        testPoint [In]  - A constant reference to a VectorD2 specifying the test point.
-	\param       pPerpPoint [Out] - A pointer to a VectorD3 that will receive the calculated nearest point.
+	\param     testPolyline [In]  - A constant reference to a  keays::types::Polyline3D for use as the reference polyline.
+	\param        testPoint [In]  - A constant reference to a keays::types::VectorD2 specifying the test point.
+	\param       pPerpPoint [Out] - A pointer to a keays::types::VectorD3 that will receive the calculated nearest point.
 	\param        pChainage [Out] - A pointer to a douple precision variable to receive the chainage at which the nearest point occurs.
 	\param        pPerpDist [Out] - A pointer to a double precision variable to receive the distance from the test point to the returned point.
 	\param interpolateAtEnd [In]  - A boolean flag indicating the behaviour to use when testing past the first and last point of the reference polyline.
@@ -2354,22 +2385,24 @@ RemoveDuplicates(Polyline3D *sourcePolyline, const double &tolerance = Float::TO
 	\return	A boolean value indicating if the function succeeded.
  */
 KEAYS_MATH_EXPORTS_API bool
-GetNearestPoint(const Polyline3D &testPolyline, const VectorD2 &testPoint,  VectorD3 *pPerpPoint, 
-				double *pChainage = NULL,  double *pPerpDist = NULL, bool interpolateAtEnd = true, 
-				std::list<PerpTestData> *pTestData = NULL, const double &tolerance = Float::TOLERANCE);
+GetNearestPoint(const keays::types::Polyline3D &testPolyline, const keays::types::VectorD2 &testPoint,  
+                keays::types::VectorD3 *pPerpPoint, double *pChainage = NULL, 
+                double *pPerpDist = NULL, bool interpolateAtEnd = true, 
+                std::list<PerpTestData> *pTestData = NULL, 
+                const double &tolerance = keays::types::Float::TOLERANCE);
 
 
 /*!
 	\brief Calculate the mid point on a line.
 
-	\param	lnStart [In]  - A constant reference to a VectorD3 specifying the start point of the line.
-	\param	  lnEnd [In]  - A constant reference to a VectorD3 specifying the the end point for the line.
-	\param	    mid [Out] - A reference to a VectorD3 to receive the calculated point.
+	\param	lnStart [In]  - A constant reference to a keays::types::VectorD3 specifying the start point of the line.
+	\param	  lnEnd [In]  - A constant reference to a keays::types::VectorD3 specifying the the end point for the line.
+	\param	    mid [Out] - A reference to a keays::types::VectorD3 to receive the calculated point.
 
 	\return	An int indicating success (S_INTERSECT) or an error code if the operation failed.
  */
 KEAYS_MATH_EXPORTS_API const int
-GetMidPoint(const VectorD3 &lnStart, const VectorD3 &lnEnd, VectorD3 &mid);
+GetMidPoint(const keays::types::VectorD3 &lnStart, const keays::types::VectorD3 &lnEnd, keays::types::VectorD3 &mid);
 
 //! Vertical Curve return values.
 enum KEAYS_MATH_EXPORTS_API eVCReturns
@@ -2382,17 +2415,19 @@ enum KEAYS_MATH_EXPORTS_API eVCReturns
 /*!
 	\brief Modify point heights to make a vertical curve.
 	\note This will always generate a double VC even if it looks like a singular curve.
-	\param        pts [I/O] - A constant reference to a Polyline3D specifying the points to generate the vertical curve for, points will be added for the mid and turning points of each curve.
+	\param        pts [I/O] - A constant reference to a  keays::types::Polyline3D specifying the points to generate the vertical curve for, points will be added for the mid and turning points of each curve.
 	\param     sChain [In]  - A constant reference to a <b>double</b> specifying the distance from the start of the polyline the curve should start. A value of 0.0 or less means the curve starts at the begining of the polyline.
 	\param     length [In]  - A constant reference to a <b>double</b> representing the length of the desired vertical curve, a value of less than 0.0 indicates that the curve should extend the full length of the polyline.
-	\param pArcCenter [In]  - A constant pointer to a VectorD2 for use as the center point in a circular arc to calculate the position of the turning points in the XY plane.  The arc positioning is not used if this or pRadius is NULL.
+	\param pArcCenter [In]  - A constant pointer to a keays::types::VectorD2 for use as the center point in a circular arc to calculate the position of the turning points in the XY plane.  The arc positioning is not used if this or pRadius is NULL.
 	\param    pRadius [In]  - A constant pointer to a double specifying the radius of a circular arc to calculate the position of the turning points in the XY plane.  The arc positioning is not used if this or pArcCenter is NULL.
 
 	\return An int indicating success (S_VC_SUCCESS) or an error code from the eVCReturns enum.
  */
 KEAYS_MATH_EXPORTS_API const int
-VerticalCurve(Polyline3D &pts, const double &sChain = 0.0, const double &length = -1, const VectorD2 *pArcCenter = NULL, 
-			  const double *pRadius = NULL, VectorD2 *pStartIndices = NULL, VectorD3 *pIndices = NULL, double *pTotalLength = NULL);
+VerticalCurve(keays::types::Polyline3D &pts, const double &sChain = 0.0, 
+              const double &length = -1, const keays::types::VectorD2 *pArcCenter = NULL, 
+			  const double *pRadius = NULL, keays::types::VectorD2 *pStartIndices = NULL, 
+              keays::types::VectorD3 *pIndices = NULL, double *pTotalLength = NULL);
 
 /*!
 	\overload
@@ -2406,13 +2441,16 @@ VerticalCurve(Polyline3D &pts, const double &sChain = 0.0, const double &length 
 	\param eHeight [In]  - A constant reference to a <b>double</b> specifying the end height (z-value) of the curve.
  */
 KEAYS_MATH_EXPORTS_API const int
-VerticalCurve(Polyline3D &pts, const double &sGrade, const double &sHeight, const double &eGrade, const double &eHeight,
-			  const VectorD2 *pArcCenter = NULL, const double *pRadius = NULL, VectorD3 *pIndices = NULL, double *pTotalLength = NULL);
+VerticalCurve(keays::types::Polyline3D &pts, const double &sGrade, const double &sHeight, 
+              const double &eGrade, const double &eHeight,
+			  const keays::types::VectorD2 *pArcCenter = NULL, 
+              const double *pRadius = NULL, keays::types::VectorD3 *pIndices = NULL, 
+              double *pTotalLength = NULL);
 
 /*!
 	\overload
-	\param        source [In]  - A constant reference to a Polyline3D for use as the original source data.
-	\param         pDest [Out] - A pointer to a Polyline3D to receive the generated curve.  The destination polyline will be cleared.
+	\param        source [In]  - A constant reference to a  keays::types::Polyline3D for use as the original source data.
+	\param         pDest [Out] - A pointer to a  keays::types::Polyline3D to receive the generated curve.  The destination polyline will be cleared.
 	\param startChainage [In]  - A constant reference to a <b>double</b> specifying the desired start chainage for the curve 
 									domain. If this value is greater than the end chainage the curve domain will be from this 
 									value to the end of the polyline, if this value is less than 0 the curve domain will be 
@@ -2432,7 +2470,8 @@ VerticalCurve(Polyline3D &pts, const double &sGrade, const double &sHeight, cons
 	\return True if the curve was successfully generated, otherwise false
  */
 KEAYS_MATH_EXPORTS_API bool
-VerticalCurve(const Polyline3D &source, Polyline3D *pDest, const double &startChainage, const double &endChainage,
+VerticalCurve(const keays::types::Polyline3D &source,  keays::types::Polyline3D *pDest, 
+              const double &startChainage, const double &endChainage,
 			  const double &curveLength, const unsigned int flags);
 
 /*!
@@ -2448,14 +2487,14 @@ VerticalCurve(const Polyline3D &source, Polyline3D *pDest, const double &startCh
 	\return True if successful.
  */
 KEAYS_MATH_EXPORTS_API bool
-SimplifyPolyline(const Polyline3D &polyline, const double &xyTol, const double &altTol,
-				 const double &minimumChainage, Polyline3D &simpleLine);
+SimplifyPolyline(const keays::types::Polyline3D &polyline, const double &xyTol, const double &altTol,
+				 const double &minimumChainage,  keays::types::Polyline3D &simpleLine);
 
 
 /*
-bool AdjustPolylineVCurve(const Polyline3D &polyline, const int startIndex, const int endIndex, Polyline3D &result);
+bool AdjustPolylineVCurve(const keays::types::Polyline3D &polyline, const int startIndex, const int endIndex,  keays::types::Polyline3D &result);
 
-bool AdjustPolylineVCurve(const Polyline3D &polyline, const double &startChainage, const double &endChainage, Polyline3D &result);
+bool AdjustPolylineVCurve(const keays::types::Polyline3D &polyline, const double &startChainage, const double &endChainage,  keays::types::Polyline3D &result);
 //*/
 
 /*!
@@ -2466,43 +2505,45 @@ bool AdjustPolylineVCurve(const Polyline3D &polyline, const double &startChainag
 	\return The area in units squared, the answer will be -ve if the polygon is wound in a clockwise direction.
  */
 KEAYS_MATH_EXPORTS_API const double
-CalcPolygonArea(const Polyline2D &polygon, bool needsClose = false);
+CalcPolygonArea(const keays::types::Polyline2D &polygon, bool needsClose = false);
 
 /*!
 	\overload
 
-	\param polygon [In] - A constant reference to a std::list of VectorD2 points describing a 2D polygon.
+	\param polygon [In] - A constant reference to a std::list of keays::types::VectorD2 points describing a 2D polygon.
  */
 KEAYS_MATH_EXPORTS_API const double
-CalcPolygonArea(const std::list<VectorD2> &polygon, bool needsClose = false);
+CalcPolygonArea(const std::list<keays::types::VectorD2> &polygon, bool needsClose = false);
 
 /*!
 	\overload
 
-	\param polygon [In] - A constant pointer to an array of VectorD2 points describing a 2D polygon.
+	\param polygon [In] - A constant pointer to an array of keays::types::VectorD2 points describing a 2D polygon.
  */
 KEAYS_MATH_EXPORTS_API const double
-CalcPolygonArea(const VectorD2* polygon, const int numPoints, bool needsClose = false);
+CalcPolygonArea(const keays::types::VectorD2* polygon, const int numPoints, bool needsClose = false);
 
 /*!
 	\brief Calculate the area of an arbitary triangle, it will be -ve if the polygon is wound CW.
 
-	\param     triPt1 [In] - A constant reference to a VectorD2 representing the first point of a CCW wound triangle.
-	\param     triPt2 [In] - A constant reference to a VectorD2 representing the second point of a CCW wound triangle.
-	\param     triPt3 [In] - A constant reference to a VectorD2 representing the third point of a CCW wound triangle.
+	\param     triPt1 [In] - A constant reference to a keays::types::VectorD2 representing the first point of a CCW wound triangle.
+	\param     triPt2 [In] - A constant reference to a keays::types::VectorD2 representing the second point of a CCW wound triangle.
+	\param     triPt3 [In] - A constant reference to a keays::types::VectorD2 representing the third point of a CCW wound triangle.
 
 	\return The area in units squared, the answer will be -ve if the polygon is wound in a clockwise direction.
  */
 KEAYS_MATH_EXPORTS_API const double
-CalcTriangleArea(const VectorD2 &triPt1, const VectorD2 &triPt2, const VectorD2 &triPt3);
+CalcTriangleArea(const keays::types::VectorD2 &triPt1, 
+                 const keays::types::VectorD2 &triPt2, 
+                 const keays::types::VectorD2 &triPt3);
 
 /*!
 	\overload
 
-	\param triPts [In] - A constant pointer to the first element of an array of VectorD2 points representing a CCW wound triangle.
+	\param triPts [In] - A constant pointer to the first element of an array of keays::types::VectorD2 points representing a CCW wound triangle.
  */
 inline KEAYS_MATH_EXPORTS_API const double
-CalcTriangleArea(const VectorD2 *triPts)
+CalcTriangleArea(const keays::types::VectorD2 *triPts)
 {
 	return CalcTriangleArea(triPts[0], triPts[1], triPts[2]);
 }
@@ -2584,38 +2625,42 @@ inline const char *GetIReturnText(int retVal)
 /*!
 	\brief Find the point(s) of intersection of 2 circles if possible on the XY plane.
 
-	\param  center1 [In]  - A constant reference to a VectorD2 representing the XY position of the center of the first circle.
+	\param  center1 [In]  - A constant reference to a keays::types::VectorD2 representing the XY position of the center of the first circle.
 	\param  radius1 [In]  - A constant reference to a <b>double</b> specifying the radius of the first circle.
-	\param  center2 [In]  - A constant reference to a VectorD2 representing the XY position of the center of the second circle.
+	\param  center2 [In]  - A constant reference to a keays::types::VectorD2 representing the XY position of the center of the second circle.
 	\param  radius2 [In]  - A constant reference to a <b>double</b> specifying the radius of the second circle.
-	\param refPoint [In]  - A constant reference to a VectorD2 representing a reference point to use to determine which is the first and which is the second result.
-	\param   result [Out] - A reference to a VectorD2 to receive the first solution if any.
-	\param  result2 [Out] - A pointer to a VectorD2 to receive the second solution if any, pass NULL if not interested in the second solution.
+	\param refPoint [In]  - A constant reference to a keays::types::VectorD2 representing a reference point to use to determine which is the first and which is the second result.
+	\param   result [Out] - A reference to a keays::types::VectorD2 to receive the first solution if any.
+	\param  result2 [Out] - A pointer to a keays::types::VectorD2 to receive the second solution if any, pass NULL if not interested in the second solution.
 
 	\return	An integer indicating if the operation succeeded or failed. This will be S_INTERSECT on success, on failure it will be one of E_SAME_POINT, E_NO_INTERSECT, E_CIRC1_IN_CIRC2, or E_CIRC2_IN_CIRC1.
  */
 KEAYS_MATH_EXPORTS_API const int
-CircleCircleIntersect(const VectorD2 &center1, const double &radius1, const VectorD2 &center2, const double &radius2,
-					  const VectorD2 &refPoint, VectorD2 &result, VectorD2 *result2);
+CircleCircleIntersect(const keays::types::VectorD2 &center1, 
+                      const double &radius1, const keays::types::VectorD2 &center2, 
+                      const double &radius2, const keays::types::VectorD2 &refPoint, 
+                      keays::types::VectorD2 &result, keays::types::VectorD2 *result2);
 
 //-----------------------------------------------------------------------------
 /*!
 	\brief Find the point(s) of intersection of a line and a circle if possible on the XY plane.
 
-	\param        pt1 [In]  - A constant reference to a VectorD2 representing the XY position of first point on the line.
-	\param        pt2 [In]  - A constant reference to a VectorD2 representing the XY position of second point on the line.
-	\param     center [In]  - A constant reference to a VectorD2 representing the XY position of the center of the circle.
+	\param        pt1 [In]  - A constant reference to a keays::types::VectorD2 representing the XY position of first point on the line.
+	\param        pt2 [In]  - A constant reference to a keays::types::VectorD2 representing the XY position of second point on the line.
+	\param     center [In]  - A constant reference to a keays::types::VectorD2 representing the XY position of the center of the circle.
 	\param     radius [In]  - A constant reference to a <b>double</b> specifying the radius of the circle.
-	\param   refPoint [In]  - A constant reference to a VectorD2 representing a reference point to use to determine which is the first and which is the second result;
-	\param     result [Out] - A reference to a VectorD2 to receive the first solution if any.
+	\param   refPoint [In]  - A constant reference to a keays::types::VectorD2 representing a reference point to use to determine which is the first and which is the second result;
+	\param     result [Out] - A reference to a keays::types::VectorD2 to receive the first solution if any.
 	\param lineOffset [In]  - A constant double specifying an offset distance if required.
-	\param    result2 [Out] - A pointer to a VectorD2 to receive the second solution if any, pass NULL if not interested in the second solution.
+	\param    result2 [Out] - A pointer to a keays::types::VectorD2 to receive the second solution if any, pass NULL if not interested in the second solution.
 
 	\return	An integer indicating if the operation succeeded or failed. This will be S_INTERSECT on success, on failure it will be one of E_SAME_POINT, E_NO_INTERSECT, E_CIRC1_IN_CIRC2, or E_CIRC2_IN_CIRC1.
  */
 KEAYS_MATH_EXPORTS_API const int
-LineCircleIntersect(const VectorD2 &pt1, const VectorD2 &pt2, const VectorD2 &center, const double &radius,
-					const VectorD2 &refPoint, VectorD2 &result, const double &lineOffset = 0.0, VectorD2 *result2 = NULL);
+LineCircleIntersect(const keays::types::VectorD2 &pt1, const keays::types::VectorD2 &pt2, 
+                    const keays::types::VectorD2 &center, const double &radius,
+					const keays::types::VectorD2 &refPoint, keays::types::VectorD2 &result, 
+                    const double &lineOffset = 0.0, keays::types::VectorD2 *result2 = NULL);
 
 //-----------------------------------------------------------------------------
 /*!
@@ -2624,8 +2669,9 @@ LineCircleIntersect(const VectorD2 &pt1, const VectorD2 &pt2, const VectorD2 &ce
 	\param l1 [In] - A constant reference to a Line specifying the line to use for the intersect.
  */
 inline const int
-LineCircleIntersect(const Line &l1, const VectorD2 &center, const double &radius, const VectorD2 &refPoint,
-					VectorD2 &result, const double &lineOffset = 0.0, VectorD2 *result2 = NULL)
+LineCircleIntersect(const Line &l1, const keays::types::VectorD2 &center, const double &radius, 
+                    const keays::types::VectorD2 &refPoint, keays::types::VectorD2 &result, 
+                    const double &lineOffset = 0.0, keays::types::VectorD2 *result2 = NULL)
 {
 	return LineCircleIntersect(l1.start.XY(), l1.end.XY(), center, radius, refPoint, result, lineOffset, result2);
 }
@@ -2634,16 +2680,18 @@ LineCircleIntersect(const Line &l1, const VectorD2 &center, const double &radius
 /*!
 	\brief Find the point of intersection of 2 lines if possible on the XY plane.
 
-	\param   l1p1 [In]  - A constant reference to a VectorD2 representing the XY position of first point on the first line.
-	\param   l1p2 [In]  - A constant reference to a VectorD2 representing the XY position of second point on the first line.
-	\param   l2p1 [In]  - A constant reference to a VectorD2 representing the XY position of first point on the second line.
-	\param   l2p2 [In]  - A constant reference to a VectorD2 representing the XY position of second point on the second line.
-	\param result [Out] - A reference to a VectorD2 to receive the first solution if any, interested in the second solution.
+	\param   l1p1 [In]  - A constant reference to a keays::types::VectorD2 representing the XY position of first point on the first line.
+	\param   l1p2 [In]  - A constant reference to a keays::types::VectorD2 representing the XY position of second point on the first line.
+	\param   l2p1 [In]  - A constant reference to a keays::types::VectorD2 representing the XY position of first point on the second line.
+	\param   l2p2 [In]  - A constant reference to a keays::types::VectorD2 representing the XY position of second point on the second line.
+	\param result [Out] - A reference to a keays::types::VectorD2 to receive the first solution if any, interested in the second solution.
 
 	\return	An integer indicating if the operation succeeded or failed. This will be S_INTERSECT on success, on failure it will be one of E_SAME_POINT, E_NO_INTERSECT, E_CIRC1_IN_CIRC2, or E_CIRC2_IN_CIRC1.
  */
 KEAYS_MATH_EXPORTS_API const int
-LineLineIntersect(const VectorD2 &l1p1, const VectorD2 &l1p2, const VectorD2 &l2p1, const VectorD2 &l2p2, VectorD2 &result);
+LineLineIntersect(const keays::types::VectorD2 &l1p1, const keays::types::VectorD2 &l1p2, 
+                  const keays::types::VectorD2 &l2p1, const keays::types::VectorD2 &l2p2, 
+                  keays::types::VectorD2 &result);
 
 //-----------------------------------------------------------------------------
 /*!
@@ -2652,7 +2700,7 @@ LineLineIntersect(const VectorD2 &l1p1, const VectorD2 &l1p2, const VectorD2 &l2
 	\param l1 [In] - A constant reference to a Line representing the first line to use.
 	\param l2 [In] - A constant reference to a Line representing the second line to use.
  */
-inline const int LineLineIntersect(const Line &l1, const Line &l2, VectorD2 &result)
+inline const int LineLineIntersect(const Line &l1, const Line &l2, keays::types::VectorD2 &result)
 {
 	return LineLineIntersect(l1.start.XY(), l1.end.XY(), l2.start.XY(), l2.end.XY(), result);
 }
@@ -2666,29 +2714,31 @@ inline const int LineLineIntersect(const Line &l1, const Line &l2, VectorD2 &res
 	is still an intersect of sorts (an end is touching, but not automatically considered a success, and will need 
 	to be checked for seperately.
 
-	\param   l1p1 [In]  - A constant reference to a VectorD2 representing the XY position of first point on the first line.
-	\param   l1p2 [In]  - A constant reference to a VectorD2 representing the XY position of second point on the first line.
-	\param   l2p1 [In]  - A constant reference to a VectorD2 representing the XY position of first point on the second line.
-	\param   l2p2 [In]  - A constant reference to a VectorD2 representing the XY position of second point on the second line.
-	\param result [Out] - A reference to a VectorD2 to receive the first solution if any, interested in the second solution.
+	\param   l1p1 [In]  - A constant reference to a keays::types::VectorD2 representing the XY position of first point on the first line.
+	\param   l1p2 [In]  - A constant reference to a keays::types::VectorD2 representing the XY position of second point on the first line.
+	\param   l2p1 [In]  - A constant reference to a keays::types::VectorD2 representing the XY position of first point on the second line.
+	\param   l2p2 [In]  - A constant reference to a keays::types::VectorD2 representing the XY position of second point on the second line.
+	\param result [Out] - A reference to a keays::types::VectorD2 to receive the first solution if any, interested in the second solution.
 
 	\return	An integer indicating if the operation succeeded or failed. This will be S_INTERSECT on success.
  */
 KEAYS_MATH_EXPORTS_API const int
-LineSegLineSegIntersect(const VectorD2 &l1p1, const VectorD2 &l1p2, const VectorD2 &l2p1, const VectorD2 &l2p2, VectorD2 &result);
+LineSegLineSegIntersect(const keays::types::VectorD2 &l1p1, const keays::types::VectorD2 &l1p2, 
+                        const keays::types::VectorD2 &l2p1, const keays::types::VectorD2 &l2p2,
+                        keays::types::VectorD2 &result);
 
 //-----------------------------------------------------------------------------
 /*!
 	\overload
 
-	\param     l1 [In]  - A constant reference to a VectorD2 representing the XY position of first point on the first line.
-	\param     l2 [In]  - A constant reference to a VectorD2 representing the XY position of first point on the second line.
-	\param result [Out] - A reference to a VectorD2 to receive the first solution if any, interested in the second solution.
+	\param     l1 [In]  - A constant reference to a keays::types::VectorD2 representing the XY position of first point on the first line.
+	\param     l2 [In]  - A constant reference to a keays::types::VectorD2 representing the XY position of first point on the second line.
+	\param result [Out] - A reference to a keays::types::VectorD2 to receive the first solution if any, interested in the second solution.
 
 	\return	An integer indicating if the operation succeeded or failed. This will be S_INTERSECT on success.
  */
 inline const int
-LineSegLineSegIntersect(const Line &l1, const Line &l2, VectorD2 &result)
+LineSegLineSegIntersect(const Line &l1, const Line &l2, keays::types::VectorD2 &result)
 {
 	return LineSegLineSegIntersect(l1.start.XY(), l1.end.XY(), l2.start.XY(), l2.end.XY(), result);
 }
@@ -2704,39 +2754,39 @@ LineSegLineSegIntersect(const Line &l1, const Line &l2, VectorD2 &result)
 		(test for LC_ERR_PROBLEM_AVERAGING_POINTS).</b>
 
 	\param  lines [In]  - a constant reference to a std::vector of Lines to find the average intersect for
-	\param result [Out] - A pointer to a VectorD2 to receive the resultant point.
+	\param result [Out] - A pointer to a keays::types::VectorD2 to receive the resultant point.
 
 	\return	An integer indicating if the operation succeeded or failed. This will be LC_SUCCESS on success,
 				on failure it will be one of LC_ERR_INVALID_RESULT_PTR, LC_ERR_TO_FEW_LINES, LC_ERR_NO_VALID_INTERSECT or LC_ERR_PROBLEM_AVERAGING_POINTS.
  */
 KEAYS_MATH_EXPORTS_API const int
-MultipleLineIntersectAverage(const std::vector<Line> &lines, VectorD2 *result);
+MultipleLineIntersectAverage(const std::vector<Line> &lines, keays::types::VectorD2 *result);
 
 //-----------------------------------------------------------------------------
 /*!
 	\brief Find an average geometric centroid of a group of points on the XY plane.
 
-	\param points [In]  - a constant reference to a stl::vector of VectorD2 points to find the centroid of,..
+	\param points [In]  - a constant reference to a stl::vector of keays::types::VectorD2 points to find the centroid of,..
 	\note 1) It is rather pointless, although possible to find the average of 1 point.
 	\note 2) If you use this on two points it will find the mid point between them.
-	\param result [Out] - A pointer to a VectorD2 to receive the resulting geometric centroid of the collection of points.
+	\param result [Out] - A pointer to a keays::types::VectorD2 to receive the resulting geometric centroid of the collection of points.
 
 	\return	An integer indicating if the operation succeeded or failed. This will be PAV_SUCCESS on success,
 				on failure it will be one of PAV_ERR_INVALID_RESULT_PTR or PAV_ERR_NO_POINTS.
  */
 KEAYS_MATH_EXPORTS_API const int
-AveragePoints(const Polyline2D &points, VectorD2 *result);
+AveragePoints(const keays::types::Polyline2D &points, keays::types::VectorD2 *result);
 
 //-----------------------------------------------------------------------------
 /*!
 	\overload
 	\brief Find an average geometric centroid of a group of 3D points.
 
-	\param points [In]  - a constant reference to a stl::vector of VectorD3 points to find the centroid of,..
-	\param result [Out] - A pointer to a VectorD3 to receive the resulting geometric centroid of the collection of points.
+	\param points [In]  - a constant reference to a stl::vector of keays::types::VectorD3 points to find the centroid of,..
+	\param result [Out] - A pointer to a keays::types::VectorD3 to receive the resulting geometric centroid of the collection of points.
  */
 KEAYS_MATH_EXPORTS_API const int
-AveragePoints(const Polyline3D &points, VectorD3 *result);
+AveragePoints(const keays::types::Polyline3D &points, keays::types::VectorD3 *result);
 
 //-----------------------------------------------------------------------------
 /*!
@@ -2750,12 +2800,12 @@ AveragePoints(const Polyline3D &points, VectorD3 *result);
 	<b>Note #2:</b> Intersect doesn't include touching edges. I.e if two rectangles are touching then they
 	are <b>NOT</b> intersecting
 
-	\param    topLeft1  [In]  - a VectorD2 specifying the upper left hand corner of the first rectangle
-	\param    botRight1 [In]  - a VectorD2 specifying the lower right hand corner of the first rectangle
-	\param    topLeft2  [In]  - a VectorD2 specifying the upper left hand corner of the second rectangle
-	\param    botRight2 [In]  - a VectorD2 specifying the lower right hand corner of the second rectangle
-	\param  resTopLeft  [Out] - A VectorD2 specifying the upper left hand corner of the intersection rectangle
-	\param  resBotRight [Out] - A VectorD2 specifying the lower right hand corner of the intersection rectangle
+	\param    topLeft1  [In]  - a keays::types::VectorD2 specifying the upper left hand corner of the first rectangle
+	\param    botRight1 [In]  - a keays::types::VectorD2 specifying the lower right hand corner of the first rectangle
+	\param    topLeft2  [In]  - a keays::types::VectorD2 specifying the upper left hand corner of the second rectangle
+	\param    botRight2 [In]  - a keays::types::VectorD2 specifying the lower right hand corner of the second rectangle
+	\param  resTopLeft  [Out] - A keays::types::VectorD2 specifying the upper left hand corner of the intersection rectangle
+	\param  resBotRight [Out] - A keays::types::VectorD2 specifying the lower right hand corner of the intersection rectangle
 
 	\return	An integer indicating if the operation succeeded or failed. This will be S_INTERSECT on success.
 	On failure it will be one of E_NO_INTERSECT, E_RECT1_INSIDE, E_RECT2_INSIDE, E_SAME_RECT or E_FAIL_OTHER.
@@ -2769,15 +2819,16 @@ AveragePoints(const Polyline3D &points, VectorD3 *result);
     For all other cases resTopLeft and resBotRight are undefined.
  */
 KEAYS_MATH_EXPORTS_API const int
-RectRectIntersect(const VectorD2 & topLeft1, const VectorD2 & botRight1, const VectorD2 & topLeft2,
-				   const VectorD2 & botRight2, VectorD2 & resTopLeft, VectorD2 & resBotRight);
+RectRectIntersect(const keays::types::VectorD2 & topLeft1, const keays::types::VectorD2 & botRight1,
+                  const keays::types::VectorD2 & topLeft2, const keays::types::VectorD2 & botRight2,
+                  keays::types::VectorD2 & resTopLeft, keays::types::VectorD2 & resBotRight);
 
 //-----------------------------------------------------------------------------
 /*!
 	\brief Caculate the Y value for a given X position on a specified line
 
-	\param       pt1 [In]  - a constant reference to a VectorD2 specifying the first point on the line.
-	\param       pt2 [In]  - a constant reference to a VectorD2 specifying the second point on the line.
+	\param       pt1 [In]  - a constant reference to a keays::types::VectorD2 specifying the first point on the line.
+	\param       pt2 [In]  - a constant reference to a keays::types::VectorD2 specifying the second point on the line.
 	\param         x [In]  - a constant reference to a double specifying the X position to calculate for.
 	\param        pY [Out] - A pointer to a double for the calculated Y position.
 	\param tolerance [In]  - a constant double representing the tolerance to use for testing.
@@ -2785,7 +2836,8 @@ RectRectIntersect(const VectorD2 & topLeft1, const VectorD2 & botRight1, const V
 	\return a pointer to the result if successful, NULL if it failed
  */
 KEAYS_MATH_EXPORTS_API const double *
-YfromXPt(const VectorD2 &pt1, const VectorD2 &pt2, const double &x, double *pY, const double &tolerance = Float::TOLERANCE);
+YfromXPt(const keays::types::VectorD2 &pt1, const keays::types::VectorD2 &pt2,
+         const double &x, double *pY, const double &tolerance = keays::types::Float::TOLERANCE);
 
 //-----------------------------------------------------------------------------
 /*!
@@ -2793,7 +2845,8 @@ YfromXPt(const VectorD2 &pt1, const VectorD2 &pt2, const double &x, double *pY, 
 	\param line [In]  - a constant reference to a Line specifying the line.
  */
 inline const double *
-YfromXPt(const Line &line, const double &x, double *pY, const double &tolerance = Float::TOLERANCE)
+YfromXPt(const Line &line, const double &x, double *pY,
+         const double &tolerance = keays::types::Float::TOLERANCE)
 {
 	return YfromXPt(line.start.XY(), line.end.XY(), x, pY, tolerance);
 }
@@ -2802,8 +2855,8 @@ YfromXPt(const Line &line, const double &x, double *pY, const double &tolerance 
 /*
 	\brief Caculate the X value for a given Y position on a specified line
 
-	\param       pt1 [In]  - a constant reference to a VectorD2 specifying the first point on the line.
-	\param       pt2 [In]  - a constant reference to a VectorD2 specifying the second point on the line.
+	\param       pt1 [In]  - a constant reference to a keays::types::VectorD2 specifying the first point on the line.
+	\param       pt2 [In]  - a constant reference to a keays::types::VectorD2 specifying the second point on the line.
 	\param         y [In]  - a constant reference to a double specifying the Y position to calculate for.
 	\param        pX [Out] - A pointer to a double for the calculated X position.
 	\param tolerance [In]  - a constant double representing the tolerance to use for testing.
@@ -2811,7 +2864,8 @@ YfromXPt(const Line &line, const double &x, double *pY, const double &tolerance 
 	\return a pointer to the result if successful, NULL if it failed
  */
 KEAYS_MATH_EXPORTS_API const double *
-XfromYPt(const VectorD2 &pt1, const VectorD2 &pt2, const double &y, double *pX, const double &tolerance = Float::TOLERANCE);
+XfromYPt(const keays::types::VectorD2 &pt1, const keays::types::VectorD2 &pt2, const double &y,
+         double *pX, const double &tolerance = keays::types::Float::TOLERANCE);
 
 //-----------------------------------------------------------------------------
 /*!
@@ -2819,7 +2873,8 @@ XfromYPt(const VectorD2 &pt1, const VectorD2 &pt2, const double &y, double *pX, 
 	\param line [In]  - a constant reference to a Line specifying the line.
  */
 inline const double *
-XfromYPt(const Line &line, const double &y, double *pX, const double &tolerance = Float::TOLERANCE)
+XfromYPt(const Line &line, const double &y, double *pX, 
+         const double &tolerance = keays::types::Float::TOLERANCE)
 {
 	return XfromYPt(line.start.XY(), line.end.XY(), y, pX, tolerance);
 }
@@ -2857,27 +2912,30 @@ LineTriReturnString(const int val);
 
 	\param       rect [In]  - a constant reference to the rectangle to test, must be valid or the function returns failure.
 	\param       line [In]  - a constant reference to the line to test with, must have some 2D length or the function returns failure.
-	\param pLineStart [Out] - A pointer to a VectorD2 for the intersection point for the start of the line, MUST NOT BE NULL.
-	\param   pLineEnd [Out] - A pointer to a vectorD2 for the intersection point at the end of the line, MUST NOT BE NULL.
+	\param pLineStart [Out] - A pointer to a keays::types::VectorD2 for the intersection point for the start of the line, MUST NOT BE NULL.
+	\param   pLineEnd [Out] - A pointer to a keays::types::VectorD2 for the intersection point at the end of the line, MUST NOT BE NULL.
 	\param  tolerance [In]  - a constant double representing the tolerance to use for testing.
 
 	\return a constant integer representing the success of the operation. One of the following values from eLCRVals -
 	E_FAILURE, S_LINE_CROSSES or S_LINE_TOUCHES.
  */
 KEAYS_MATH_EXPORTS_API const int
-LineCrossesRect(const RectD &rect, const Line &line, VectorD2 *pLineStart, VectorD2 *pLineEnd, const double &tolerance = Float::TOLERANCE);
+LineCrossesRect(const RectD &rect, const Line &line, keays::types::VectorD2 *pLineStart, 
+                keays::types::VectorD2 *pLineEnd, const double &tolerance = keays::types::Float::TOLERANCE);
 
 //-----------------------------------------------------------------------------
 /*!
 	\overload
-	\param pLineStart [Out] - A pointer to a VectorD3 for the intersection point for the start of the line, MUST NOT BE NULL.
-	\param   pLineEnd [Out] - A pointer to a vectorD3 for the intersection point at the end of the line, MUST NOT BE NULL.
+	\param pLineStart [Out] - A pointer to a keays::types::VectorD3 for the intersection point for the start of the line, MUST NOT BE NULL.
+	\param   pLineEnd [Out] - A pointer to a keays::types::VectorD3 for the intersection point at the end of the line, MUST NOT BE NULL.
  */
 inline KEAYS_MATH_EXPORTS_API const int
-LineCrossesRect(const RectD &rect, const Line &line, VectorD3 *pLineStart, VectorD3 *pLineEnd, const double &tolerance = Float::TOLERANCE)
+LineCrossesRect(const RectD &rect, const Line &line, keays::types::VectorD3 *pLineStart, 
+                keays::types::VectorD3 *pLineEnd, 
+                const double &tolerance = keays::types::Float::TOLERANCE)
 {
-	VectorD2 _start, _end;
-	Line ln(*pLineStart, *pLineEnd);
+    keays::types::VectorD2 _start, _end;
+    Line ln(*pLineStart, *pLineEnd);
 	int result = LineCrossesRect(rect, line, &_start, &_end, tolerance);
 	if (result != E_FAILURE)
 	{
@@ -2898,26 +2956,30 @@ LineCrossesRect(const RectD &rect, const Line &line, VectorD3 *pLineStart, Vecto
 
 	\param       rect [In]  - a constant reference to the rectangle to test, must be valid or the function returns failure.
 	\param       line [In]  - a constant reference to the line to test with, must have some 2D length or the function returns failure.
-	\param pLineStart [Out] - A pointer to a VectorD2 for the intersection point for the start of the line, MUST NOT BE NULL.
-	\param   pLineEnd [Out] - A pointer to a vectorD2 for the intersection point at the end of the line, MUST NOT BE NULL.
+	\param pLineStart [Out] - A pointer to a keays::types::VectorD2 for the intersection point for the start of the line, MUST NOT BE NULL.
+	\param   pLineEnd [Out] - A pointer to a keays::types::VectorD2 for the intersection point at the end of the line, MUST NOT BE NULL.
 	\param  tolerance [In]  - a constant double representing the tolerance to use for testing.
 
 	\return a constant integer representing the success of the operation. One of the following values from eLCRVals -
 	E_FAILURE, S_LINE_CROSSES, S_LINE_TOUCHES, S_LINE_CONTAINED, S_LINE_ENTERS or S_LINE_EXITS.
  */
 KEAYS_MATH_EXPORTS_API const int
-LineSegCrossesRect(const RectD &rect, const Line &line, VectorD2 *pLineStart, VectorD2 *pLineEnd, const double &tolerance = Float::TOLERANCE);
+LineSegCrossesRect(const RectD &rect, const Line &line, keays::types::VectorD2 *pLineStart, 
+                   keays::types::VectorD2 *pLineEnd, 
+                   const double &tolerance = keays::types::Float::TOLERANCE);
 
 //-----------------------------------------------------------------------------
 /*!
 	\overload
-	\param pLineStart [Out] - A pointer to a VectorD3 for the intersection point for the start of the line, MUST NOT BE NULL.
-	\param   pLineEnd [Out] - A pointer to a vectorD3 for the intersection point at the end of the line, MUST NOT BE NULL.
+	\param pLineStart [Out] - A pointer to a keays::types::VectorD3 for the intersection point for the start of the line, MUST NOT BE NULL.
+	\param   pLineEnd [Out] - A pointer to a keays::types::VectorD3 for the intersection point at the end of the line, MUST NOT BE NULL.
  */
 inline KEAYS_MATH_EXPORTS_API const int
-LineSegCrossesRect(const RectD &rect, const Line &line, VectorD3 *pLineStart, VectorD3 *pLineEnd, const double &tolerance = Float::TOLERANCE)
+LineSegCrossesRect(const RectD &rect, const Line &line, keays::types::VectorD3 *pLineStart, 
+                   keays::types::VectorD3 *pLineEnd, 
+                   const double &tolerance = keays::types::Float::TOLERANCE)
 {
-	VectorD2 _start, _end;
+    keays::types::VectorD2 _start, _end;
 	Line ln(*pLineStart, *pLineEnd);
 	int result = LineSegCrossesRect(rect, line, &_start, &_end, tolerance);
 	if (result != E_FAILURE)
@@ -2936,42 +2998,48 @@ LineSegCrossesRect(const RectD &rect, const Line &line, VectorD3 *pLineStart, Ve
 //-----------------------------------------------------------------------------
 /*!
 	\brief Test if a point is inside a triangle
-	\param     triPt1 [In] - A constant reference to a VectorD2 representing the first point of a CCW wound triangle.
-	\param     triPt2 [In] - A constant reference to a VectorD2 representing the second point of a CCW wound triangle.
-	\param     triPt3 [In] - A constant reference to a VectorD2 representing the third point of a CCW wound triangle.
-	\param         pt [In] - A constant reference to a VectorD2 representing the point to test.
+	\param     triPt1 [In] - A constant reference to a keays::types::VectorD2 representing the first point of a CCW wound triangle.
+	\param     triPt2 [In] - A constant reference to a keays::types::VectorD2 representing the second point of a CCW wound triangle.
+	\param     triPt3 [In] - A constant reference to a keays::types::VectorD2 representing the third point of a CCW wound triangle.
+	\param         pt [In] - A constant reference to a keays::types::VectorD2 representing the point to test.
 	\param tolerance [In] - A constant reference to a <b>double</b> representing the tolerance to use for testing.
 
 	\return true if the point is inside or touching the triangle the triangle
  */
 KEAYS_MATH_EXPORTS_API bool
-PointInTriangle(const VectorD2 &triPt1, const VectorD2 &triPt2, const VectorD2 &triPt3, const VectorD2 &pt, const double &tolerance = Float::TOLERANCE);
+PointInTriangle(const keays::types::VectorD2 &triPt1, const keays::types::VectorD2 &triPt2, 
+                const keays::types::VectorD2 &triPt3, const keays::types::VectorD2 &pt, 
+                const double &tolerance = keays::types::Float::TOLERANCE);
 
 //-----------------------------------------------------------------------------
 /*!
 	\brief Test to see if a specified point is on the segment.
-	\param       pt1 [In] - A constant reference to a VectorD2 representing the start point of the segment to test.
-	\param       pt2 [In] - A constant reference to a VectorD2 representing the end point of the segment to test.
-	\param    testPt [In] - A constant reference to a VectorD2 representing the point to test.
+	\param       pt1 [In] - A constant reference to a keays::types::VectorD2 representing the start point of the segment to test.
+	\param       pt2 [In] - A constant reference to a keays::types::VectorD2 representing the end point of the segment to test.
+	\param    testPt [In] - A constant reference to a keays::types::VectorD2 representing the point to test.
 	\param tolerance [In] - A constant reference to a <b>double</b> representing the tolerance to use for testing.
 
 	\return true if the point is on the segment
  */
 KEAYS_MATH_EXPORTS_API bool
-PointOnSegment(const VectorD2 &pt1, const VectorD2 &pt2, const VectorD2 &testPt, const double &tolerance = Float::TOLERANCE);
+PointOnSegment(const keays::types::VectorD2 &pt1, const keays::types::VectorD2 &pt2, 
+               const keays::types::VectorD2 &testPt, 
+               const double &tolerance = keays::types::Float::TOLERANCE);
 
 //-----------------------------------------------------------------------------
 /*!
 	\brief Test to see if a specified point is on the segment.
-	\param       pt1 [In] - A constant reference to a VectorD3 representing the start point of the segment to test.
-	\param       pt2 [In] - A constant reference to a VectorD3 representing the end point of the segment to test.
-	\param    testPt [In] - A constant reference to a VectorD3 representing the point to test.
+	\param       pt1 [In] - A constant reference to a keays::types::VectorD3 representing the start point of the segment to test.
+	\param       pt2 [In] - A constant reference to a keays::types::VectorD3 representing the end point of the segment to test.
+	\param    testPt [In] - A constant reference to a keays::types::VectorD3 representing the point to test.
 	\param tolerance [In] - A constant reference to a <b>double</b> representing the tolerance to use for testing.
 
 	\return true if the point is on the segment
  */
 KEAYS_MATH_EXPORTS_API bool
-PointOnSegment(const VectorD3 &pt1, const VectorD3 &pt2, const VectorD3 &testPt, const double &tolerance = Float::TOLERANCE);
+PointOnSegment(const keays::types::VectorD3 &pt1, const keays::types::VectorD3 &pt2, 
+               const keays::types::VectorD3 &testPt, 
+               const double &tolerance = keays::types::Float::TOLERANCE);
 
 //-----------------------------------------------------------------------------
 /*!
@@ -2980,12 +3048,12 @@ PointOnSegment(const VectorD3 &pt1, const VectorD3 &pt2, const VectorD3 &testPt,
 	just touched, or actually crossed the triangle.  If addresses are passed to the pStartEdge and pEndEdge pointers, the edge
 	that each intersect occurs on is passed out.  For each edge, the start point is considered to be part of the edge.
 
-	\param     triPt1 [In]  - a constant reference to a VectorD3 representing the first point of a CCW wound triangle.
-	\param     triPt2 [In]  - a constant reference to a VectorD3 representing the second point of a CCW wound triangle.
-	\param     triPt3 [In]  - a constant reference to a VectorD3 representing the third point of a CCW wound triangle.
+	\param     triPt1 [In]  - a constant reference to a keays::types::VectorD3 representing the first point of a CCW wound triangle.
+	\param     triPt2 [In]  - a constant reference to a keays::types::VectorD3 representing the second point of a CCW wound triangle.
+	\param     triPt3 [In]  - a constant reference to a keays::types::VectorD3 representing the third point of a CCW wound triangle.
 	\param       line [In]  - a constant reference to the line to test with, must have some 2D length or the function returns failure.
-	\param pLineStart [Out] - A pointer to a VectorD3 for the intersection point for the start of the line, MUST NOT BE NULL.
-	\param   pLineEnd [Out] - A pointer to a vectorD3 for the intersection point at the end of the line, MUST NOT BE NULL.
+	\param pLineStart [Out] - A pointer to a keays::types::VectorD3 for the intersection point for the start of the line, MUST NOT BE NULL.
+	\param   pLineEnd [Out] - A pointer to a keays::types::VectorD3 for the intersection point at the end of the line, MUST NOT BE NULL.
 	\param pStartEdge [Out] - A pointer to an integer reepresenting the edge that the start point was found on, MUST NOT BE NULL.
 	\param   pEndEdge [Out] - A pointer to an integer reepresenting the edge that the end point was found on, MUST NOT BE NULL.
 	\param  tolerance [In]  - a constant double representing the tolerance to use for testing.
@@ -2994,49 +3062,56 @@ PointOnSegment(const VectorD3 &pt1, const VectorD3 &pt2, const VectorD3 &testPt,
 	E_FAILURE, S_LINE_CROSSES or S_LINE_TOUCHES.
  */
 KEAYS_MATH_EXPORTS_API const int
-LineCrossesTriangle(const VectorD3 &triPt1, const VectorD3 &triPt2, const VectorD3 &triPt3,
-					 const Line &line, VectorD3 *pLineStart, VectorD3 *pLineEnd, int *pStartEdge, int *pEndEdge,
-					 const double &tolerance = Float::TOLERANCE);
+LineCrossesTriangle(const keays::types::VectorD3 &triPt1, const keays::types::VectorD3 &triPt2, 
+                    const keays::types::VectorD3 &triPt3, const Line &line, keays::types::VectorD3 *pLineStart, 
+                    keays::types::VectorD3 *pLineEnd, int *pStartEdge, int *pEndEdge,
+                    const double &tolerance = keays::types::Float::TOLERANCE);
 
 /*!
 	\brief Calculate the intersect point, if any, of a line segment and a triangle in 3D space.
-	\param triPt1 [In] - A constant reference to a VectorD3 representing the first point of a triangle.
-	\param triPt2 [In] - A constant reference to a VectorD3 representing the second point of a triangle.
-	\param triPt3 [In] - A constant reference to a VectorD3 representing the third point of a triangle.
+	\param triPt1 [In] - A constant reference to a keays::types::VectorD3 representing the first point of a triangle.
+	\param triPt2 [In] - A constant reference to a keays::types::VectorD3 representing the second point of a triangle.
+	\param triPt3 [In] - A constant reference to a keays::types::VectorD3 representing the third point of a triangle.
 	\param line [In] - A constant reference to a Line representing the line segment to test.
-	\param pIntersect [Out] - A pointer to a VectorD3 to receive the intersect point if it is found.
+	\param pIntersect [Out] - A pointer to a keays::types::VectorD3 to receive the intersect point if it is found.
 	\param tolerance [In] - A constant reference to a <b>double</b> representing the tolerance value to use in testing.
 
 	\return True is the intersection point was found.
  */
 KEAYS_MATH_EXPORTS_API const bool
-SegmentTriangleIntersect(const VectorD3 &triPt1, const VectorD3 &triPt2, const VectorD3 &triPt3,
-						  const Line &line, VectorD3 *pIntersect, const double &tolerance = Float::TOLERANCE);
+SegmentTriangleIntersect(const keays::types::VectorD3 &triPt1, const keays::types::VectorD3 &triPt2,
+                         const keays::types::VectorD3 &triPt3, const Line &line, 
+                         keays::types::VectorD3 *pIntersect, 
+                         const double &tolerance = keays::types::Float::TOLERANCE);
 
 /*!
 	\brief Calculate the intersect point, if any, of a ray and a triangle in 3D space.
-	\param triPt1 [In] - A constant reference to a VectorD3 representing the first point of a triangle.
-	\param triPt2 [In] - A constant reference to a VectorD3 representing the second point of a triangle.
-	\param triPt3 [In] - A constant reference to a VectorD3 representing the third point of a triangle.
+	\param triPt1 [In] - A constant reference to a keays::types::VectorD3 representing the first point of a triangle.
+	\param triPt2 [In] - A constant reference to a keays::types::VectorD3 representing the second point of a triangle.
+	\param triPt3 [In] - A constant reference to a keays::types::VectorD3 representing the third point of a triangle.
 	\param line [In] - A constant reference to a Line representing the ray to test.
-	\param pIntersect [Out] - A pointer to a VectorD3 to receive the intersect point if it is found.
+	\param pIntersect [Out] - A pointer to a keays::types::VectorD3 to receive the intersect point if it is found.
 	\param tolerance [In] - A constant reference to a <b>double</b> representing the tolerance value to use in testing.
 
 	\return True is the intersection point was found.
  */
 KEAYS_MATH_EXPORTS_API const bool
-RayTriangleIntersect(const VectorD3 &triPt1, const VectorD3 &triPt2, const VectorD3 &triPt3,
-					  const Line &line, VectorD3 *pIntersect, const double &tolerance = Float::TOLERANCE);
+RayTriangleIntersect(const keays::types::VectorD3 &triPt1, const keays::types::VectorD3 &triPt2,
+                     const keays::types::VectorD3 &triPt3, const Line &line, 
+                     keays::types::VectorD3 *pIntersect,
+                     const double &tolerance = keays::types::Float::TOLERANCE);
 
 //-----------------------------------------------------------------------------
 /*!
 	\overload
 
-	\param     triPts [In]  - a pointer to an array of 3 VectorD2's representing the points of a CCW wound triangle.
+	\param     triPts [In]  - a pointer to an array of 3 keays::types::VectorD2's representing the points of a CCW wound triangle.
  */
 inline KEAYS_MATH_EXPORTS_API const int
-LineCrossesTriangle(const VectorD2 *triPts, const Line &line, VectorD3 *pLineStart, VectorD3 *pLineEnd,
-					 int *pStartEdge, int *pEndEdge, const double &tolerance = Float::TOLERANCE)
+LineCrossesTriangle(const keays::types::VectorD2 *triPts, const Line &line, 
+                    keays::types::VectorD3 *pLineStart, keays::types::VectorD3 *pLineEnd,
+                    int *pStartEdge, int *pEndEdge,
+                    const double &tolerance = keays::types::Float::TOLERANCE)
 {
 	return LineCrossesTriangle(triPts[0].VD3(), triPts[1].VD3(), triPts[2].VD3(), line, pLineStart, pLineEnd, pStartEdge, pEndEdge, tolerance);
 }
@@ -3045,11 +3120,13 @@ LineCrossesTriangle(const VectorD2 *triPts, const Line &line, VectorD3 *pLineSta
 /*!
 	\overload
 
-	\param     triPts [In]  - a pointer to an array of 3 VectorD3's representing the points of a CCW wound triangle.
+	\param     triPts [In]  - a pointer to an array of 3 keays::types::VectorD3's representing the points of a CCW wound triangle.
  */
 inline KEAYS_MATH_EXPORTS_API const int
-LineCrossesTriangle(const VectorD3 *triPts, const Line &line, VectorD3 *pLineStart, VectorD3 *pLineEnd,
-					 int *pStartEdge, int *pEndEdge, const double &tolerance = Float::TOLERANCE)
+LineCrossesTriangle(const keays::types::VectorD3 *triPts, const Line &line, 
+                    keays::types::VectorD3 *pLineStart, keays::types::VectorD3 *pLineEnd,
+                    int *pStartEdge, int *pEndEdge, 
+                    const double &tolerance = keays::types::Float::TOLERANCE)
 {
 	return LineCrossesTriangle(triPts[0], triPts[1], triPts[2], line, pLineStart, pLineEnd, pStartEdge, pEndEdge, tolerance);
 }
@@ -3059,12 +3136,12 @@ LineCrossesTriangle(const VectorD3 *triPts, const Line &line, VectorD3 *pLineSta
 	\brief Calculate the intersection points of a line segment and a triangle
 
 
-	\param     triPt1 [In]  - a constant reference to a VectorD3 representing the first point of a CCW wound triangle.
-	\param     triPt2 [In]  - a constant reference to a VectorD3 representing the second point of a CCW wound triangle.
-	\param     triPt3 [In]  - a constant reference to a VectorD3 representing the third point of a CCW wound triangle.
+	\param     triPt1 [In]  - a constant reference to a keays::types::VectorD3 representing the first point of a CCW wound triangle.
+	\param     triPt2 [In]  - a constant reference to a keays::types::VectorD3 representing the second point of a CCW wound triangle.
+	\param     triPt3 [In]  - a constant reference to a keays::types::VectorD3 representing the third point of a CCW wound triangle.
 	\param       line [In]  - a constant reference to the line to test with, must have some 2D length or the function returns failure.
-	\param pLineStart [Out] - A pointer to a VectorD2 for the intersection point for the start of the line, MUST NOT BE NULL.
-	\param   pLineEnd [Out] - A pointer to a vectorD2 for the intersection point at the end of the line, MUST NOT BE NULL.
+	\param pLineStart [Out] - A pointer to a keays::types::VectorD2 for the intersection point for the start of the line, MUST NOT BE NULL.
+	\param   pLineEnd [Out] - A pointer to a keays::types::VectorD2 for the intersection point at the end of the line, MUST NOT BE NULL.
 	\param pStartEdge [Out] - A pointer to an integer reepresenting the edge that the start point was found on, MUST NOT BE NULL.
 	\param   pEndEdge [Out] - A pointer to an integer reepresenting the edge that the end point was found on, MUST NOT BE NULL.
 	\param  tolerance [In]  - a constant double representing the tolerance to use for testing.
@@ -3073,19 +3150,21 @@ LineCrossesTriangle(const VectorD3 *triPts, const Line &line, VectorD3 *pLineSta
 	E_FAILURE, S_LINE_CROSSES, S_LINE_TOUCHES, S_LINE_CONTAINED, S_LINE_ENTERS or S_LINE_EXITS.
  */
 KEAYS_MATH_EXPORTS_API const int
-LineSegCrossesTriangle(const VectorD3 &triPt1, const VectorD3 &triPt2, const VectorD3 &triPt3,
-					    const Line &line, VectorD3 *pLineStart, VectorD3 *pLineEnd, int *pStartEdge, int *pEndEdge,
-						const double &tolerance = Float::TOLERANCE);
+LineSegCrossesTriangle(const keays::types::VectorD3 &triPt1, const keays::types::VectorD3 &triPt2, const keays::types::VectorD3 &triPt3,
+					    const Line &line, keays::types::VectorD3 *pLineStart, keays::types::VectorD3 *pLineEnd, int *pStartEdge, int *pEndEdge,
+						const double &tolerance = keays::types::Float::TOLERANCE);
 
 //-----------------------------------------------------------------------------
 /*!
 	\overload
 
-	\param     triPts [In]  - a pointer to an array of 3 VectorD3's representing the points of a CCW wound triangle.
+	\param     triPts [In]  - a pointer to an array of 3 keays::types::VectorD3's representing the points of a CCW wound triangle.
  */
 inline KEAYS_MATH_EXPORTS_API const int
-LineSegCrossesTriangle(const VectorD3 *triPts, const Line &line, VectorD3 *pLineStart, VectorD3 *pLineEnd,
-					    int *pStartEdge, int *pEndEdge, const double &tolerance = Float::TOLERANCE)
+LineSegCrossesTriangle(const keays::types::VectorD3 *triPts, const Line &line, 
+                       keays::types::VectorD3 *pLineStart, keays::types::VectorD3 *pLineEnd,
+					   int *pStartEdge, int *pEndEdge,
+                       const double &tolerance = keays::types::Float::TOLERANCE)
 {
 	return LineSegCrossesTriangle(triPts[0], triPts[1], triPts[2], line, pLineStart, pLineEnd, pStartEdge, pEndEdge, tolerance);
 }
@@ -3093,16 +3172,21 @@ LineSegCrossesTriangle(const VectorD3 *triPts, const Line &line, VectorD3 *pLine
 /*!
 	\overload
 
-	\param     triPts [In]  - a pointer to an array of 3 VectorD2's representing the points of a CCW wound triangle.
+	\param     triPts [In]  - a pointer to an array of 3 keays::types::VectorD2's representing the points of a CCW wound triangle.
  */
 inline KEAYS_MATH_EXPORTS_API const int
-LineSegCrossesTriangle(const VectorD2 *triPts, const Line &line, VectorD3 *pLineStart, VectorD3 *pLineEnd,
-					    int *pStartEdge, int *pEndEdge, const double &tolerance = Float::TOLERANCE)
+LineSegCrossesTriangle(const keays::types::VectorD2 *triPts, const Line &line,
+                       keays::types::VectorD3 *pLineStart, keays::types::VectorD3 *pLineEnd,
+					   int *pStartEdge, int *pEndEdge,
+                       const double &tolerance = keays::types::Float::TOLERANCE)
 {
 	return LineSegCrossesTriangle(triPts[0].VD3(), triPts[1].VD3(), triPts[2].VD3(), line, pLineStart, pLineEnd, pStartEdge, pEndEdge, tolerance);
 }
 //! @}
 
+typedef std::vector<keays::types::VectorD3> D3Vector;
+typedef std::vector<keays::types::VectorD2> D2Vector;
+typedef std::vector<Line> LineVector;
 }	// namespace math
 }	// namespace keays
 

@@ -19,7 +19,6 @@
 #include <tchar.h>
 #endif
 
-namespace ktf = keays::types::Float;
 
 namespace keays
 {
@@ -168,7 +167,7 @@ inline const T Limit(const T &value, const T &minimum, const T &maximum)
 	\param tolerance [In]  - a constant double specifying the precision tolerance to use.
 	\return a constant double with the limited precision value.
  */
-inline const double LimitPrecision(const double &val, const double &tolerance = ktf::TOLERANCE)
+inline const double LimitPrecision(const double &val, const double &tolerance = keays::types::Float::TOLERANCE)
 {
 	double invTol = 1/tolerance;
 	double result;

@@ -22,8 +22,6 @@ static char THIS_FILE[] = __FILE__;
 
 #pragma warning(disable : 4786) // ignore the long name warning associated with stl stuff
 
-using namespace std;		// to get access to std:: stuff
-
 namespace keays
 {
 namespace math
@@ -36,11 +34,11 @@ RectD::RectD(const double &left /*= -Float::INVALID_DOUBLE*/, const double &righ
 			    m_numIncludes(0) {}
 
 //-----------------------------------------------------------------------------
-RectD::RectD(const VectorD2 &min, const VectorD2 &max) 
+RectD::RectD(const keays::types::VectorD2 &min, const keays::types::VectorD2 &max)
 			  : m_left(min.x), m_right(max.x), m_top(max.y), m_bottom(min.y), m_numIncludes(0) {}
 
 //-----------------------------------------------------------------------------
-RectD::RectD(const VectorD2 &min, const double &width, const double &height)
+RectD::RectD(const keays::types::VectorD2 &min, const double &width, const double &height)
 			  : m_left(min.x), m_right(m_left + fabs(width)), 
 			    m_bottom(min.y), m_top(m_bottom + fabs(height)),
 				m_numIncludes(0) {}
@@ -83,8 +81,10 @@ const double RectD::SetTop(const double &top)
 const RectD RectD::MakeInvalid()
 {
 	RectD old = *this;
-	m_left = -Float::INVALID_DOUBLE; m_right =   Float::INVALID_DOUBLE;
-	m_top =   Float::INVALID_DOUBLE; m_bottom = -Float::INVALID_DOUBLE;
+    m_left = -keays::types::Float::INVALID_DOUBLE;
+    m_right = keays::types::Float::INVALID_DOUBLE;
+    m_top = keays::types::Float::INVALID_DOUBLE; 
+    m_bottom = -keays::types::Float::INVALID_DOUBLE;
 	return old;
 }
 
@@ -119,28 +119,30 @@ const double RectD::GetCenterY() const
 }
 
 //-----------------------------------------------------------------------------
-const VectorD2 RectD::GetCenter() const	
+const keays::types::VectorD2 RectD::GetCenter() const
 { 
-	return VectorD2(GetCenterX(), GetCenterY()); 
+    return keays::types::VectorD2(GetCenterX(), GetCenterY());
 }
 
 //-----------------------------------------------------------------------------
-const VectorD2 RectD::GetMin() const
+const keays::types::VectorD2 RectD::GetMin() const
 {
-	return VectorD2(m_right, m_top);
+    return keays::types::VectorD2(m_right, m_top);
 }
 
 //-----------------------------------------------------------------------------
-const VectorD2 RectD::GetMax() const
+const keays::types::VectorD2 RectD::GetMax() const
 {
-	return VectorD2(m_left, m_bottom);
+    return keays::types::VectorD2(m_left, m_bottom);
 }
 
 //-----------------------------------------------------------------------------
 const double RectD::CalcArea() const
 {
-	if (!IsValid())
-		return 0.0;
+    if (!IsValid())
+    {
+        return 0.0;
+    }
 
 	return GetWidth() * GetHeight();
 }
@@ -148,7 +150,7 @@ const double RectD::CalcArea() const
 //-----------------------------------------------------------------------------
 void RectD::IncludePoint(const double &x, const double &y)
 {
-	if (x < m_left)	m_left = x;
+	if (x < m_left)	    m_left = x;
 	if (x > m_right)	m_right = x;
 	if (y > m_top)		m_top = y;
 	if (y < m_bottom)	m_bottom = y;
@@ -156,7 +158,7 @@ void RectD::IncludePoint(const double &x, const double &y)
 }
 
 //-----------------------------------------------------------------------------
-void RectD::IncludePoint(const VectorD2 &pt)
+void RectD::IncludePoint(const keays::types::VectorD2 &pt)
 {
 	if (pt.x < m_left)		m_left = pt.x;
 	if (pt.x > m_right)		m_right = pt.x;
@@ -168,8 +170,11 @@ void RectD::IncludePoint(const VectorD2 &pt)
 //-----------------------------------------------------------------------------
 bool RectD::PointInside(const double &x, const double &y, const double &tolerance /*= Float::TOLERANCE*/) const
 {
-	return ((Float::GreaterOrEqual(x, m_left, tolerance) && Float::LessOrEqual(x, m_right, tolerance)) &&
-			 (Float::GreaterOrEqual(y, m_bottom, tolerance) && Float::LessOrEqual(y, m_top, tolerance)));
+    return ((keays::types::Float::GreaterOrEqual(x, m_left, tolerance) && 
+             keays::types::Float::LessOrEqual(x, m_right, tolerance)) &&
+             (keays::types::Float::GreaterOrEqual(y, m_bottom, tolerance) && 
+              keays::types::Float::LessOrEqual(y, m_top, tolerance))
+           );
 }
 
 //-----------------------------------------------------------------------------
@@ -226,18 +231,18 @@ void RectD::Expand(const double &expansion)
 
 //=============================================================================
 Cube::Cube(const double &left /*= -Float::INVALID_DOUBLE*/, const double &right /*=  Float::INVALID_DOUBLE*/,
-		    const double &top /*=  Float::INVALID_DOUBLE*/, const double &bottom /*= -Float::INVALID_DOUBLE*/,
-			const double &base /*= -Float::INVALID_DOUBLE*/, const double &roof /*=  Float::INVALID_DOUBLE*/)
+		   const double &top /*=  Float::INVALID_DOUBLE*/, const double &bottom /*= -Float::INVALID_DOUBLE*/,
+		   const double &base /*= -Float::INVALID_DOUBLE*/, const double &roof /*=  Float::INVALID_DOUBLE*/)
 			: RectD(left, right, top, bottom), 
 			  m_base(base), m_roof(roof) {}
 
 //-----------------------------------------------------------------------------
-Cube::Cube(const VectorD3 &min, const VectorD3 &max)
+Cube::Cube(const keays::types::VectorD3 &min, const keays::types::VectorD3 &max)
 			: RectD(min.x, max.x, max.y, min.y),
 			  m_base(min.z), m_roof(max.z) {}
 
 //-----------------------------------------------------------------------------
-Cube::Cube(const VectorD3 &min, const double &width, const double &height, const double &depth)
+Cube::Cube(const keays::types::VectorD3 &min, const double &width, const double &height, const double &depth)
 			: RectD(min.x, min.x + width, min.y, min.y + height), 
 			  m_base(min.z), m_roof(min.z + depth) {}
 
@@ -264,12 +269,12 @@ const double Cube::SetRoof(const double &roof)
 Cube Cube::MakeInvalid()
 {
 	Cube old = *this;
-	m_left = -Float::INVALID_DOUBLE;
-	m_right = Float::INVALID_DOUBLE;
-	m_top = Float::INVALID_DOUBLE;	
-	m_bottom = -Float::INVALID_DOUBLE;
-	m_base = -Float::INVALID_DOUBLE;	
-	m_roof = Float::INVALID_DOUBLE;
+    m_left =   -keays::types::Float::INVALID_DOUBLE;
+    m_right =   keays::types::Float::INVALID_DOUBLE;
+    m_top =     keays::types::Float::INVALID_DOUBLE;
+    m_bottom = -keays::types::Float::INVALID_DOUBLE;
+    m_base =   -keays::types::Float::INVALID_DOUBLE;
+    m_roof =    keays::types::Float::INVALID_DOUBLE;
 	m_numIncludes = 0;
 	return old;
 }
@@ -287,21 +292,21 @@ const double Cube::GetCenterZ() const
 }
 
 //-----------------------------------------------------------------------------
-const VectorD3 Cube::GetCenter() const 
+const keays::types::VectorD3 Cube::GetCenter() const
 { 
-	return VectorD3(GetCenterX(), GetCenterY(), GetCenterZ()); 
+    return keays::types::VectorD3(GetCenterX(), GetCenterY(), GetCenterZ());
 }
 
 //-----------------------------------------------------------------------------
-const VectorD3 Cube::GetMin() const
+const keays::types::VectorD3 Cube::GetMin() const
 {
-	return VectorD3(m_right, m_top, m_roof);
+    return keays::types::VectorD3(m_right, m_top, m_roof);
 }
 
 //-----------------------------------------------------------------------------
-const VectorD3 Cube::GetMax() const
+const keays::types::VectorD3 Cube::GetMax() const
 {
-	return VectorD3(m_left, m_bottom, m_base);
+    return keays::types::VectorD3(m_left, m_bottom, m_base);
 }
 
 //-----------------------------------------------------------------------------
@@ -325,12 +330,12 @@ const RectD Cube::YZ() const
 //-----------------------------------------------------------------------------
 void Cube::IncludePoint(const double &x, const double &y, const double &z) 
 {
-	if (x < m_left)	m_left = x;
+	if (x < m_left)     m_left = x;
 	if (x > m_right)	m_right = x;
 	if (y > m_top)		m_top = y;
 	if (y < m_bottom)	m_bottom = y;
-	if (z < m_base)	m_base = z;
-	if (z > m_roof)	m_roof = z;
+	if (z < m_base)	    m_base = z;
+	if (z > m_roof)	    m_roof = z;
 	m_numIncludes++;
 }
 
@@ -338,16 +343,20 @@ void Cube::IncludePoint(const double &x, const double &y, const double &z)
 bool Cube::PointInside(const double &x, const double &y, const double &z, 
 					    const double &tolerance /*= Float::TOLERANCE*/) const
 {
-	return ((Float::GreaterOrEqual(x, m_left,   tolerance) && Float::LessOrEqual(x, m_right, tolerance)) &&
-				(Float::GreaterOrEqual(y, m_bottom, tolerance) && Float::LessOrEqual(y, m_top,   tolerance)) &&
-				(Float::GreaterOrEqual(z, m_base,   tolerance) && Float::LessOrEqual(z, m_roof,  tolerance)));
+    return ((keays::types::Float::GreaterOrEqual(x, m_left, tolerance) &&
+             keays::types::Float::LessOrEqual(x, m_right, tolerance)) &&
+             (keays::types::Float::GreaterOrEqual(y, m_bottom, tolerance) && 
+              keays::types::Float::LessOrEqual(y, m_top, tolerance)) &&
+              (keays::types::Float::GreaterOrEqual(z, m_base, tolerance) && 
+               keays::types::Float::LessOrEqual(z, m_roof, tolerance))
+            );
 }
 
 //-----------------------------------------------------------------------------
 const Cube &Cube::operator+=(const Cube &rhs)
 {
-	IncludePoint(VectorD3(rhs.m_left,  rhs.m_top,    rhs.m_roof));
-	IncludePoint(VectorD3(rhs.m_right, rhs.m_bottom, rhs.m_base));
+    IncludePoint(keays::types::VectorD3(rhs.m_left, rhs.m_top, rhs.m_roof));
+    IncludePoint(keays::types::VectorD3(rhs.m_right, rhs.m_bottom, rhs.m_base));
 	m_numIncludes += rhs.m_numIncludes;
 	return *this;
 }
@@ -356,8 +365,8 @@ const Cube &Cube::operator+=(const Cube &rhs)
 const Cube Cube::operator+(const Cube &rhs) const
 {
 	Cube temp(*this);
-	temp.IncludePoint(VectorD3(rhs.m_left,  rhs.m_top,    rhs.m_roof));
-	temp.IncludePoint(VectorD3(rhs.m_right, rhs.m_bottom, rhs.m_base));
+    temp.IncludePoint(keays::types::VectorD3(rhs.m_left, rhs.m_top, rhs.m_roof));
+    temp.IncludePoint(keays::types::VectorD3(rhs.m_right, rhs.m_bottom, rhs.m_base));
 	return temp;
 }
 
