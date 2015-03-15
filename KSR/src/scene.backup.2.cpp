@@ -1,8 +1,6 @@
-#include "../include/ksr.h"
+#include "ksr.h"
 
-#include "../include/leakwatcher.h"
-
-#define VERBOSE_PARTITIONING
+#include "leakwatcher.h"
 
 #ifdef _DO_MEMORY_DEBUG
 #define new DEBUG_NEW
@@ -13,6 +11,8 @@ static char THIS_FILE[] = __FILE__;
 using namespace KSR;
 
 std::vector< Chunk > *g_pSortingChunks;
+
+//#define VERBOSE_PARTITIONING
 
 //-----------------------------------------------------------------------
     bool SortByTechniqueID(int lhs, int rhs)
@@ -26,64 +26,28 @@ std::vector< Chunk > *g_pSortingChunks;
         return v[lhs].technique > v[rhs].technique;
     }
 
-    /*void CreateRenderGroups(std::vector< RenderGroup > &renderGroups)
-        {
-            std::vector< RenderGroup > result;
-
-            NodeChunkMap::iterator i = m.begin();
-            for (; i != m.end(); i++)
-            {
-                if ((*i)->m.empty())
-                    continue;
-
-                OrderedGeometryMap &orderedGeomMapRef = (*i)->m;
-                OrderedGeometryMap::iterator j = orderedGeomMapRef.begin();
-                for (; j != orderedGeomMapRef.end(); j++)
-                {
-                    GeometryMap &gm = j->second->m;
-                    GeometryMap::iterator k = gm.begin();
-                    for (; k != gm.end(); k++)
-                    {
-                        if (!k->first)
-                            continue;
-
-                        if (k->second->m.empty())
-                            continue;
-
-                        ChunkIndexList &chunkIndexList = k->second->m;
-                        ChunkIndexList::iterator c = chunkIndexList.begin();
-                        for (; c != chunkIndexList.end(); c++)
-                        {
-                            Chunk &srcChunk =
-
-                            Chunk newChunk(
-                        }
-                    }
-                }
-            }
-
-            //result.sort(result.begin(), result.end(),);
-            renderGroups.insert(renderGroups.end(), result.begin(), result.end());
-        }*/
-
 
 //-----------------------------------------------------------------------
     Scene::Scene(PSCENESETTINGS pSettings, PDIRECT3DDEVICE9 pDevice, PRESOURCEMANAGER pResourceManager)
     //-------------------------------------------------------------------
-    :    m_pFnProgressCallback(NULL), m_pProgressCallbackPayload(NULL), m_pSpacePartitionOutline(NULL),
-        m_pD3DDevice(pDevice), m_pResourceManager(pResourceManager)
-    //-------------------------------------------------------------------
     {
         AddUsedMemory(sizeof(Scene), "Scene::Scene()");
 
-        m_pSettings = new SceneSettings;
+        D3DDevice = pDevice;
+        resourceManager = pResourceManager;
+
+        settings = new SceneSettings;
         AddUsedMemory(sizeof(SceneSettings), "Scene::Scene() - SceneSettings");
 
-        memset(m_lightIDs, -1, sizeof(int) * 8);
+        memset(lightIDs, -1, sizeof(int) * 8);
 
         SetSettings(pSettings);
 
-        m_pSceneGraphRoot = NULL;
+        progressCallback = NULL;
+        pProgressCallbackPayload = NULL;
+
+        sceneGraphRoot = NULL;
+        spacePartitionOutline = NULL;
 
         Init();
     }
@@ -97,18 +61,11 @@ std::vector< Chunk > *g_pSortingChunks;
 
         FreeUsedMemory(sizeof(Scene), "Scene::~Scene()");
 
-        if (m_pSettings)
+        if (settings)
         {
-            delete m_pSettings;
+            delete settings;
             FreeUsedMemory(sizeof(SceneSettings), "Scene::~Scene() - SceneSettings");
         }
-
-        OptimisedGeometryMap::iterator itr = m_optimisedGeometry.begin();
-        for (; itr != m_optimisedGeometry.end(); itr++)
-        {
-            delete itr->second;
-        }
-        m_optimisedGeometry.clear();
 
         Clear();
     }
@@ -118,25 +75,26 @@ std::vector< Chunk > *g_pSortingChunks;
     void Scene::Init()
     //-------------------------------------------------------------------
     {
-        m_subdivisionsExecuted = 0;
+        subdivisionsExecuted = 0;
 
-        m_numClusters = 0;
-        m_bytesPerCluster = 0;
+        numClusters = 0;
+        bytesPerCluster = 0;
+        PVS = NULL;
 
-        m_pRoot = new TreeNode;
-        m_pRoot->m_min = Vector3(0, 0, 0);
-        m_pRoot->m_max = Vector3(0, 0, 0);
-        m_numNodes = 1;
+        root = new TreeNode;
+        root->m_min = Vector3(0, 0, 0);
+        root->m_max = Vector3(0, 0, 0);
+        numNodes = 1;
 
-        m_activeLeafID = -1;
+        activeLeafID = -1;
 
-        m_pSceneGraphRoot = new Entity;
-        m_pSceneGraphRoot->SetPosition(Vector3(0, 0, 0));
-        m_pSceneGraphRoot->SetRotation(Vector3(0, 0, 0));
+        sceneGraphRoot = new Entity;
+        sceneGraphRoot->SetPosition(Vector3(0, 0, 0));
+        sceneGraphRoot->SetRotation(Vector3(0, 0, 0));
 
-        m_spacePartitionProgress = 0;
-        m_optimiseChunksProgress = 0;
-        m_pvsProgress = 0;
+        spacePartitionProgress = 0;
+        optimiseChunksProgress = 0;
+        pvsProgress = 0;
     }
 
 
@@ -144,61 +102,55 @@ std::vector< Chunk > *g_pSortingChunks;
     void Scene::Reset(bool recreate, bool resetLights)
     //-------------------------------------------------------------------
     {
-        if (m_pRoot)
+        if (root)
         {
-            delete m_pRoot;
-            m_pRoot = NULL;
-            m_numNodes = 0;
+            delete root;
+            root = NULL;
+            numNodes = 0;
         }
 
-        std::vector<TreeLeaf *>::iterator leafItr = m_leafs.begin();
-        for (; leafItr != m_leafs.end(); leafItr++)
+        if (PVS)
         {
-            delete *leafItr;
-            *leafItr = NULL;
+            delete[] PVS;
+            PVS = NULL;
+
+            FreeUsedMemory(numClusters * bytesPerCluster, "Scene()::Clear() - PVS - Clusters");
         }
 
-        m_leafs.clear();
-
-        std::vector< byte * >::iterator p = m_PVS.begin();
-        for (; p != m_PVS.end(); p++)
+        std::vector<TreeLeaf *>::iterator q = leafs.begin();
+        for (; q != leafs.end(); q++)
         {
-            delete[] *p;
-            *p = NULL;
-
-            FreeUsedMemory(m_bytesPerCluster, "Scene()::Clear() - PVS Cluster");
+            delete *q;
+            *q = NULL;
         }
 
-        m_PVS.clear();
-
-        std::vector< _NodeChunkMap * >::iterator r = m_nodeChunkMap.begin();
-        for (; r != m_nodeChunkMap.end(); r++)
+        std::vector< _NodeChunkMap * >::iterator r = nodeChunkMap.begin();
+        for (; r != nodeChunkMap.end(); r++)
         {
             delete *r;
             *r = NULL;
         }
 
-        m_nodeChunkMap.clear();
+        numClusters = 0;
+        bytesPerCluster = 0;
+        PVS = NULL;
 
-        m_numClusters = 0;
-        m_bytesPerCluster = 0;
+        subdivisionsExecuted = 0;
+        numNodes = 0;
 
-        m_subdivisionsExecuted = 0;
-        m_numNodes = 0;
-
-        m_activeLeafID = -1;
+        activeLeafID = -1;
 
         if (resetLights)
         {
-            memset(m_lightIDs, -1, sizeof(int) * 8);
+            memset(lightIDs, -1, sizeof(int) * 8);
         }
 
         if (recreate)
         {
-            m_pRoot = new TreeNode;
-            m_pRoot->m_min = Vector3(0, 0, 0);
-            m_pRoot->m_max = Vector3(0, 0, 0);
-            m_numNodes = 1;
+            root = new TreeNode;
+            root->m_min = Vector3(0, 0, 0);
+            root->m_max = Vector3(0, 0, 0);
+            numNodes = 1;
         }
     }
 
@@ -209,17 +161,17 @@ std::vector< Chunk > *g_pSortingChunks;
     {
         Reset();
 
-        if (m_pSpacePartitionOutline)
-            m_pSpacePartitionOutline->Clear();
+        if (spacePartitionOutline)
+            spacePartitionOutline->Clear();
 
-        if (m_pSceneGraphRoot)
+        if (sceneGraphRoot)
         {
-            m_pSceneGraphRoot->Release();
-            m_pSceneGraphRoot = NULL;
+            sceneGraphRoot->Release();
+            sceneGraphRoot = NULL;
         }
 
-        m_worldCollisions.clear();
-        m_bodyCollisions.clear();
+        worldCollisions.clear();
+        bodyCollisions.clear();
     }
 
 
@@ -230,7 +182,7 @@ std::vector< Chunk > *g_pSortingChunks;
         if (!pSettings)
             return E_FAIL;
 
-        memcpy(m_pSettings, pSettings, sizeof(SceneSettings));
+        memcpy(settings, pSettings, sizeof(SceneSettings));
 
         return S_OK;
     }
@@ -243,8 +195,8 @@ std::vector< Chunk > *g_pSortingChunks;
         if (!progressCallbackFunc)
             return E_FAIL;
 
-        m_pFnProgressCallback = progressCallbackFunc;
-        m_pProgressCallbackPayload = pPayload;
+        progressCallback = progressCallbackFunc;
+        pProgressCallbackPayload = pPayload;
 
         return S_OK;
     }
@@ -254,7 +206,7 @@ std::vector< Chunk > *g_pSortingChunks;
     HRESULT Scene::SetProgressCallbackPayload(void *pPayload)
     //-------------------------------------------------------------------
     {
-        m_pProgressCallbackPayload = pPayload;
+        pProgressCallbackPayload = pPayload;
 
         return S_OK;
     }
@@ -264,11 +216,11 @@ std::vector< Chunk > *g_pSortingChunks;
     HRESULT Scene::SetWorldBounds(Vector3 min, Vector3 max)
     //-------------------------------------------------------------------
     {
-        if (!m_pRoot)
+        if (!root)
             return E_FAIL;
 
-        m_pRoot->m_min = min;
-        m_pRoot->m_max = max;
+        root->m_min = min;
+        root->m_max = max;
 
         return S_OK;
     }
@@ -278,10 +230,10 @@ std::vector< Chunk > *g_pSortingChunks;
     HRESULT Scene::SetPosition(Vector3 position)
     //-------------------------------------------------------------------
     {
-        if (!m_pSceneGraphRoot)
+        if (!sceneGraphRoot)
             return E_FAIL;
 
-        m_pSceneGraphRoot->SetPosition(position);
+        sceneGraphRoot->SetPosition(position);
 
         return S_OK;
     }
@@ -332,8 +284,8 @@ std::vector< Chunk > *g_pSortingChunks;
                            frustum._34 + frustum._33,
                            frustum._44 + frustum._43);
 
-        GeometryList::iterator g = m_sourceGeometry.begin();
-        for (; g != m_sourceGeometry.end(); g++)
+        std::list<PGEOMETRY>::iterator g = geometry.begin();
+        for (; g != geometry.end(); g++)
         {
             PVOID pVertsLocked = NULL;
             int *pIndicesLocked = NULL;
@@ -346,12 +298,12 @@ std::vector< Chunk > *g_pSortingChunks;
 
             if (useIndices)
             {
-                if ((*g)->GetIndexFormat() == IT_32)
+                if ((*g)->m_indexType == IT_32)
                 {
                     if (FAILED((*g)->Lock((PVOID*)&chunks, &pVertsLocked, NULL, (PVOID*)&pIndicesLocked)))
                         return true;
                 }
-                else if ((*g)->GetIndexFormat() == IT_16)
+                else if ((*g)->m_indexType == IT_16)
                 {
                     int numIndices = (*g)->GetNumVertexIndices();
                     pIndicesLocked = new int[numIndices];
@@ -462,7 +414,7 @@ std::vector< Chunk > *g_pSortingChunks;
                 }*/
             }
 
-            if (useIndices && (*g)->GetIndexFormat() == IT_16)
+            if (useIndices && (*g)->m_indexType == IT_16)
             {
                 delete[] pIndicesLocked;
                 pIndicesLocked = NULL;
@@ -532,35 +484,35 @@ std::vector< Chunk > *g_pSortingChunks;
 
         Vector3 upVector;
 
-        if (m_pSettings->spacePartitionAxis == SS_AXIS_X)
+        if (settings->spacePartitionAxis == SS_AXIS_X)
             upVector = Vector3(1, 0, 0);
-        else if (m_pSettings->spacePartitionAxis == SS_AXIS_Y)
+        else if (settings->spacePartitionAxis == SS_AXIS_Y)
             upVector = Vector3(0, 1, 0);
-        else if (m_pSettings->spacePartitionAxis == SS_AXIS_Z)
+        else if (settings->spacePartitionAxis == SS_AXIS_Z)
             upVector = Vector3(0, 0, 1);
 
-        if (m_pSettings->spacePartitionMode == SS_QUADTREE)
+        if (settings->spacePartitionMode == SS_QUADTREE)
         {
 
         }
-        else if (m_pSettings->spacePartitionMode == SS_OCTTREE)
+        else if (settings->spacePartitionMode == SS_OCTTREE)
         {
-            if (TestVisibility(target, CreateVisibilityFrustum(origin, Vector3(1,  0,  0), upVector)))
+            if (TestVisibility(target, CreateVisibilityFrustum(origin, Vector3( 1,  0,  0), upVector)))
                 return true;
 
-            if (TestVisibility(target, CreateVisibilityFrustum(origin, Vector3(0,  1,  0), upVector)))
+            if (TestVisibility(target, CreateVisibilityFrustum(origin, Vector3( 0,  1,  0), upVector)))
                 return true;
 
-            if (TestVisibility(target, CreateVisibilityFrustum(origin, Vector3(0,  0,  1), upVector)))
+            if (TestVisibility(target, CreateVisibilityFrustum(origin, Vector3( 0,  0,  1), upVector)))
                 return true;
 
             if (TestVisibility(target, CreateVisibilityFrustum(origin, Vector3(-1,  0,  0), upVector)))
                 return true;
 
-            if (TestVisibility(target, CreateVisibilityFrustum(origin, Vector3(0, -1,  0), upVector)))
+            if (TestVisibility(target, CreateVisibilityFrustum(origin, Vector3( 0, -1,  0), upVector)))
                 return true;
 
-            if (TestVisibility(target, CreateVisibilityFrustum(origin, Vector3(0,  0, -1), upVector)))
+            if (TestVisibility(target, CreateVisibilityFrustum(origin, Vector3( 0,  0, -1), upVector)))
                 return true;
         }
 
@@ -572,83 +524,77 @@ std::vector< Chunk > *g_pSortingChunks;
     HRESULT Scene::SubdivideWorld()
     //-------------------------------------------------------------------
     {
-        m_spacePartitionProgress = 0;
-
         // Reset Partitioning information
             Reset(true, false);
 
-            m_pSpacePartitionOutline = new Geometry(m_pD3DDevice);
+            spacePartitionOutline = new Geometry(D3DDevice);
 
-        if (m_sourceGeometry.size() < 1)
+        if (geometry.size() < 1)
             return S_OK;
 
         // Generate the vertex index buffers
-            GeometryList::iterator g = m_sourceGeometry.begin();
+            std::list<PGEOMETRY>::iterator g = geometry.begin();
 
-            m_pRoot->m_min = (*g)->GetMin();
-            m_pRoot->m_max = (*g)->GetMax();
+            root->m_min = (*g)->m_min;
+            root->m_max = (*g)->m_max;
 
-            for (; g != m_sourceGeometry.end(); g++)
+            for (; g != geometry.end(); g++)
             {
                 if ((*g)->GetNumVertices() < 1)
                     continue;
 
                 (*g)->GenerateIndexBuffers(GF_ALLOWZEROCHUNKINDICES);
 
-                Math::SortMinMax((*g)->GetMin(), (*g)->GetMax(), m_pRoot->m_min, m_pRoot->m_max);
+                Math::SortMinMax((*g)->m_min, (*g)->m_max, root->m_min, root->m_max);
             }
 
         // Make the space partition cubic
-            float m = m_pRoot->m_max.x - m_pRoot->m_min.x;
+            float m = root->m_max.x - root->m_min.x;
 
-            if (m_pRoot->m_max.y - m_pRoot->m_min.y > m)
-                m = m_pRoot->m_max.y - m_pRoot->m_min.y;
+            if (root->m_max.y - root->m_min.y > m)
+                m = root->m_max.y - root->m_min.y;
 
-            if (m_pRoot->m_max.z - m_pRoot->m_min.z > m)
-                m = m_pRoot->m_max.z - m_pRoot->m_min.z;
+            if (root->m_max.z - root->m_min.z > m)
+                m = root->m_max.z - root->m_min.z;
 
-            if (m_pSettings->spacePartitionMode == SS_QUADTREE)
+            if (settings->spacePartitionMode == SS_QUADTREE)
             {
-                if (m_pSettings->spacePartitionAxis == SS_AXIS_X)
+                if (settings->spacePartitionAxis == SS_AXIS_X)
                 {
-                    m_pRoot->m_max.y = m_pRoot->m_min.y + m;
-                    m_pRoot->m_max.z = m_pRoot->m_min.z + m;
+                    root->m_max.y = root->m_min.y + m;
+                    root->m_max.z = root->m_min.z + m;
                 }
-                else if (m_pSettings->spacePartitionAxis == SS_AXIS_Y)
+                else if (settings->spacePartitionAxis == SS_AXIS_Y)
                 {
-                    m_pRoot->m_max.x = m_pRoot->m_min.x + m;
-                    m_pRoot->m_max.z = m_pRoot->m_min.z + m;
+                    root->m_max.x = root->m_min.x + m;
+                    root->m_max.z = root->m_min.z + m;
                 }
-                else if (m_pSettings->spacePartitionAxis == SS_AXIS_Z)
+                else if (settings->spacePartitionAxis == SS_AXIS_Z)
                 {
-                    m_pRoot->m_max.x = m_pRoot->m_min.x + m;
-                    m_pRoot->m_max.y = m_pRoot->m_min.y + m;
+                    root->m_max.x = root->m_min.x + m;
+                    root->m_max.y = root->m_min.y + m;
                 }
             }
-            else if (m_pSettings->spacePartitionMode == SS_OCTTREE)
+            else if (settings->spacePartitionMode == SS_OCTTREE)
             {
-                m_pRoot->m_max.x = m_pRoot->m_min.x + m;
-                m_pRoot->m_max.y = m_pRoot->m_min.y + m;
-                m_pRoot->m_max.z = m_pRoot->m_min.z + m;
+                root->m_max.x = root->m_min.x + m;
+                root->m_max.y = root->m_min.y + m;
+                root->m_max.z = root->m_min.z + m;
             }
 
         // If space partition mode is none, force space partition depths to 0.
-            if (m_pSettings->spacePartitionMode == SS_NONE)
+            if (settings->spacePartitionMode == SS_NONE)
             {
-                m_pSettings->subdivisionDepth = 0;
-                m_pSettings->polygonDepth = 0;
-                m_pSettings->sizeDepth = 0;
-            }
-            else if (m_pSettings->subdivisionDepth == 0 && m_pSettings->polygonDepth == 0 && m_pSettings->sizeDepth == 0)
-            {
-                m_pSettings->spacePartitionMode = SS_NONE;
+                settings->subdivisionDepth = 0;
+                settings->polygonDepth = 0;
+                settings->sizeDepth = 0;
             }
 
         // setup optimised geometry from geometry to optimised geometry
-            if (m_pSettings->optimiseChunks)
+            if (settings->optimiseChunks)
             {
-                /*GeometryList::iterator g = m_sourceGeometry.begin();
-                for (; g != m_sourceGeometry.end(); g++)
+                std::list<PGEOMETRY>::iterator g = geometry.begin();
+                for (; g != geometry.end(); g++)
                 {
                     std::list< std::pair<PGEOMETRY, PGEOMETRY> >::iterator o = optimisedGeometry.begin();
                     for (; o != optimisedGeometry.end(); o++)
@@ -678,62 +624,37 @@ std::vector< Chunk > *g_pSortingChunks;
                             (*g)->Unlock();
                         }
                     }
-                }*/
+                }
             }
 
         // Partition World
-            if (m_pFnProgressCallback)
-                m_pFnProgressCallback(PC_SCENE_SPACEPARTITIONING, m_spacePartitionProgress, m_pProgressCallbackPayload);
+            if (progressCallback)
+                progressCallback(PC_SCENE_SPACEPARTITIONING, spacePartitionProgress, pProgressCallbackPayload);
 
-            // Build a temporary m_pRoot _NodeChunkMap * that contains all the geometry.
-            unsigned int numPolygons = 0;
+            // Build a temporary root _NodeChunkMap * that contains all the geometry.
+            _NodeChunkMap *pRootNodeChunkMap = CreateNodeChunkMap();
 
-            _NodeChunkMap *pRootNodeChunkMap = CreateNodeChunkMap(&numPolygons);
-
-            if (m_pSettings->spacePartitionMode == VS_NONE)
-            {
-                GenerateLeaf(m_pRoot, pRootNodeChunkMap);
-            }
-            else
-            {
-                Partition(m_pRoot, 0, pRootNodeChunkMap, NULL, numPolygons);
-            }
+            Partition(root, 0, pRootNodeChunkMap);
 
             delete pRootNodeChunkMap;
             pRootNodeChunkMap = NULL;
 
-            OptimisedGeometryMap::iterator og = m_optimisedGeometry.begin();
-            for (; og != m_optimisedGeometry.end(); ++og)
-            {
-                if (!og->first || !og->second)
-                    continue;
-
-                og->second->CreateChunkIndices();
-                og->second->CreateVertexIndices(og->first->GetD3DDevice());
-
-                /*std::map< unsigned int, std::vector< unsigned int > * >::iterator v = og->second->m_vertexIndexMap.begin();
-                for (; v != og->second->m_vertexIndexMap.end(); ++v)
-                {
-                    if (!v->second)
-                        continue;
-
-                    og->first->Insert(0, 0, 0, v->second->size(), NULL, NULL, NULL, v->second, 0);
-                }*/
-            }
+            if (progressCallback && settings->optimiseChunks)
+                progressCallback(PC_SCENE_OPTIMISECHUNKS, optimiseChunksProgress, pProgressCallbackPayload);
 
         // Generate Leafs
-            /*std::map< PGEOMETRY, Chunk * > srcChunks;
+            std::map< PGEOMETRY, Chunk * > srcChunks;
             std::map< PGEOMETRY, std::vector< unsigned int > > newVertexIndices;
 
-            GeometryList::iterator geometryItr = m_sourceGeometry.begin();
-            for (; geometryItr != m_sourceGeometry.end(); geometryItr++)
+            std::list< PGEOMETRY >::iterator geometryItr = geometry.begin();
+            for (; geometryItr != geometry.end(); geometryItr++)
             {
                 srcChunks[*geometryItr] = NULL;
             }
 
-            GenerateLeafs(m_pRoot, srcChunks, newVertexIndices);
+            GenerateLeafs(root, srcChunks, newVertexIndices);
 
-            for (geometryItr = m_sourceGeometry.begin(); geometryItr != m_sourceGeometry.end(); geometryItr++)
+            for (geometryItr = geometry.begin(); geometryItr != geometry.end(); geometryItr++)
             {
                 delete srcChunks[*geometryItr];
             }
@@ -749,20 +670,17 @@ std::vector< Chunk > *g_pSortingChunks;
                 if (pGeometry->GetIndexGenerationFlags() & GF_ALLOWZEROVERTEXINDICES)
                     continue;
 
-                pGeometry->Insert(0, 0, 0, nviItr->second.size(), NULL, NULL, NULL, (void *)&nviItr->second[0], 0);
-            }*/
+                pGeometry->Insert(0, 0, 0, nviItr->second.size(), 0, NULL, NULL, NULL, (void *)&nviItr->second[0], NULL, 0);
+            }
 
         // Empty source geometry to save memory and copy optimised Geometry buffers to old geometry buffers to retain mapping
-            if (m_pSettings->optimiseChunks)
+            if (settings->optimiseChunks)
             {
-                if (m_pFnProgressCallback)
-                    m_pFnProgressCallback(PC_SCENE_OPTIMISECHUNKS, m_optimiseChunksProgress, m_pProgressCallbackPayload);
-
-                /*GeometryList::iterator g = m_sourceGeometry.begin();
-                for (; g != m_sourceGeometry.end(); g++)
+                std::list<PGEOMETRY>::iterator g = geometry.begin();
+                for (; g != geometry.end(); g++)
                 {
                     std::list< std::pair<PGEOMETRY, PGEOMETRY> >::iterator o = optimisedGeometry.begin();
-                    for (; o != optimisedGeometry.end();)
+                    for (; o != optimisedGeometry.end(); )
                     {
                         if (o->first == (*g))
                         {
@@ -793,54 +711,81 @@ std::vector< Chunk > *g_pSortingChunks;
                             o++;
                         }
                     }
-                }*/
+                }
             }
 
         // Generate PVS Data
-            if (m_pSettings->visibilityMode == SS_ENABLED)
+            if (settings->visibilityMode == SS_ENABLED)
             {
+                if (progressCallback)
+                    progressCallback(PC_SCENE_PVS, pvsProgress, pProgressCallbackPayload);
 
+                numClusters = leafs.size();
+                //numClusters = numNodes;
+
+                bytesPerCluster = (int)ceil((float)numClusters / 8);
+                PVS = new byte[numClusters * bytesPerCluster];
+                AddUsedMemory(numClusters * bytesPerCluster, "Scene::SubdivideWorld() - Clusters...");
+
+                //ZeroMemory(PVS, numClusters * bytesPerCluster);
+                memset(PVS, 0xffffffff, numClusters * bytesPerCluster);
+
+                int x = 0;
+                std::vector<TreeLeaf *>::iterator i;
+                for (i = leafs.begin(); i != leafs.end(); i++, x++)
+                {
+                    pvsProgress = ((float)x / (leafs.size())) * 100.0f;
+
+                    if (progressCallback)
+                        progressCallback(PC_SCENE_PVS, pvsProgress, pProgressCallbackPayload);
+
+                    RecursePVS(root, (*i));
+                }
+/*
+                int x = 0;
+                std::vector<TreeLeaf *>::iterator i, j;
+                for (i = leafs.begin(); i != leafs.end(); i++, x++)
+                {
+                    int y = 0;
+                    for (j = leafs.begin(); j != leafs.end(); j++, y++)
+                    {
+                        DWORD progress = ((float)(x * leafs.size() + y) / (leafs.size() * leafs.size())) * 100.0f;
+
+                        if (progressCallback)
+                            progressCallback(PC_SCENE_PVS, progress);
+
+                        if (TestVisibilityLeaf((*i), (*j)))
+                            PVS[x * bytesPerCluster + (y / 8)] |= (1 << (y & 7));
+                    }
+                }
+*/
             }
 
         // Create Draw Partition
-            if (m_pSpacePartitionOutline)
+            if(spacePartitionOutline)
             {
-                TreeNode *node = m_pRoot;
+                TreeNode *node = root;
                 std::vector<Vector3> verts;
-                std::vector<Chunk> lineChunks;
-                std::vector<Chunk> faceChunks;
-                std::vector<unsigned int> vertexIndices;
-                vertexIndices.resize(m_leafs.size() * 60);
+                std::vector<Chunk> chunks;
 
-                RecurseCreateDrawPartition(m_pRoot, verts, lineChunks, faceChunks, vertexIndices);
+                RecurseDrawPartition(root, verts, chunks);
 
-                int doubleVertsSize = (int)verts.size() * 2;
-
-                VERTEX_DIFFUSE *vertices = new VERTEX_DIFFUSE[doubleVertsSize];
+                VERTEX_DIFFUSE_TEX1 *vertices = new VERTEX_DIFFUSE_TEX1[verts.size()];
 
                 for (int i = 0; i < (int)verts.size(); i++)
                 {
                     vertices[i].position = verts[i];
-                    vertices[i].color = 0xffff00ff;//m_pSettings->spacePartitionColour;
+                    vertices[i].color = settings->spacePartitionColour;
+                    vertices[i].uv = D3DXVECTOR2(0, 0);
                 }
 
-                for (; i < doubleVertsSize; i++)
-                {
-                    vertices[i].position = verts[i - (int)verts.size()];
-                    vertices[i].color = 0x7fff00ff;
-                }
-
-                if (FAILED(m_pSpacePartitionOutline->Init(sizeof(VERTEX_DIFFUSE), FVF_DIFFUSE, IT_32)))
+                if (FAILED(spacePartitionOutline->Init(sizeof(VERTEX_DIFFUSE_TEX1), FVF_DIFFUSE_TEX1, IT_32)))
                     return E_FAIL;
 
-                if (FAILED(m_pSpacePartitionOutline->Insert((unsigned int)lineChunks.size(), doubleVertsSize, 0, (unsigned int)vertexIndices.size(),
-                                                            &lineChunks[0], vertices, NULL, &vertexIndices[0], 0)))
+                if (FAILED(spacePartitionOutline->Insert((int)chunks.size(), (int)verts.size(), &chunks[0], vertices, 0)))
                     return E_FAIL;
 
-                if (FAILED(m_pSpacePartitionOutline->Insert((unsigned int)faceChunks.size(), 0, &faceChunks[0], NULL, 0)))
-                    return E_FAIL;
-
-                if (FAILED(m_pSpacePartitionOutline->GenerateIndexBuffers(0)))
+                if (FAILED(spacePartitionOutline->GenerateIndexBuffers(0)))
                     return E_FAIL;
 
                 delete[] vertices;
@@ -860,7 +805,7 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
 ---------------------------------- */
 
 //-----------------------------------------------------------------------
-    Scene::_NodeChunkMap *Scene::CreateNodeChunkMap(unsigned int *pNumPolygons)
+    Scene::_NodeChunkMap *Scene::CreateNodeChunkMap()
     //-------------------------------------------------------------------
     {
         _NodeChunkMap *pResult = new _NodeChunkMap;
@@ -868,13 +813,12 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
         Chunk *chunks = NULL;
         PVOID pVertsLocked = NULL;
         int *pIndicesLocked = NULL;
-        unsigned int numPolygons = 0;
 
-        // There is no parent to read from, then use all available geometry.
+        // If there is no parent to read from, then use all available geometry.
             bool useIndices = true;
 
-            GeometryList::iterator g = m_sourceGeometry.begin();
-            for (; g != m_sourceGeometry.end(); g++)
+            std::list<PGEOMETRY>::iterator g = geometry.begin();
+            for (; g != geometry.end(); g++)
             {
                 PGEOMETRY pCurGeometry = *g;
 
@@ -889,12 +833,12 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                 // Lock
                     if (useIndices)
                     {
-                        if (pCurGeometry->GetIndexFormat() == IT_32)
+                        if (pCurGeometry->m_indexType == IT_32)
                         {
                             if (FAILED(pCurGeometry->Lock((PVOID*)&chunks, &pVertsLocked, NULL, (PVOID*)&pIndicesLocked)))
                                 return NULL;
                         }
-                        else if (pCurGeometry->GetIndexFormat() == IT_16)
+                        else if (pCurGeometry->m_indexType == IT_16)
                         {
                             int numIndices = pCurGeometry->GetNumVertexIndices();
                             pIndicesLocked = new int[numIndices];
@@ -915,63 +859,34 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                     }
 
                 // Extract geometry
-                    for (unsigned int i = 0; i < (unsigned int)pCurGeometry->GetNumChunks(); i++)
+                    for (unsigned int i = 0; i < (unsigned int)pCurGeometry->m_numChunks; i++)
                     {
                         Chunk &chunk = chunks[i];
 
-                        // TODO: Handle failures below
+                        // TODO handle failure
 
                         _GeometryMap *pGeometryMap = pOrderedGeometryMap->GetPtr(chunk.order);
 
+                        // TODO handle failure
+
                         _ChunkIndexList *pChunkIndexList = pGeometryMap->GetPtr(pCurGeometry);
 
-                        //_VertexIndexList *pVertexIndexList = pChunkIndexList->GetPtr(i);
+                        // TODO handle failure
 
-                        _IndexSet *pIndexSet = pChunkIndexList->GetPtr(i);
-
-                        unsigned int vertexIndexListId = pIndexSet->Create();
-
-                        switch (chunk.type)
-                        {
-                        case CT_POLYGON:
-                            numPolygons += chunk.numIndices - 2;
-                            break;
-
-                        case CT_TRIANGLELIST:
-                            numPolygons += chunk.numIndices / 3;
-                            break;
-
-                        case CT_TRIANGLESTRIP:
-                            numPolygons += chunk.numIndices - 2;
-                            break;
-
-                        case CT_LINELIST:
-                            numPolygons += chunk.numIndices / 2;
-                            break;
-
-                        case CT_LINESTRIP:
-                            numPolygons += chunk.numIndices - 1;
-                            break;
-
-                        case CT_POINTLIST:
-                            numPolygons += chunk.numIndices;
-                            break;
-                        }
+                        _VertexIndexList *pVertexIndexList = pChunkIndexList->GetPtr(i);
 
                         if (useIndices)
                         {
                             for (unsigned int v = 0; v < chunk.numIndices; v++)
                             {
-                                //pVertexIndexList->PushBack(pIndicesLocked[chunk.startIndex + v]);
-                                ((*pIndexSet)[vertexIndexListId])->PushBack(pIndicesLocked[chunk.startIndex + v]);
+                                pVertexIndexList->PushBack(pIndicesLocked[chunk.startIndex + v]);
                             }
                         }
                         else
                         {
                             for (unsigned int v = 0; v < chunk.numVerts; v++)
                             {
-                                //pVertexIndexList->PushBack(chunk.startIndex + v);
-                                ((*pIndexSet)[vertexIndexListId])->PushBack(chunk.startIndex + v);
+                                pVertexIndexList->PushBack(chunk.startIndex + v);
                             }
                         }
                     }
@@ -981,17 +896,12 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                 // Unlock
                     (*g)->Unlock();
 
-                    if (useIndices && (*g)->GetIndexFormat() == IT_16)
+                    if (useIndices && (*g)->m_indexType == IT_16)
                     {
                         delete[] pIndicesLocked;
                         pIndicesLocked = NULL;
                     }
             }
-
-        if (pNumPolygons)
-        {
-            *pNumPolygons = numPolygons;
-        }
 
         if (pResult->m.empty())
         {
@@ -1004,48 +914,24 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
 
 
 //-----------------------------------------------------------------------
-    Scene::_NodeChunkMap *Scene::CreateNodeChunkMap(Scene::_NodeChunkMap *pNodeChunkMap, Scene::_NodeChunkMap *pRemainder,
+    Scene::_NodeChunkMap *Scene::CreateNodeChunkMap(Scene::_NodeChunkMap *pNodeChunkMap, Scene::_NodeChunkMap **ppRemainder,
                                                     const Math::AABB &bounds, unsigned int *pNumPolygons)
     //-------------------------------------------------------------------
     {
-        typedef bool (* SimpleAABBTriangleIntersectionFuncPtr)(const Math::AABB &, const Vector3 *);
-
-        SimpleAABBTriangleIntersectionFuncPtr pSimpleAABBTriangleIntersection = Math::SimpleAABBTriangleIntersection;
-
-        if (m_pSettings->spacePartitionMode == SS_QUADTREE)
-        {
-            if (m_pSettings->spacePartitionAxis == SS_AXIS_Z)
-            {
-                pSimpleAABBTriangleIntersection = Math::SimpleAABBTriangleIntersectionXY;
-            }
-            else if (m_pSettings->spacePartitionAxis == SS_AXIS_Y)
-            {
-                pSimpleAABBTriangleIntersection = Math::SimpleAABBTriangleIntersectionXZ;
-            }
-            else if (m_pSettings->spacePartitionAxis == SS_AXIS_X)
-            {
-                pSimpleAABBTriangleIntersection = Math::SimpleAABBTriangleIntersectionYZ;
-            }
-        }
-
-#ifdef VERBOSE_PARTITIONING
-        DebugPrintf(_T("CreateNodeChunkMap: (%.3f, %.3f, %.3f) - (%.3f, %.3f, %.3f)\n"), bounds.min.x, bounds.min.y, bounds.min.z, bounds.max.x, bounds.max.y, bounds.max.z);
-#endif
-
         _NodeChunkMap *pResult = new _NodeChunkMap;
 
         Chunk *chunks = NULL;
         PVOID pVertsLocked = NULL;
         int *pIndicesLocked = NULL;
-        unsigned int numPolygons = 0;
+        int numPolygons = 0;
 
         bool useIndices = true;
 
 #ifdef VERBOSE_PARTITIONING
-        DebugPrintf(_T("\nCreateNodeChunkMap()\n\tPartitioning Geometry for node (min = (%.2f, %.2f, %.2f), max = (%.2f, %.2f, %.2f))\n"),
-                   bounds.min.x, bounds.min.y, bounds.min.z, bounds.max.x, bounds.max.y, bounds.max.z);
-
-        DebugPrintf(_T("\tNodeChunkMap size = %d\n"), pNodeChunkMap->m.size());
+        char buf[256];
+        sprintf(buf, "\nCreateNodeChunkMap()\n\tPartitioning Geomtery for node ( min = (%.2f, %.2f, %.2f), max = (%.2f, %.2f, %.2f) )\n",
+                bounds.min.x, bounds.min.y, bounds.min.z, bounds.max.x, bounds.max.y, bounds.max.z);
+        OutputDebugString(buf);
 #endif
 
         NodeChunkMap::const_iterator ncmItr = pNodeChunkMap->m.begin();
@@ -1056,10 +942,6 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
 
             const OrderedGeometryMap &ogm = (*ncmItr)->m;
 
-#ifdef VERBOSE_PARTITIONING
-            DebugPrintf(_T("\t\tOrderedGeometryMap size = %d\n"), ogm.size());
-#endif
-
             OrderedGeometryMap::const_iterator ogmItr = ogm.begin();
             for (; ogmItr != ogm.end(); ogmItr++)
             {
@@ -1067,13 +949,10 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                     continue;
 
 #ifdef VERBOSE_PARTITIONING
-                DebugPrintf(_T("\tSearching OrderedGeometryMap at order = %d\n"), ogmItr->first);
+                sprintf(buf, "\tSearching OrderedGeometryMap at order = %d\n", ogmItr->first);
+                OutputDebugString(buf);
 #endif
                 const GeometryMap &gm = ogmItr->second->m;
-
-#ifdef VERBOSE_PARTITIONING
-                DebugPrintf(_T("\t\t\tGeometryMap size = %d\n"), gm.size());
-#endif
 
                 GeometryMap::const_iterator gmItr = gm.begin();
                 for (; gmItr != gm.end(); gmItr++)
@@ -1083,7 +962,8 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                     if (!pGeometry)
                     {
 #ifdef VERBOSE_PARTITIONING
-                        DebugPrintf(_T("\tNo Geometry to Partition.\n"), ogmItr->first);
+                        sprintf(buf, "\tNo Geometry to Partition.\n", ogmItr->first);
+                        OutputDebugString(buf);
 #endif
                         continue;
                     }
@@ -1091,7 +971,8 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                     if (pGeometry->GetNumChunks() < 1 || pGeometry->GetNumVertices() < 1)
                     {
 #ifdef VERBOSE_PARTITIONING
-                        DebugPrintf(_T("\tNo Geometry to Partition.\n"), ogmItr->first);
+                        sprintf(buf, "\tNo Geometry to Partition.\n", ogmItr->first);
+                        OutputDebugString(buf);
 #endif
                         continue;
                     }
@@ -1102,28 +983,23 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                     if (gmItr->second->m.empty())
                     {
 #ifdef VERBOSE_PARTITIONING
-                        DebugPrintf(_T("\tNo Geometry to Partition.\n"), ogmItr->first);
+                        sprintf(buf, "\tNo Geometry to Partition.\n", ogmItr->first);
+                        OutputDebugString(buf);
 #endif
                         continue;
                     }
 
                     _OrderedGeometryMap *pOrderedGeometryMap = new _OrderedGeometryMap;
-                    _OrderedGeometryMap *pRemainderOrderedGeometryMap = NULL;
-
-                    if (pRemainder)
-                    {
-                        pRemainderOrderedGeometryMap = new _OrderedGeometryMap;
-                    }
 
                     // Lock
                         if (useIndices)
                         {
-                            if (pGeometry->GetIndexFormat() == IT_32)
+                            if (pGeometry->m_indexType == IT_32)
                             {
                                 if (FAILED(pGeometry->Lock((PVOID*)&chunks, &pVertsLocked, NULL, (PVOID*)&pIndicesLocked)))
                                     return NULL;
                             }
-                            else if (pGeometry->GetIndexFormat() == IT_16)
+                            else if (pGeometry->m_indexType == IT_16)
                             {
                                 int numIndices = pGeometry->GetNumVertexIndices();
                                 pIndicesLocked = new int[numIndices];
@@ -1143,68 +1019,23 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                                 return NULL;
                         }
 
-#ifdef VERBOSE_PARTITIONING
-                        for (int v = 0; v < (int)pGeometry->GetNumVertices(); v++)
-                        {
-                            const Vector3 &vertex = pGeometry->GetVertexPosition(pVertsLocked, v);
-                            DebugPrintf("Vertex %d = (%.3f, %.3f, %.3f)\n", v, vertex.x, vertex.y, vertex.z);
-                        }
-
-                        DebugPrintf("\n");
-
-                        for (v = 0; v < (int)pGeometry->GetNumVertexIndices(); v++)
-                        {
-                            DebugPrintf("Vertex Index %d = %d\n", v, pIndicesLocked[v]);
-                        }
-#endif
-
                     // Extract geometry with bounds testing
                         const ChunkIndexList &cil = gmItr->second->m;
-
-#ifdef VERBOSE_PARTITIONING
-                        DebugPrintf(_T("\t\t\t\tChunkIndexList size = %d\n"), cil.size());
-#endif
 
                         ChunkIndexList::const_iterator cilItr = cil.begin();
                         for (; cilItr != cil.end(); cilItr++)
                         {
 #ifdef VERBOSE_PARTITIONING
-                            DebugPrintf(_T("\t\tSearching Chunk %d.\n"), cilItr->first);
+                            sprintf(buf, "\t\tSearching Chunk %d.\n", cilItr->first);
+                            OutputDebugString(buf);
 #endif
                             Chunk &chunk = chunks[cilItr->first];
 
                             // TODO: handle failure
                             _GeometryMap *pGeometryMap = pOrderedGeometryMap->GetPtr(chunk.order);
-                            _GeometryMap *pRemainderGeometryMap = NULL;
-
-                            if (pRemainder)
-                            {
-                                pRemainderGeometryMap = pRemainderOrderedGeometryMap->GetPtr(chunk.order);
-                            }
 
                             // TODO: handle failure
                             _ChunkIndexList *pChunkIndexList = pGeometryMap->GetPtr(pGeometry);
-                            _ChunkIndexList *pRemainderChunkIndexList = NULL;
-
-                            if (pRemainder)
-                            {
-                                pRemainderChunkIndexList = pRemainderGeometryMap->GetPtr(pGeometry);
-                            }
-
-                            const IndexSet &srcIndexSet = cilItr->second->m;
-
-                            if (srcIndexSet.empty())
-                            {
-                                continue;
-                            }
-
-                            _IndexSet *pIndexSet = pChunkIndexList->GetPtr(cilItr->first);
-                            _IndexSet *pRemainderIndexSet = NULL;
-
-                            if (pRemainder)
-                            {
-                                pRemainderIndexSet = pRemainderChunkIndexList->GetPtr(cilItr->first);
-                            }
 
                             if (useIndices)
                             {
@@ -1212,77 +1043,59 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                                 {
                                 case CT_POLYGON:
                                     {
-                                        int poo = 0;
+                                        for (unsigned int t = 0; t < chunk.numVerts - 2; t++)
+                                        {
+                                            Vector3 vertices[3];
+
+                                            unsigned int t0 = pIndicesLocked[chunk.startIndex];
+                                            unsigned int t1 = pIndicesLocked[chunk.startIndex + t + 1];
+                                            unsigned int t2 = pIndicesLocked[chunk.startIndex + t + 2];
+
+                                            vertices[0] = pGeometry->GetVertexPosition(pVertsLocked, t0);
+                                            vertices[1] = pGeometry->GetVertexPosition(pVertsLocked, t1);
+                                            vertices[2] = pGeometry->GetVertexPosition(pVertsLocked, t2);
+
+                                            Vector3 normal = Math::Normalise(Math::Cross(vertices[1] - vertices[0], vertices[2] - vertices[0]));
+
+                                            if (Math::AABBPolygonCollision(bounds, Math::Polygon(normal, vertices, 3), NULL))
+                                            {
+                                                _VertexIndexList *pVertexIndexList = pChunkIndexList->GetPtr(cilItr->first);
+
+                                                pVertexIndexList->PushBack(t0);
+                                                pVertexIndexList->PushBack(t1);
+                                                pVertexIndexList->PushBack(t2);
+
+                                                numPolygons++;
+                                            }
+                                        }
                                     }
                                     break;
 
                                 case CT_TRIANGLELIST:
                                     {
-                                        IndexSet::const_iterator isItr = srcIndexSet.begin();
-                                        for (; isItr != srcIndexSet.end(); isItr++)
+                                        for (unsigned int p = 0, t = 0; p < chunk.numVerts / 3; p++, t += 3)
                                         {
-                                            _VertexIndexList *pSrcVertexIndexList = *isItr;
+                                            Vector3 vertices[3];
 
-                                            unsigned int vertexIndexListId = INT_MAX;
-                                            unsigned int remainderVertexIndexListId = INT_MAX;
+                                            unsigned int t0 = pIndicesLocked[chunk.startIndex + t];
+                                            unsigned int t1 = pIndicesLocked[chunk.startIndex + t + 1];
+                                            unsigned int t2 = pIndicesLocked[chunk.startIndex + t + 2];
 
-                                            for (unsigned int p = 0; p < pSrcVertexIndexList->m.size(); p += 3)
+                                            vertices[0] = pGeometry->GetVertexPosition(pVertsLocked, t0);
+                                            vertices[1] = pGeometry->GetVertexPosition(pVertsLocked, t1);
+                                            vertices[2] = pGeometry->GetVertexPosition(pVertsLocked, t2);
+
+                                            // calc the normal for the triangle and test to see if it is in the bounds of this node
+                                            Vector3 normal = Math::Normalise(Math::Cross(vertices[1] - vertices[0], vertices[2] - vertices[0]));
+                                            if (Math::AABBPolygonCollision(bounds, Math::Polygon(normal, vertices, 3), NULL))
                                             {
-                                                Vector3 vertices[3];
+                                                _VertexIndexList *pVertexIndexList = pChunkIndexList->GetPtr(cilItr->first);
 
-                                                unsigned int t0 = pSrcVertexIndexList->m[p];
-                                                unsigned int t1 = pSrcVertexIndexList->m[p + 1];
-                                                unsigned int t2 = pSrcVertexIndexList->m[p + 2];
+                                                pVertexIndexList->PushBack(t0);
+                                                pVertexIndexList->PushBack(t1);
+                                                pVertexIndexList->PushBack(t2);
 
-                                                vertices[0] = pGeometry->GetVertexPosition(pVertsLocked, t0);
-                                                vertices[1] = pGeometry->GetVertexPosition(pVertsLocked, t1);
-                                                vertices[2] = pGeometry->GetVertexPosition(pVertsLocked, t2);
-
-                                                bool intersects = false;
-                                                bool contains = false;
-
-                                                if (Math::AABBContainsTriangle(bounds, vertices))
-                                                {
-                                                    intersects = true;
-                                                    contains = true;
-                                                }
-
-                                                if (!contains && pSimpleAABBTriangleIntersection(bounds, vertices))
-                                                {
-                                                    intersects = true;
-                                                }
-
-                                                if (intersects)
-                                                {
-                                                    if (vertexIndexListId == INT_MAX)
-                                                    {
-                                                        vertexIndexListId = pIndexSet->Create();
-                                                    }
-
-                                                    _VertexIndexList *pVertexIndexList = (*pIndexSet)[vertexIndexListId];
-                                                    pVertexIndexList->PushBack(t0);
-                                                    pVertexIndexList->PushBack(t1);
-                                                    pVertexIndexList->PushBack(t2);
-
-                                                    if (contains)
-                                                    {
-                                                        continue;
-                                                    }
-                                                }
-
-                                                if (pRemainder)
-                                                {
-                                                    if (remainderVertexIndexListId == INT_MAX)
-                                                    {
-                                                        remainderVertexIndexListId = pRemainderIndexSet->Create();
-                                                    }
-
-                                                    _VertexIndexList *pRemainderVertexIndexList = (*pRemainderIndexSet)[pRemainderIndexSet->Create()];
-
-                                                    pRemainderVertexIndexList->PushBack(t0);
-                                                    pRemainderVertexIndexList->PushBack(t1);
-                                                    pRemainderVertexIndexList->PushBack(t2);
-                                                }
+                                                numPolygons++;
                                             }
                                         }
                                     }
@@ -1290,86 +1103,28 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
 
                                 case CT_TRIANGLESTRIP:
                                     {
-                                        IndexSet::const_iterator isItr = srcIndexSet.begin();
-                                        for (; isItr != srcIndexSet.end(); isItr++)
+                                        for (unsigned int p = 2; p < chunk.numVerts; p++)
                                         {
-                                            _VertexIndexList *pSrcVertexIndexList = *isItr;
+                                            Vector3 vertices[3];
 
-                                            unsigned int vertexIndexListId = INT_MAX;
-                                            unsigned int remainderVertexIndexListId = INT_MAX;
+                                            unsigned int t0 = pIndicesLocked[chunk.startIndex + p];
+                                            unsigned int t1 = pIndicesLocked[chunk.startIndex + p - 1];
+                                            unsigned int t2 = pIndicesLocked[chunk.startIndex + p - 2];
 
-                                            for (unsigned int p = 2; p < (*isItr)->m.size(); p++)
+                                            vertices[0] = pGeometry->GetVertexPosition(pVertsLocked, t0);
+                                            vertices[1] = pGeometry->GetVertexPosition(pVertsLocked, t1);
+                                            vertices[2] = pGeometry->GetVertexPosition(pVertsLocked, t2);
+
+                                            Vector3 normal = Math::Normalise(Math::Cross(vertices[1] - vertices[0], vertices[2] - vertices[0]));
+                                            if (Math::AABBPolygonCollision(bounds, Math::Polygon(normal, vertices, 3), NULL))
                                             {
-                                                Vector3 vertices[3];
+                                                _VertexIndexList *pVertexIndexList = pChunkIndexList->GetPtr(cilItr->first);
 
-                                                unsigned int t0 = (*isItr)->m[p];
-                                                unsigned int t1 = (*isItr)->m[p - 1];
-                                                unsigned int t2 = (*isItr)->m[p - 2];
+                                                pVertexIndexList->PushBack(t0);
+                                                pVertexIndexList->PushBack(t1);
+                                                pVertexIndexList->PushBack(t2);
 
-                                                vertices[0] = pGeometry->GetVertexPosition(pVertsLocked, t0);
-                                                vertices[1] = pGeometry->GetVertexPosition(pVertsLocked, t1);
-                                                vertices[2] = pGeometry->GetVertexPosition(pVertsLocked, t2);
-
-                                                bool intersects = false;
-                                                bool contains = false;
-
-                                                if (Math::AABBContainsTriangle(bounds, vertices))
-                                                {
-                                                    intersects = true;
-                                                    contains = true;
-                                                }
-                                                else if (!contains && pSimpleAABBTriangleIntersection(bounds, vertices))
-                                                {
-                                                    intersects = true;
-                                                }
-
-                                                if (intersects)
-                                                {
-                                                    if (vertexIndexListId == INT_MAX)
-                                                    {
-                                                        vertexIndexListId = pIndexSet->Create();
-                                                        _VertexIndexList *pVertexIndexList = (*pIndexSet)[vertexIndexListId];
-
-                                                        pVertexIndexList->PushBack(t2);
-                                                        pVertexIndexList->PushBack(t1);
-                                                        pVertexIndexList->PushBack(t0);
-                                                    }
-                                                    else
-                                                    {
-                                                        _VertexIndexList *pVertexIndexList = (*pIndexSet)[vertexIndexListId];
-
-                                                        pVertexIndexList->PushBack(t0);
-                                                    }
-
-                                                    if (contains)
-                                                    {
-                                                        remainderVertexIndexListId = INT_MAX;
-                                                        continue;
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    vertexIndexListId = INT_MAX;
-                                                }
-
-                                                if (pRemainder)
-                                                {
-                                                    if (remainderVertexIndexListId == INT_MAX)
-                                                    {
-                                                        remainderVertexIndexListId = pRemainderIndexSet->Create();
-                                                        _VertexIndexList *pRemainderVertexIndexList = (*pRemainderIndexSet)[remainderVertexIndexListId];
-
-                                                        pRemainderVertexIndexList->PushBack(t2);
-                                                        pRemainderVertexIndexList->PushBack(t1);
-                                                        pRemainderVertexIndexList->PushBack(t0);
-                                                    }
-                                                    else
-                                                    {
-                                                        _VertexIndexList *pRemainderVertexIndexList = (*pRemainderIndexSet)[remainderVertexIndexListId];
-
-                                                        pRemainderVertexIndexList->PushBack(t0);
-                                                    }
-                                                }
+                                                numPolygons++;
                                             }
                                         }
                                     }
@@ -1377,53 +1132,246 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
 
                                 case CT_LINELIST:
                                     {
-                                        int poo = 0;
+                                        for (unsigned int p = 0, t = 0; p < chunk.numVerts / 2; p++, t += 2)
+                                        {
+                                            Vector3 vertices[2];
+
+                                            unsigned int t0 = pIndicesLocked[chunk.startIndex + t];
+                                            unsigned int t1 = pIndicesLocked[chunk.startIndex + t + 1];
+
+                                            vertices[0] = pGeometry->GetVertexPosition(pVertsLocked, t0);
+                                            vertices[1] = pGeometry->GetVertexPosition(pVertsLocked, t1);
+
+                                            // HACK: AABBPolygonCollision is inefficient for lines
+                                            Vector3 normal = Math::Normalise(Math::Cross(vertices[1] - vertices[0], vertices[1] - vertices[0]));
+                                            if (Math::AABBPolygonCollision(bounds, Math::Polygon(normal, vertices, 2), NULL))
+                                            {
+                                                _VertexIndexList *pVertexIndexList = pChunkIndexList->GetPtr(cilItr->first);
+
+                                                pVertexIndexList->PushBack(t0);
+                                                pVertexIndexList->PushBack(t1);
+
+                                                numPolygons++;
+                                            }
+                                        }
                                     }
                                     break;
 
                                 case CT_LINESTRIP:
                                     {
-                                        int poo = 0;
+                                        for (unsigned int p = 1; p < chunk.numVerts; p++)
+                                        {
+                                            Vector3 vertices[2];
+
+                                            unsigned int t0 = pIndicesLocked[chunk.startIndex + p];
+                                            unsigned int t1 = pIndicesLocked[chunk.startIndex + p - 1];
+
+                                            vertices[0] = pGeometry->GetVertexPosition(pVertsLocked, t0);
+                                            vertices[1] = pGeometry->GetVertexPosition(pVertsLocked, t1);
+
+                                            // HACK: AABBPolygonCollision is inefficient for lines
+                                            Vector3 normal = Math::Normalise(Math::Cross(vertices[1] - vertices[0], vertices[1] - vertices[0]));
+                                            if (Math::AABBPolygonCollision(bounds, Math::Polygon(normal, vertices, 2), NULL))
+                                            {
+                                                _VertexIndexList *pVertexIndexList = pChunkIndexList->GetPtr(cilItr->first);
+
+                                                pVertexIndexList->PushBack(t0);
+                                                pVertexIndexList->PushBack(t1);
+
+                                                numPolygons++;
+                                            }
+                                        }
                                     }
                                     break;
 
                                 case CT_POINTLIST:
                                     {
-                                        IndexSet::const_iterator isItr = srcIndexSet.begin();
-                                        for (; isItr != srcIndexSet.end(); isItr++)
+                                        for (unsigned int p = 0; p < chunk.numVerts; p++)
                                         {
-                                            _VertexIndexList *pSrcVertexIndexList = *isItr;
+                                            Vector3 vertex;
 
-                                            unsigned int vertexIndexListId = INT_MAX;
-                                            unsigned int remainderVertexIndexListId = INT_MAX;
+                                            unsigned int t = pIndicesLocked[chunk.startIndex + p];
 
-                                            for (unsigned int p = 0; p < pSrcVertexIndexList->m.size(); p++)
+                                            vertex = pGeometry->GetVertexPosition(pVertsLocked, t);
+
+                                            if (Math::AABBPointCollision(bounds, vertex))
                                             {
-                                                unsigned int t = pSrcVertexIndexList->m[p];
+                                                _VertexIndexList *pVertexIndexList = pChunkIndexList->GetPtr(cilItr->first);
 
-                                                const Vector3 &vertex = pGeometry->GetVertexPosition(pVertsLocked, t);
+                                                pVertexIndexList->PushBack(t);
 
-                                                if (Math::AABBPointCollision(bounds, vertex))
-                                                {
-                                                    if (vertexIndexListId == INT_MAX)
-                                                    {
-                                                        vertexIndexListId = pIndexSet->Create();
-                                                    }
+                                                numPolygons++;
+                                            }
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                switch (chunk.type)
+                                {
+                                case CT_POLYGON:
+                                    {
+                                        for (unsigned int t = 0; t < chunk.numVerts - 2; t++)
+                                        {
+                                            Vector3 vertices[3];
 
-                                                    _VertexIndexList *pVertexIndexList = (*pIndexSet)[vertexIndexListId];
-                                                    pVertexIndexList->PushBack(t);
+                                            unsigned int t0 = chunk.startIndex;
+                                            unsigned int t1 = t0 + t + 1;
+                                            unsigned int t2 = t1 + 1;
 
-                                                    if (pRemainder)
-                                                    {
-                                                        if (remainderVertexIndexListId == INT_MAX)
-                                                        {
-                                                            remainderVertexIndexListId = pRemainderIndexSet->Create();
-                                                        }
+                                            vertices[0] = pGeometry->GetVertexPosition(pVertsLocked, t0);
+                                            vertices[1] = pGeometry->GetVertexPosition(pVertsLocked, t1);
+                                            vertices[2] = pGeometry->GetVertexPosition(pVertsLocked, t2);
 
-                                                        _VertexIndexList *pRemainderVertexIndexList = (*pRemainderIndexSet)[pRemainderIndexSet->Create()];
-                                                        pRemainderVertexIndexList->PushBack(t);
-                                                    }
-                                                }
+                                            Vector3 normal = Math::Normalise(Math::Cross(vertices[1] - vertices[0], vertices[2] - vertices[0]));
+
+                                            if (Math::AABBPolygonCollision(bounds, Math::Polygon(normal, vertices, 3), NULL))
+                                            {
+                                                // Returns the current pointer for this chunk's vertex list. Will allocate it if it doesn't exist.
+                                                _VertexIndexList *pVertexIndexList = pChunkIndexList->GetPtr(cilItr->first);
+
+                                                pVertexIndexList->PushBack(t0);
+                                                pVertexIndexList->PushBack(t1);
+                                                pVertexIndexList->PushBack(t2);
+
+                                                numPolygons++;
+                                            }
+                                        }
+                                    }
+                                    break;
+
+                                case CT_TRIANGLELIST:
+                                    {
+                                        for (unsigned int p = 0, t = 0; p < chunk.numVerts / 3; p++, t += 3)
+                                        {
+                                            Vector3 vertices[3];
+
+                                            unsigned int t0 = chunk.startIndex + t;
+                                            unsigned int t1 = t0 + 1;
+                                            unsigned int t2 = t0 + 2;
+
+                                            vertices[0] = pGeometry->GetVertexPosition(pVertsLocked, t0);
+                                            vertices[1] = pGeometry->GetVertexPosition(pVertsLocked, t1);
+                                            vertices[2] = pGeometry->GetVertexPosition(pVertsLocked, t2);
+
+                                            // calc the normal for the triangle and test to see if it is in the bounds of this node
+                                            Vector3 normal = Math::Normalise(Math::Cross(vertices[1] - vertices[0], vertices[2] - vertices[0]));
+                                            if (Math::AABBPolygonCollision(bounds, Math::Polygon(normal, vertices, 3), NULL))
+                                            {
+                                                _VertexIndexList *pVertexIndexList = pChunkIndexList->GetPtr(cilItr->first);
+
+                                                pVertexIndexList->PushBack(t0);
+                                                pVertexIndexList->PushBack(t1);
+                                                pVertexIndexList->PushBack(t2);
+
+                                                numPolygons++;
+                                            }
+                                        }
+                                    }
+                                    break;
+
+                                case CT_TRIANGLESTRIP:
+                                    {
+                                        for (unsigned int p = 2; p < chunk.numVerts; p++)
+                                        {
+                                            Vector3 vertices[3];
+
+                                            unsigned int t0 = chunk.startIndex + p;
+                                            unsigned int t1 = t0 - 1;
+                                            unsigned int t2 = t0 - 2;
+
+                                            vertices[0] = pGeometry->GetVertexPosition(pVertsLocked, t0);
+                                            vertices[1] = pGeometry->GetVertexPosition(pVertsLocked, t1);
+                                            vertices[2] = pGeometry->GetVertexPosition(pVertsLocked, t2);
+
+                                            Vector3 normal = Math::Normalise(Math::Cross(vertices[1] - vertices[0], vertices[2] - vertices[0]));
+                                            if (Math::AABBPolygonCollision(bounds, Math::Polygon(normal, vertices, 3), NULL))
+                                            {
+                                                _VertexIndexList *pVertexIndexList = pChunkIndexList->GetPtr(cilItr->first);
+
+                                                pVertexIndexList->PushBack(t0);
+                                                pVertexIndexList->PushBack(t1);
+                                                pVertexIndexList->PushBack(t2);
+
+                                                numPolygons++;
+                                            }
+                                        }
+                                    }
+                                    break;
+
+                                case CT_LINELIST:
+                                    {
+                                        for (unsigned int p = 0, t = 0; p < chunk.numVerts / 2; p++, t += 2)
+                                        {
+                                            Vector3 vertices[2];
+
+                                            unsigned int t0 = chunk.startIndex + t;
+                                            unsigned int t1 = t0 + 1;
+
+                                            vertices[0] = pGeometry->GetVertexPosition(pVertsLocked, t0);
+                                            vertices[1] = pGeometry->GetVertexPosition(pVertsLocked, t1);
+
+                                            // HACK: AABBPolygonCollision is inefficient for lines
+                                            Vector3 normal = Math::Normalise(Math::Cross(vertices[1] - vertices[0], vertices[1] - vertices[0]));
+                                            if (Math::AABBPolygonCollision(bounds, Math::Polygon(normal, vertices, 2), NULL))
+                                            {
+                                                _VertexIndexList *pVertexIndexList = pChunkIndexList->GetPtr(cilItr->first);
+
+                                                pVertexIndexList->PushBack(t0);
+                                                pVertexIndexList->PushBack(t1);
+
+                                                numPolygons++;
+                                            }
+                                        }
+                                    }
+                                    break;
+
+                                case CT_LINESTRIP:
+                                    {
+                                        for (unsigned int p = 1; p < chunk.numVerts; p++)
+                                        {
+                                            Vector3 vertices[2];
+
+                                            unsigned int t0 = chunk.startIndex + p;
+                                            unsigned int t1 = t0 - 1;
+
+                                            vertices[0] = pGeometry->GetVertexPosition(pVertsLocked, t0);
+                                            vertices[1] = pGeometry->GetVertexPosition(pVertsLocked, t1);
+
+                                            // HACK: AABBPolygonCollision is inefficient for lines
+                                            Vector3 normal = Math::Normalise(Math::Cross(vertices[1] - vertices[0], vertices[1] - vertices[0]));
+                                            if (Math::AABBPolygonCollision(bounds, Math::Polygon(normal, vertices, 2), NULL))
+                                            {
+                                                _VertexIndexList *pVertexIndexList = pChunkIndexList->GetPtr(cilItr->first);
+
+                                                pVertexIndexList->PushBack(t0);
+                                                pVertexIndexList->PushBack(t1);
+
+                                                numPolygons++;
+                                            }
+                                        }
+                                    }
+                                    break;
+
+                                case CT_POINTLIST:
+                                    {
+                                        for (unsigned int p = 0; p < chunk.numVerts; p++)
+                                        {
+                                            Vector3 vertex;
+
+                                            unsigned int t = chunk.startIndex + p;
+
+                                            vertex = pGeometry->GetVertexPosition(pVertsLocked, t);
+
+                                            if (Math::AABBPointCollision(bounds, vertex))
+                                            {
+                                                _VertexIndexList *pVertexIndexList = pChunkIndexList->GetPtr(cilItr->first);
+
+                                                pVertexIndexList->PushBack(t);
+
+                                                numPolygons++;
                                             }
                                         }
                                     }
@@ -1434,15 +1382,10 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
 
                     pResult->m.push_back(pOrderedGeometryMap);
 
-                    if (pRemainder)
-                    {
-                        pRemainder->m.push_back(pRemainderOrderedGeometryMap);
-                    }
-
                     // Unlock
                         pGeometry->Unlock();
 
-                        if (useIndices && pGeometry->GetIndexFormat() == IT_16)
+                        if (useIndices && pGeometry->m_indexType == IT_16)
                         {
                             delete[] pIndicesLocked;
                             pIndicesLocked = NULL;
@@ -1465,19 +1408,18 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
 
 
 //-----------------------------------------------------------------------
-    void Scene::Partition(TreeNode *node, int numSubdivisions, _NodeChunkMap *pNodeChunkMap, _NodeChunkMap *pRemainingNodeChunkMap, unsigned int numPrimitives)
+    void Scene::Partition(TreeNode *node, int numSubdivisions, _NodeChunkMap *pNodeChunkMap)
     //-------------------------------------------------------------------
     {
 #ifdef VERBOSE_PARTITIONING
-        DebugPrintf(_T("\nPartition()\n\tNode (min = (%.2f, %.2f, %.2f), max = (%.2f, %.2f, %.2f))\n"),
+        char buf[256];
+        sprintf(buf, "\nPartition()\n\tNode ( min = (%.2f, %.2f, %.2f), max = (%.2f, %.2f, %.2f) )\n",
                 node->m_min.x, node->m_min.y, node->m_min.z, node->m_max.x, node->m_max.y, node->m_max.z);
+        OutputDebugString(buf);
 #endif
 
         if (!pNodeChunkMap)
             return;
-
-        Vector3 min = node->m_min;
-        Vector3 max = node->m_max;
 
         if (pNodeChunkMap->IsEmpty())
         {
@@ -1485,10 +1427,15 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
             // empty leaf and return early. Must take a copy of pNodeChunkMap, so that it is cleared up properly.
 
 #ifdef VERBOSE_PARTITIONING
-            DebugPrintf(_T("\tpNodeChunkMap is empty. Storing empty leaf.\n"));
+            sprintf(buf, "\tpNodeChunkMap is empty. Storing empty leaf.\n");
+            OutputDebugString(buf);
 #endif
 
-            GenerateLeaf(node, NULL);
+            node->m_leafIndex = nodeChunkMap.size();
+
+            _NodeChunkMap *pNewNodeChunkMap = new _NodeChunkMap(*pNodeChunkMap);
+
+            nodeChunkMap.push_back(pNewNodeChunkMap);
 
             UpdateSpacePartitionProgress(node);
 
@@ -1498,11 +1445,14 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
         // Setup local variables
             int numDivisions = numSubdivisions;
 
-            if (numDivisions > m_subdivisionsExecuted)
-                m_subdivisionsExecuted = numDivisions;
+            if (numDivisions > subdivisionsExecuted)
+                subdivisionsExecuted = numDivisions;
 
-            unsigned int numPolygons = numPrimitives;
-            int numEffectGroups = m_pResourceManager->GetNumEffects();
+            unsigned int numPolygons = 0;
+            int numEffectGroups = resourceManager->GetNumEffects();
+
+            Vector3 min = node->m_min;
+            Vector3 max = node->m_max;
 
             Chunk *chunks = NULL;
             PVOID pVertsLocked = NULL;
@@ -1513,20 +1463,18 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
         // Partition Geometry
             _NodeChunkMap *pResultingNodeChunkMap = NULL;
 
-            if (node->m_pParent)
+            if (settings->optimiseChunks)
             {
-                if (m_pSettings->optimiseChunks)
-                {
 
-                }
-                else
-                {
-                    pResultingNodeChunkMap = CreateNodeChunkMap(pNodeChunkMap, pRemainingNodeChunkMap, Math::AABB(min, max), &numPolygons);
-                }
             }
             else
             {
-                pResultingNodeChunkMap = pNodeChunkMap;
+                pResultingNodeChunkMap = CreateNodeChunkMap(pNodeChunkMap, NULL, Math::AABB(min, max), &numPolygons);
+            }
+
+            if (!pResultingNodeChunkMap)
+            {
+                // TODO: Handle error. Cannot continue.
             }
 
         // Determine if further subdivision is necessary
@@ -1538,238 +1486,163 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
             bool subdividePoly = false;
             bool subdivideSub  = false;
 
-            if (m_pSettings->sizeDepth > 0)
+            if (settings->sizeDepth > 0)
             {
-                if (m_pSettings->spacePartitionAxis == SS_AXIS_X)
+                if (settings->spacePartitionAxis == SS_AXIS_X)
                 {
-                    if (m_pSettings->sizeDepth < sizeY || m_pSettings->sizeDepth < sizeZ || (m_pSettings->spacePartitionMode == SS_OCTTREE && m_pSettings->sizeDepth < sizeX))
+                    if (settings->sizeDepth < sizeY || settings->sizeDepth < sizeZ || (settings->spacePartitionMode == SS_OCTTREE && settings->sizeDepth < sizeX))
                         subdivideSize = true;
                 }
-                else if (m_pSettings->spacePartitionAxis == SS_AXIS_Y)
+                else if (settings->spacePartitionAxis == SS_AXIS_Y)
                 {
-                    if (m_pSettings->sizeDepth < sizeX || m_pSettings->sizeDepth < sizeZ || (m_pSettings->spacePartitionMode == SS_OCTTREE && m_pSettings->sizeDepth < sizeY))
+                    if (settings->sizeDepth < sizeX || settings->sizeDepth < sizeZ || (settings->spacePartitionMode == SS_OCTTREE && settings->sizeDepth < sizeY))
                         subdivideSize = true;
                 }
-                else if (m_pSettings->spacePartitionAxis == SS_AXIS_Z)
+                else if (settings->spacePartitionAxis == SS_AXIS_Z)
                 {
-                    if (m_pSettings->sizeDepth < sizeX || m_pSettings->sizeDepth < sizeY || (m_pSettings->spacePartitionMode == SS_OCTTREE && m_pSettings->sizeDepth < sizeZ))
+                    if (settings->sizeDepth < sizeX || settings->sizeDepth < sizeY || (settings->spacePartitionMode == SS_OCTTREE && settings->sizeDepth < sizeZ))
                         subdivideSize = true;
                 }
             }
             else
                 subdivideSize = true;
 
-            if (m_pSettings->polygonDepth > 0)
+            if (settings->polygonDepth > 0)
             {
-                if (m_pSettings->polygonDepth < (int)numPolygons)
+                if (settings->polygonDepth < (int)numPolygons)
                     subdividePoly = true;
             }
             else
                 subdividePoly = true;
 
-            if (m_pSettings->subdivisionDepth > 0)
+            if (settings->subdivisionDepth > 0)
             {
-                if (numDivisions < m_pSettings->subdivisionDepth)
+                if (numDivisions < settings->subdivisionDepth)
                     subdivideSub = true;
             }
             else
                 subdivideSub = true;
 
         // Subdivide if so
-            if (subdivideSize && subdividePoly && subdivideSub && (m_pSettings->polygonDepth || m_pSettings->sizeDepth || m_pSettings->subdivisionDepth))
+            if (subdivideSize && subdividePoly && subdivideSub && (settings->polygonDepth || settings->sizeDepth || settings->subdivisionDepth))
             {
 #ifdef VERBOSE_PARTITIONING
-                DebugPrintf(_T("\tSubdividing.\n"));
+                sprintf(buf, "\tSubdividing.\n");
+                OutputDebugString(buf);
 #endif
                 numDivisions++;
 
                 Vector3 mid(0, 0, 0);
 
-                if (m_pSettings->spacePartitionMode == SS_QUADTREE)
+                if (settings->spacePartitionMode == SS_QUADTREE)
                 {
                     node->m_pChildren = new TreeNode *[4];
                     node->m_numChildren = 4;
 
-                    if (m_pSettings->spacePartitionAxis == SS_AXIS_X)
+                    if (settings->spacePartitionAxis == SS_AXIS_X)
                         mid = min + Vector3(sizeX, sizeY * 0.5f, sizeZ * 0.5f);
-                    else if (m_pSettings->spacePartitionAxis == SS_AXIS_Y)
+                    else if (settings->spacePartitionAxis == SS_AXIS_Y)
                         mid = min + Vector3(sizeX * 0.5f, sizeY, sizeZ * 0.5f);
-                    else if (m_pSettings->spacePartitionAxis == SS_AXIS_Z)
+                    else if (settings->spacePartitionAxis == SS_AXIS_Z)
                         mid = min + Vector3(sizeX * 0.5f, sizeY * 0.5f, sizeZ);
                 }
-                else if (m_pSettings->spacePartitionMode == SS_OCTTREE)
+                else if (settings->spacePartitionMode == SS_OCTTREE)
                 {
                     node->m_pChildren = new TreeNode *[8];
                     node->m_numChildren = 8;
                     mid = min + Vector3(sizeX * 0.5f, sizeY * 0.5f, sizeZ * 0.5f);
                 }
 
-                if (m_pSettings->spacePartitionMode == SS_QUADTREE)
+                if (settings->spacePartitionMode == SS_QUADTREE)
                 {
-                    if (m_pSettings->spacePartitionAxis == SS_AXIS_X)
+                    if (settings->spacePartitionAxis == SS_AXIS_X)
                     {
-                        // Node 0
-                            node->m_pChildren[0] = new TreeNode(min, mid, node, m_numNodes);
-                            m_numNodes++;
+                        node->m_pChildren[0] = new TreeNode(min, mid, node, numNodes);
+                        numNodes++;
+                        Partition(node->m_pChildren[0], numDivisions, pResultingNodeChunkMap);
 
-                            _NodeChunkMap *pRemainingNodeChunkMap0 = new _NodeChunkMap;
-                            Partition(node->m_pChildren[0], numDivisions, pResultingNodeChunkMap, pRemainingNodeChunkMap0);
+                        node->m_pChildren[1] = new TreeNode(Vector3(min.x, mid.y, min.z), Vector3(mid.x, max.y, mid.z), node, numNodes);
+                        numNodes++;
+                        Partition(node->m_pChildren[1], numDivisions, pResultingNodeChunkMap);
 
-                        // Node 1
-                            node->m_pChildren[1] = new TreeNode(Vector3(min.x, mid.y, min.z), Vector3(mid.x, max.y, mid.z), node, m_numNodes);
-                            m_numNodes++;
+                        node->m_pChildren[2] = new TreeNode(Vector3(min.x, min.y, mid.z), Vector3(mid.x, mid.y, max.z), node, numNodes);
+                        numNodes++;
+                        Partition(node->m_pChildren[2], numDivisions, pResultingNodeChunkMap);
 
-                            _NodeChunkMap *pRemainingNodeChunkMap1 = new _NodeChunkMap;
-                            Partition(node->m_pChildren[1], numDivisions, pRemainingNodeChunkMap0, pRemainingNodeChunkMap1);
-
-                        // Node 2
-                            node->m_pChildren[2] = new TreeNode(Vector3(min.x, min.y, mid.z), Vector3(mid.x, mid.y, max.z), node, m_numNodes);
-                            m_numNodes++;
-
-                            _NodeChunkMap *pRemainingNodeChunkMap2 = new _NodeChunkMap;
-                            Partition(node->m_pChildren[2], numDivisions, pRemainingNodeChunkMap1, pRemainingNodeChunkMap2);
-
-                        // Node 3
-                            node->m_pChildren[3] = new TreeNode(Vector3(min.x, mid.y, mid.z), Vector3(mid.x, max.y, max.z), node, m_numNodes);
-                            m_numNodes++;
-
-                            Partition(node->m_pChildren[3], numDivisions, pRemainingNodeChunkMap2, NULL);
-
-                        delete pRemainingNodeChunkMap0;
-                        delete pRemainingNodeChunkMap1;
-                        delete pRemainingNodeChunkMap2;
+                        node->m_pChildren[3] = new TreeNode(Vector3(min.x, mid.y, mid.z), Vector3(mid.x, max.y, max.z), node, numNodes);
+                        numNodes++;
+                        Partition(node->m_pChildren[3], numDivisions, pResultingNodeChunkMap);
                     }
-                    else if (m_pSettings->spacePartitionAxis == SS_AXIS_Y)
+                    else if (settings->spacePartitionAxis == SS_AXIS_Y)
                     {
-                        // Node 0
-                            node->m_pChildren[0] = new TreeNode(min, mid, node, m_numNodes);
-                            m_numNodes++;
+                        node->m_pChildren[0] = new TreeNode(min, mid, node, numNodes);
+                        numNodes++;
+                        Partition(node->m_pChildren[0], numDivisions, pResultingNodeChunkMap);
 
-                            _NodeChunkMap *pRemainingNodeChunkMap0 = new _NodeChunkMap;
-                            Partition(node->m_pChildren[0], numDivisions, pResultingNodeChunkMap, pRemainingNodeChunkMap0);
+                        node->m_pChildren[1] = new TreeNode(Vector3(mid.x, min.y, min.z), Vector3(max.x, mid.y, mid.z), node, numNodes);
+                        numNodes++;
+                        Partition(node->m_pChildren[1], numDivisions, pResultingNodeChunkMap);
 
-                        // Node 1
-                            node->m_pChildren[1] = new TreeNode(Vector3(mid.x, min.y, min.z), Vector3(max.x, mid.y, mid.z), node, m_numNodes);
-                            m_numNodes++;
+                        node->m_pChildren[2] = new TreeNode(Vector3(min.x, min.y, mid.z), Vector3(mid.x, mid.y, max.z), node, numNodes);
+                        numNodes++;
+                        Partition(node->m_pChildren[2], numDivisions, pResultingNodeChunkMap);
 
-                            _NodeChunkMap *pRemainingNodeChunkMap1 = new _NodeChunkMap;
-                            Partition(node->m_pChildren[1], numDivisions, pRemainingNodeChunkMap0, pRemainingNodeChunkMap1);
-
-                        // Node 2
-                            node->m_pChildren[2] = new TreeNode(Vector3(min.x, min.y, mid.z), Vector3(mid.x, mid.y, max.z), node, m_numNodes);
-                            m_numNodes++;
-
-                            _NodeChunkMap *pRemainingNodeChunkMap2 = new _NodeChunkMap;
-                            Partition(node->m_pChildren[2], numDivisions, pRemainingNodeChunkMap1, pRemainingNodeChunkMap2);
-
-                        // Node 3
-                            node->m_pChildren[3] = new TreeNode(Vector3(mid.x, min.y, mid.z), Vector3(max.x, mid.y, max.z), node, m_numNodes);
-                            m_numNodes++;
-
-                            Partition(node->m_pChildren[3], numDivisions, pRemainingNodeChunkMap2, NULL);
-
-                        delete pRemainingNodeChunkMap0;
-                        delete pRemainingNodeChunkMap1;
-                        delete pRemainingNodeChunkMap2;
+                        node->m_pChildren[3] = new TreeNode(Vector3(mid.x, min.y, mid.z), Vector3(max.x, mid.y, max.z), node, numNodes);
+                        numNodes++;
+                        Partition(node->m_pChildren[3], numDivisions, pResultingNodeChunkMap);
                     }
-                    else if (m_pSettings->spacePartitionAxis == SS_AXIS_Z)
+                    else if (settings->spacePartitionAxis == SS_AXIS_Z)
                     {
-                        // Node 0
-                            node->m_pChildren[0] = new TreeNode(min, mid, node, m_numNodes);
-                            m_numNodes++;
+                        node->m_pChildren[0] = new TreeNode(min, mid, node, numNodes);
+                        numNodes++;
+                        Partition(node->m_pChildren[0], numDivisions, pResultingNodeChunkMap);
 
-                            _NodeChunkMap *pRemainingNodeChunkMap0 = new _NodeChunkMap;
-                            Partition(node->m_pChildren[0], numDivisions, pResultingNodeChunkMap, pRemainingNodeChunkMap0);
+                        node->m_pChildren[1] = new TreeNode(Vector3(mid.x, min.y, min.z), Vector3(max.x, mid.y, mid.z), node, numNodes);
+                        numNodes++;
+                        Partition(node->m_pChildren[1], numDivisions, pResultingNodeChunkMap);
 
-                        // Node 1
-                            node->m_pChildren[1] = new TreeNode(Vector3(mid.x, min.y, min.z), Vector3(max.x, mid.y, mid.z), node, m_numNodes);
-                            m_numNodes++;
+                        node->m_pChildren[2] = new TreeNode(Vector3(min.x, mid.y, min.z), Vector3(mid.x, max.y, mid.z), node, numNodes);
+                        numNodes++;
+                        Partition(node->m_pChildren[2], numDivisions, pResultingNodeChunkMap);
 
-                            _NodeChunkMap *pRemainingNodeChunkMap1 = new _NodeChunkMap;
-                            Partition(node->m_pChildren[1], numDivisions, pRemainingNodeChunkMap0, pRemainingNodeChunkMap1);
-
-                        // Node 2
-                            node->m_pChildren[2] = new TreeNode(Vector3(min.x, mid.y, min.z), Vector3(mid.x, max.y, mid.z), node, m_numNodes);
-                            m_numNodes++;
-
-                            _NodeChunkMap *pRemainingNodeChunkMap2 = new _NodeChunkMap;
-                            Partition(node->m_pChildren[2], numDivisions, pRemainingNodeChunkMap1, pRemainingNodeChunkMap2);
-
-                        // Node 3
-                            node->m_pChildren[3] = new TreeNode(Vector3(mid.x, mid.y, min.z), Vector3(max.x, max.y, mid.z), node, m_numNodes);
-                            m_numNodes++;
-
-                            Partition(node->m_pChildren[3], numDivisions, pRemainingNodeChunkMap2, NULL);
-
-                        delete pRemainingNodeChunkMap0;
-                        delete pRemainingNodeChunkMap1;
-                        delete pRemainingNodeChunkMap2;
+                        node->m_pChildren[3] = new TreeNode(Vector3(mid.x, mid.y, min.z), Vector3(max.x, max.y, mid.z), node, numNodes);
+                        numNodes++;
+                        Partition(node->m_pChildren[3], numDivisions, pResultingNodeChunkMap);
                     }
                 }
                 else
                 {
-                    // Node 0
-                        node->m_pChildren[0] = new TreeNode(min, mid, node, m_numNodes);
-                        m_numNodes++;
+                    node->m_pChildren[0] = new TreeNode(min, mid, node, numNodes);
+                    numNodes++;
+                    Partition(node->m_pChildren[0], numDivisions, pResultingNodeChunkMap);
 
-                        _NodeChunkMap *pRemainingNodeChunkMap0 = new _NodeChunkMap;
-                        Partition(node->m_pChildren[0], numDivisions, pResultingNodeChunkMap, pRemainingNodeChunkMap0);
+                    node->m_pChildren[1] = new TreeNode(Vector3(mid.x, min.y, min.z), Vector3(max.x, mid.y, mid.z), node, numNodes);
+                    numNodes++;
+                    Partition(node->m_pChildren[1], numDivisions, pResultingNodeChunkMap);
 
-                    // Node 1
-                        node->m_pChildren[1] = new TreeNode(Vector3(mid.x, min.y, min.z), Vector3(max.x, mid.y, mid.z), node, m_numNodes);
-                        m_numNodes++;
+                    node->m_pChildren[2] = new TreeNode(Vector3(min.x, min.y, mid.z), Vector3(mid.x, mid.y, max.z), node, numNodes);
+                    numNodes++;
+                    Partition(node->m_pChildren[2], numDivisions, pResultingNodeChunkMap);
 
-                        _NodeChunkMap *pRemainingNodeChunkMap1 = new _NodeChunkMap;
-                        Partition(node->m_pChildren[1], numDivisions, pRemainingNodeChunkMap0, pRemainingNodeChunkMap1);
+                    node->m_pChildren[3] = new TreeNode(Vector3(mid.x, min.y, mid.z), Vector3(max.x, mid.y, max.z), node, numNodes);
+                    numNodes++;
+                    Partition(node->m_pChildren[3], numDivisions, pResultingNodeChunkMap);
 
-                    // Node 2
-                        node->m_pChildren[2] = new TreeNode(Vector3(min.x, min.y, mid.z), Vector3(mid.x, mid.y, max.z), node, m_numNodes);
-                        m_numNodes++;
+                    node->m_pChildren[4] = new TreeNode(Vector3(min.x, mid.y, min.z), Vector3(mid.x, max.y, mid.z), node, numNodes);
+                    numNodes++;
+                    Partition(node->m_pChildren[4], numDivisions, pResultingNodeChunkMap);
 
-                        _NodeChunkMap *pRemainingNodeChunkMap2 = new _NodeChunkMap;
-                        Partition(node->m_pChildren[2], numDivisions, pRemainingNodeChunkMap1, pRemainingNodeChunkMap2);
+                    node->m_pChildren[5] = new TreeNode(Vector3(mid.x, mid.y, min.z), Vector3(max.x, max.y, mid.z), node, numNodes);
+                    numNodes++;
+                    Partition(node->m_pChildren[5], numDivisions, pResultingNodeChunkMap);
 
-                    // Node 3
-                        node->m_pChildren[3] = new TreeNode(Vector3(mid.x, min.y, mid.z), Vector3(max.x, mid.y, max.z), node, m_numNodes);
-                        m_numNodes++;
+                    node->m_pChildren[6] = new TreeNode(Vector3(min.x, mid.y, mid.z), Vector3(mid.x, max.y, max.z), node, numNodes);
+                    numNodes++;
+                    Partition(node->m_pChildren[6], numDivisions, pResultingNodeChunkMap);
 
-                        _NodeChunkMap *pRemainingNodeChunkMap3 = new _NodeChunkMap;
-                        Partition(node->m_pChildren[3], numDivisions, pRemainingNodeChunkMap2, pRemainingNodeChunkMap3);
-
-                    // Node 4
-                        node->m_pChildren[4] = new TreeNode(Vector3(min.x, mid.y, min.z), Vector3(mid.x, max.y, mid.z), node, m_numNodes);
-                        m_numNodes++;
-
-                        _NodeChunkMap *pRemainingNodeChunkMap4 = new _NodeChunkMap;
-                        Partition(node->m_pChildren[4], numDivisions, pRemainingNodeChunkMap3, pRemainingNodeChunkMap4);
-
-                    // Node 5
-                        node->m_pChildren[5] = new TreeNode(Vector3(mid.x, mid.y, min.z), Vector3(max.x, max.y, mid.z), node, m_numNodes);
-                        m_numNodes++;
-
-                        _NodeChunkMap *pRemainingNodeChunkMap5 = new _NodeChunkMap;
-                        Partition(node->m_pChildren[5], numDivisions, pRemainingNodeChunkMap4, pRemainingNodeChunkMap5);
-
-                    // Node 6
-                        node->m_pChildren[6] = new TreeNode(Vector3(min.x, mid.y, mid.z), Vector3(mid.x, max.y, max.z), node, m_numNodes);
-                        m_numNodes++;
-
-                        _NodeChunkMap *pRemainingNodeChunkMap6 = new _NodeChunkMap;
-                        Partition(node->m_pChildren[6], numDivisions, pRemainingNodeChunkMap5, pRemainingNodeChunkMap6);
-
-                    // Node 7
-                        node->m_pChildren[7] = new TreeNode(Vector3(mid.x, mid.y, mid.z), Vector3(max.x, max.y, max.z), node, m_numNodes);
-                        m_numNodes++;
-
-                        Partition(node->m_pChildren[7], numDivisions, pRemainingNodeChunkMap6, NULL);
-
-                    delete pRemainingNodeChunkMap0;
-                    delete pRemainingNodeChunkMap1;
-                    delete pRemainingNodeChunkMap2;
-                    delete pRemainingNodeChunkMap3;
-                    delete pRemainingNodeChunkMap4;
-                    delete pRemainingNodeChunkMap5;
-                    delete pRemainingNodeChunkMap6;
+                    node->m_pChildren[7] = new TreeNode(Vector3(mid.x, mid.y, mid.z), Vector3(max.x, max.y, max.z), node, numNodes);
+                    numNodes++;
+                    Partition(node->m_pChildren[7], numDivisions, pResultingNodeChunkMap);
                 }
             }
             else
@@ -1777,18 +1650,20 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                 // The node is not being partitioned, so place the current geometry in this leaf.
 
 #ifdef VERBOSE_PARTITIONING
-                DebugPrintf(_T("\tNot Subdividing. Creating the leaf.\n"));
+                sprintf(buf, "\tNot Subdividing. Creating the leaf.\n");
+                OutputDebugString(buf);
 #endif
 
-                GenerateLeaf(node, pResultingNodeChunkMap);
+                node->m_leafIndex = nodeChunkMap.size();
+
+                _NodeChunkMap *pNewNodeChunkMap = new _NodeChunkMap(*pResultingNodeChunkMap);
+
+                nodeChunkMap.push_back(pNewNodeChunkMap);
 
                 UpdateSpacePartitionProgress(node);
             }
 
-        if (node->m_pParent)
-        {
-            delete pResultingNodeChunkMap;
-        }
+        delete pResultingNodeChunkMap;
     }
 
 
@@ -1848,7 +1723,7 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
 
         bool useIndices = true;
 
-        GeometryList::iterator g = geometry.begin();
+        std::list<PGEOMETRY>::iterator g = geometry.begin();
         for (; g != geometry.end(); g++)
         {
             PGEOMETRY pCurGeometry = *g;
@@ -1957,7 +1832,7 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                         if (Math::AABBPolygonCollision(Math::AABB(node->min, node->max),
                                                        Math::Polygon(normal, vertices, 3), NULL))
                         {
-                            if (m_pSettings->optimiseChunks)
+                            if (settings->optimiseChunks)
                             {
                                 numPolygons++;
 
@@ -2012,7 +1887,7 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                         if (Math::AABBPolygonCollision(Math::AABB(node->min, node->max),
                                                        Math::Polygon(normal, vertices, 3), NULL))
                         {
-                            if (m_pSettings->optimiseChunks)
+                            if (settings->optimiseChunks)
                             {
                                 numPolygons++;
 
@@ -2063,7 +1938,7 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                         Vector3 normal = Math::Normalise(Math::Cross(vertices[1] - vertices[0], vertices[2] - vertices[0]));
                         if (Math::AABBPolygonCollision(Math::AABB(node->min, node->max), Math::Polygon(normal, vertices, 3), NULL))
                         {
-                            if (m_pSettings->optimiseChunks)
+                            if (settings->optimiseChunks)
                             {
                                 numPolygons++;
 
@@ -2116,7 +1991,7 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                         Vector3 normal = Math::Normalise(Math::Cross(vertices[1] - vertices[0], vertices[1] - vertices[0]));
                         if (Math::AABBPolygonCollision(Math::AABB(node->min, node->max), Math::Polygon(normal, vertices, 2), NULL))
                         {
-                            if (m_pSettings->optimiseChunks)
+                            if (settings->optimiseChunks)
                             {
                                 numPolygons++;
 
@@ -2171,7 +2046,7 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                         Vector3 normal = Math::Normalise(Math::Cross(vertices[1] - vertices[0], vertices[1] - vertices[0]));
                         if (Math::AABBPolygonCollision(Math::AABB(node->min, node->max), Math::Polygon(normal, vertices, 2), NULL))
                         {
-                            if (m_pSettings->optimiseChunks)
+                            if (settings->optimiseChunks)
                             {
                                 numPolygons++;
 
@@ -2216,7 +2091,7 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
 
                         if (Math::AABBPointCollision(Math::AABB(node->min, node->max), vertex))
                         {
-                            if (m_pSettings->optimiseChunks)
+                            if (settings->optimiseChunks)
                             {
                                 numPolygons++;
 
@@ -2252,44 +2127,44 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
         bool subdividePoly = false;
         bool subdivideSub  = false;
 
-        if (m_pSettings->sizeDepth > 0)
+        if (settings->sizeDepth > 0)
         {
-            if (m_pSettings->spacePartitionAxis == SS_AXIS_X)
+            if (settings->spacePartitionAxis == SS_AXIS_X)
             {
-                if (m_pSettings->sizeDepth < y || m_pSettings->sizeDepth < z || (m_pSettings->spacePartitionMode == SS_OCTTREE && m_pSettings->sizeDepth < x))
+                if (settings->sizeDepth < y || settings->sizeDepth < z || (settings->spacePartitionMode == SS_OCTTREE && settings->sizeDepth < x))
                     subdivideSize = true;
             }
-            else if (m_pSettings->spacePartitionAxis == SS_AXIS_Y)
+            else if (settings->spacePartitionAxis == SS_AXIS_Y)
             {
-                if (m_pSettings->sizeDepth < x || m_pSettings->sizeDepth < z || (m_pSettings->spacePartitionMode == SS_OCTTREE && m_pSettings->sizeDepth < y))
+                if (settings->sizeDepth < x || settings->sizeDepth < z || (settings->spacePartitionMode == SS_OCTTREE && settings->sizeDepth < y))
                     subdivideSize = true;
             }
-            else if (m_pSettings->spacePartitionAxis == SS_AXIS_Z)
+            else if (settings->spacePartitionAxis == SS_AXIS_Z)
             {
-                if (m_pSettings->sizeDepth < x || m_pSettings->sizeDepth < y || (m_pSettings->spacePartitionMode == SS_OCTTREE && m_pSettings->sizeDepth < z))
+                if (settings->sizeDepth < x || settings->sizeDepth < y || (settings->spacePartitionMode == SS_OCTTREE && settings->sizeDepth < z))
                     subdivideSize = true;
             }
         }
         else
             subdivideSize = true;
 
-        if (m_pSettings->polygonDepth > 0)
+        if (settings->polygonDepth > 0)
         {
-            if (m_pSettings->polygonDepth < numPolygons)
+            if (settings->polygonDepth < numPolygons)
                 subdividePoly = true;
         }
         else
             subdividePoly = true;
 
-        if (m_pSettings->subdivisionDepth > 0)
+        if (settings->subdivisionDepth > 0)
         {
-            if (numDivisions < m_pSettings->subdivisionDepth)
+            if (numDivisions < settings->subdivisionDepth)
                 subdivideSub = true;
         }
         else
             subdivideSub = true;
 
-        if (subdivideSize && subdividePoly && subdivideSub && (m_pSettings->polygonDepth || m_pSettings->sizeDepth || m_pSettings->subdivisionDepth))
+        if (subdivideSize && subdividePoly && subdivideSub && (settings->polygonDepth || settings->sizeDepth || settings->subdivisionDepth))
         {
             int childNumDivisions = numDivisions + 1;
 
@@ -2298,126 +2173,126 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
 
             Vector3 mid(0, 0, 0);
 
-            if (m_pSettings->spacePartitionMode == SS_QUADTREE)
+            if (settings->spacePartitionMode == SS_QUADTREE)
             {
                 node->children = new TreeNode *[4];
                 node->numChildren = 4;
 
-                if (m_pSettings->spacePartitionAxis == SS_AXIS_X)
+                if (settings->spacePartitionAxis == SS_AXIS_X)
                     mid = min + Vector3(x, y * 0.5f, z * 0.5f);
-                else if (m_pSettings->spacePartitionAxis == SS_AXIS_Y)
+                else if (settings->spacePartitionAxis == SS_AXIS_Y)
                     mid = min + Vector3(x * 0.5f, y, z * 0.5f);
-                else if (m_pSettings->spacePartitionAxis == SS_AXIS_Z)
+                else if (settings->spacePartitionAxis == SS_AXIS_Z)
                     mid = min + Vector3(x * 0.5f, y * 0.5f, z);
             }
-            else if (m_pSettings->spacePartitionMode == SS_OCTTREE)
+            else if (settings->spacePartitionMode == SS_OCTTREE)
             {
                 node->children = new TreeNode *[8];
                 node->numChildren = 8;
                 mid = min + Vector3(x * 0.5f, y * 0.5f, z * 0.5f);
             }
 
-            if (m_pSettings->spacePartitionMode == SS_QUADTREE)
+            if (settings->spacePartitionMode == SS_QUADTREE)
             {
-                if (m_pSettings->spacePartitionAxis == SS_AXIS_X)
+                if (settings->spacePartitionAxis == SS_AXIS_X)
                 {
-                    node->children[0] = new TreeNode(min, mid, node, m_numNodes);
-                    m_numNodes++;
+                    node->children[0] = new TreeNode(min, mid, node, numNodes);
+                    numNodes++;
                     Partition(node->children[0], childNumDivisions);
 
-                    node->children[1] = new TreeNode(Vector3(min.x, mid.y, min.z), Vector3(mid.x, max.y, mid.z), node, m_numNodes);
-                    m_numNodes++;
+                    node->children[1] = new TreeNode(Vector3(min.x, mid.y, min.z), Vector3(mid.x, max.y, mid.z), node, numNodes);
+                    numNodes++;
                     Partition(node->children[1], childNumDivisions);
 
-                    node->children[2] = new TreeNode(Vector3(min.x, min.y, mid.z), Vector3(mid.x, mid.y, max.z), node, m_numNodes);
-                    m_numNodes++;
+                    node->children[2] = new TreeNode(Vector3(min.x, min.y, mid.z), Vector3(mid.x, mid.y, max.z), node, numNodes);
+                    numNodes++;
                     Partition(node->children[2], childNumDivisions);
 
-                    node->children[3] = new TreeNode(Vector3(min.x, mid.y, mid.z), Vector3(mid.x, max.y, max.z), node, m_numNodes);
-                    m_numNodes++;
+                    node->children[3] = new TreeNode(Vector3(min.x, mid.y, mid.z), Vector3(mid.x, max.y, max.z), node, numNodes);
+                    numNodes++;
                     Partition(node->children[3], childNumDivisions);
                 }
-                else if (m_pSettings->spacePartitionAxis == SS_AXIS_Y)
+                else if (settings->spacePartitionAxis == SS_AXIS_Y)
                 {
-                    node->children[0] = new TreeNode(min, mid, node, m_numNodes);
-                    m_numNodes++;
+                    node->children[0] = new TreeNode(min, mid, node, numNodes);
+                    numNodes++;
                     Partition(node->children[0], childNumDivisions);
 
-                    node->children[1] = new TreeNode(Vector3(mid.x, min.y, min.z), Vector3(max.x, mid.y, mid.z), node, m_numNodes);
-                    m_numNodes++;
+                    node->children[1] = new TreeNode(Vector3(mid.x, min.y, min.z), Vector3(max.x, mid.y, mid.z), node, numNodes);
+                    numNodes++;
                     Partition(node->children[1], childNumDivisions);
 
-                    node->children[2] = new TreeNode(Vector3(min.x, min.y, mid.z), Vector3(mid.x, mid.y, max.z), node, m_numNodes);
-                    m_numNodes++;
+                    node->children[2] = new TreeNode(Vector3(min.x, min.y, mid.z), Vector3(mid.x, mid.y, max.z), node, numNodes);
+                    numNodes++;
                     Partition(node->children[2], childNumDivisions);
 
-                    node->children[3] = new TreeNode(Vector3(mid.x, min.y, mid.z), Vector3(max.x, mid.y, max.z), node, m_numNodes);
-                    m_numNodes++;
+                    node->children[3] = new TreeNode(Vector3(mid.x, min.y, mid.z), Vector3(max.x, mid.y, max.z), node, numNodes);
+                    numNodes++;
                     Partition(node->children[3], childNumDivisions);
                 }
-                else if (m_pSettings->spacePartitionAxis == SS_AXIS_Z)
+                else if (settings->spacePartitionAxis == SS_AXIS_Z)
                 {
-                    node->children[0] = new TreeNode(min, mid, node, m_numNodes);
-                    m_numNodes++;
+                    node->children[0] = new TreeNode(min, mid, node, numNodes);
+                    numNodes++;
                     Partition(node->children[0], childNumDivisions);
 
-                    node->children[1] = new TreeNode(Vector3(mid.x, min.y, min.z), Vector3(max.x, mid.y, mid.z), node, m_numNodes);
-                    m_numNodes++;
+                    node->children[1] = new TreeNode(Vector3(mid.x, min.y, min.z), Vector3(max.x, mid.y, mid.z), node, numNodes);
+                    numNodes++;
                     Partition(node->children[1], childNumDivisions);
 
-                    node->children[2] = new TreeNode(Vector3(min.x, mid.y, min.z), Vector3(mid.x, max.y, mid.z), node, m_numNodes);
-                    m_numNodes++;
+                    node->children[2] = new TreeNode(Vector3(min.x, mid.y, min.z), Vector3(mid.x, max.y, mid.z), node, numNodes);
+                    numNodes++;
                     Partition(node->children[2], childNumDivisions);
 
-                    node->children[3] = new TreeNode(Vector3(mid.x, mid.y, min.z), Vector3(max.x, max.y, mid.z), node, m_numNodes);
-                    m_numNodes++;
+                    node->children[3] = new TreeNode(Vector3(mid.x, mid.y, min.z), Vector3(max.x, max.y, mid.z), node, numNodes);
+                    numNodes++;
                     Partition(node->children[3], childNumDivisions);
                 }
             }
             else
             {
-                node->children[0] = new TreeNode(min, mid, node, m_numNodes);
-                m_numNodes++;
+                node->children[0] = new TreeNode(min, mid, node, numNodes);
+                numNodes++;
                 Partition(node->children[0], childNumDivisions);
 
-                node->children[1] = new TreeNode(Vector3(mid.x, min.y, min.z), Vector3(max.x, mid.y, mid.z), node, m_numNodes);
-                m_numNodes++;
+                node->children[1] = new TreeNode(Vector3(mid.x, min.y, min.z), Vector3(max.x, mid.y, mid.z), node, numNodes);
+                numNodes++;
                 Partition(node->children[1], childNumDivisions);
 
-                node->children[2] = new TreeNode(Vector3(min.x, min.y, mid.z), Vector3(mid.x, mid.y, max.z), node, m_numNodes);
-                m_numNodes++;
+                node->children[2] = new TreeNode(Vector3(min.x, min.y, mid.z), Vector3(mid.x, mid.y, max.z), node, numNodes);
+                numNodes++;
                 Partition(node->children[2], childNumDivisions);
 
-                node->children[3] = new TreeNode(Vector3(mid.x, min.y, mid.z), Vector3(max.x, mid.y, max.z), node, m_numNodes);
-                m_numNodes++;
+                node->children[3] = new TreeNode(Vector3(mid.x, min.y, mid.z), Vector3(max.x, mid.y, max.z), node, numNodes);
+                numNodes++;
                 Partition(node->children[3], childNumDivisions);
 
-                node->children[4] = new TreeNode(Vector3(min.x, mid.y, min.z), Vector3(mid.x, max.y, mid.z), node, m_numNodes);
-                m_numNodes++;
+                node->children[4] = new TreeNode(Vector3(min.x, mid.y, min.z), Vector3(mid.x, max.y, mid.z), node, numNodes);
+                numNodes++;
                 Partition(node->children[4], childNumDivisions);
 
-                node->children[5] = new TreeNode(Vector3(mid.x, mid.y, min.z), Vector3(max.x, max.y, mid.z), node, m_numNodes);
-                m_numNodes++;
+                node->children[5] = new TreeNode(Vector3(mid.x, mid.y, min.z), Vector3(max.x, max.y, mid.z), node, numNodes);
+                numNodes++;
                 Partition(node->children[5], childNumDivisions);
 
-                node->children[6] = new TreeNode(Vector3(min.x, mid.y, mid.z), Vector3(mid.x, max.y, max.z), node, m_numNodes);
-                m_numNodes++;
+                node->children[6] = new TreeNode(Vector3(min.x, mid.y, mid.z), Vector3(mid.x, max.y, max.z), node, numNodes);
+                numNodes++;
                 Partition(node->children[6], childNumDivisions);
 
-                node->children[7] = new TreeNode(Vector3(mid.x, mid.y, mid.z), Vector3(max.x, max.y, max.z), node, m_numNodes);
-                m_numNodes++;
+                node->children[7] = new TreeNode(Vector3(mid.x, mid.y, mid.z), Vector3(max.x, max.y, max.z), node, numNodes);
+                numNodes++;
                 Partition(node->children[7], childNumDivisions);
             }
         }
         else
         {
-            node->leafIndex = m_nodeChunkMap.size();
-            m_nodeChunkMap.push_back(pNodeGeometryChunkMap);
+            node->leafIndex = nodeChunkMap.size();
+            nodeChunkMap.push_back(pNodeGeometryChunkMap);
 
             if (node->leafIndex > -1)
             {
                 float nodeVolume = (node->max.x - node->min.x) * (node->max.y - node->min.y) * (node->max.z - node->min.z);
-                float rootVolume = (m_pRoot->max.x - m_pRoot->min.x) * (m_pRoot->max.y - m_pRoot->min.y) * (m_pRoot->max.z - m_pRoot->min.z);
+                float rootVolume = (root->max.x - root->min.x) * (root->max.y - root->min.y) * (root->max.z - root->min.z);
 
                 if (rootVolume > 0)
                 {
@@ -2428,452 +2303,72 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                 }
             }
         }
-    }
-#endif
 
-
-//-----------------------------------------------------------------------
-    void Scene::GenerateLeaf(TreeNode *pNode, _NodeChunkMap *pNodeChunkMap)
-    //-------------------------------------------------------------------
-    {
-        if (!pNode)
-            return;
-
-        int numEffectGroups = m_pResourceManager->GetNumEffects();
-
-        TreeLeaf *pLeaf = new TreeLeaf(pNode);
-        pLeaf->m_min = pNode->m_min;
-        pLeaf->m_max = pNode->m_max;
-
-        pNode->m_leafIndex = m_leafs.size();
-
-        m_leafs.push_back(pLeaf);
-        AddUsedMemory(sizeof(TreeLeaf), "Scene::GenerateLeafs() - TreeLeaf...");
-
-        // if pNodeChunkMap is NULL, the leaf is created, but empty.
-        if (!pNodeChunkMap)
-            return;
-
-#ifdef VERBOSE_PARTITIONING
-        DebugPrintf(_T("\n"));
-        DumpNodeChunkMap((const _NodeChunkMap *)pNodeChunkMap, pNode->m_id);
-        DebugPrintf(_T("\n"));
-#endif
-
-        NodeChunkMap &ncm = pNodeChunkMap->m;
-
-        NodeChunkMap::iterator i = ncm.begin();
-        for (; i != ncm.end(); ++i)
+#ifdef DEBUG_DUMP
         {
-            if ((*i)->m.empty())
-                continue;
-
-            //DebugPrintf("NodeChunkMap size() = %d\n", (*i)->m.size());
-
-            OrderedGeometryMap &orderedGeomMapRef = (*i)->m;
-            OrderedGeometryMap::iterator j = orderedGeomMapRef.begin();
-            for (; j != orderedGeomMapRef.end(); ++j)
+            OutputDebugString("\n-----------------------------------------------------------\n");
+            std::vector< _NodeChunkMap * >::iterator z = nodeChunkMap.begin();
+            for (int n0 = 0; z != nodeChunkMap.end(); z++, n0++)
             {
-                GeometryMap &gm = j->second->m;
+                char buf[256];
 
-                //DebugPrintf("\tGeometryMap size() = %d\n", gm);
+                sprintf(buf, "NodeChunkMap(0x%8.8X)[%d]: =\n", *z, n0);
+                OutputDebugString(buf);
 
-                GeometryMap::iterator k = gm.begin();
-                for (; k != gm.end(); ++k)
+                _NodeChunkMap *pNode = *z;
+
+                NodeChunkMap::iterator y = pNode->m.begin();
+                for (int n1 = 0; y != pNode->m.end(); y++, n1++)
                 {
-                    PGEOMETRY pGeometry = k->first;
+                    _OrderedGeometryMap *pOGM = (*y);
+                    sprintf(buf, "\tOrderedGeometryMap(0x%8.8X)[%d]: =\n", pOGM, n1);
+                    OutputDebugString(buf);
 
-                    if (k->second->m.empty() || pGeometry->GetNumChunks() < 1 || pGeometry->GetNumVertices() < 1)
-                        continue;
-
-                    OptimisedGeometryMap::iterator og = m_optimisedGeometry.find(pGeometry);
-                    POPTIMISEDGEOMETRY pOptimisedGeometry = NULL;
-
-                    if (og == m_optimisedGeometry.end())
+                    OrderedGeometryMap::iterator ogmItr = pOGM->m.begin();
+                    for (; ogmItr != pOGM->m.end(); ogmItr++)
                     {
-                        //DebugPrintf("\t\tOptimisedGeometry created.\n");
-                        pOptimisedGeometry = new OptimisedGeometry(pGeometry);
-                        m_optimisedGeometry[pGeometry] = pOptimisedGeometry;
-                    }
-                    else
-                    {
-                        //DebugPrintf("\t\tOptimisedGeometry retrieved.\n");
-                        pOptimisedGeometry = og->second;
-                    }
+                        _GeometryMap *pGM = ogmItr->second;
+                        sprintf(buf, "\t\tOrder(0x%8.8X) = %d (size = %d)\n", pGM, ogmItr->first, pGM->Size());
+                        OutputDebugString(buf);
 
-                    std::vector< std::vector<int> > effectGroups;
-                    effectGroups.resize(numEffectGroups + 1);
-
-                    ChunkIndexList &cil = k->second->m;
-
-                    //DebugPrintf("\t\t\tChunkIndexList size() = %d.\n", cil.size());
-
-                    ChunkIndexList::iterator c = cil.begin();
-                    for (; c != cil.end(); ++c)
-                    {
-                        if (c->second->m.empty())
-                            continue;
-
-                        unsigned int srcChunkIndex = c->first;
-                        const Chunk &srcChunk = pGeometry->GetChunk(srcChunkIndex);
-
-                        //DebugPrintf("\t\t\t\tsrcChunkIndex = %d.\n", srcChunkIndex);
-
-                        IndexSet &is = c->second->m;
-
-                        if (is.empty())
-                            continue;
-
-                        IndexSet::iterator s = is.begin();
-                        for (; s != is.end(); ++s)
+                        GeometryMap::iterator gmItr = pGM->m.begin();
+                        for (; gmItr != pGM->m.end(); gmItr++)
                         {
-                            unsigned int chunkIndex = (unsigned int)pOptimisedGeometry->m_chunks.size();
-                            effectGroups[srcChunk.effect + 1].push_back(chunkIndex);
+                            _ChunkIndexList *pCIList = gmItr->second;
+                            sprintf(buf, "\t\t\tPGEOMETRY = 0x%8.8X (size = %d), ChunkIndexList = (0x%8.8X)\n", gmItr->first, pCIList->Size(), pCIList);
+                            OutputDebugString(buf);
 
-                            Chunk newChunk(srcChunk);
-                            newChunk.startIndex = pOptimisedGeometry->m_numVertexIndices;
-                            newChunk.numIndices = 0;
-
-                            VertexIndexList &vil = (*s)->m;
-
-                            //DebugPrintf("Creating new chunk of type %s...\n", CHUNKTYPENAMES[newChunk.type]);
-
-                            for (unsigned int p = 0; p < vil.size(); p++)
+                            ChunkIndexList::iterator ciListItr = pCIList->m.begin();
+                            for (; ciListItr != pCIList->m.end(); ciListItr++)
                             {
-                                pOptimisedGeometry->InsertVertexIndex(chunkIndex, vil[p]);
-                                ++newChunk.numIndices;
+                                _VertexIndexList *pVIList = ciListItr->second;
+                                sprintf(buf, "\t\t\t\tChunk Index = %d (size = %d), VIList = (0x%8.8X)\n", ciListItr->first, pVIList->Size(), pVIList);
+                                OutputDebugString(buf);
+
+                                VertexIndexList::iterator viListItr = pVIList->m.begin();
+                                OutputDebugString("\t\t\t\t\t[");
+                                for(int n2 = 0; viListItr != pVIList->m.end(); viListItr++, n2++)
+                                {
+                                    sprintf(buf, " %d,", *viListItr);
+                                }
+
+                                OutputDebugString("]\n");
                             }
-
-                            pOptimisedGeometry->m_chunks.push_back(newChunk);
-                        }
-
-                        //DebugPrintf("\t\t\t\tIndexSet size() = %d.\n", is.size());
-
-                        /*switch (srcChunk.type)
-                        {
-                        case CT_TRIANGLELIST:
-                        case CT_LINELIST:
-                        case CT_POINTLIST:
-                            {
-                                unsigned int chunkIndex = (unsigned int)pOptimisedGeometry->m_chunks.size();
-                                effectGroups[srcChunk.effect + 1].push_back(chunkIndex);
-
-                                Chunk newChunk(srcChunk);
-                                newChunk.startIndex = pOptimisedGeometry->m_numVertexIndices;
-                                newChunk.numIndices = 0;
-
-                                VertexIndexList &vil = (*is.begin())->m;
-
-                                //DebugPrintf("Creating new chunk of type %s...\n", CHUNKTYPENAMES[newChunk.type]);
-
-                                for (unsigned int p = 0; p < vil.size(); p++)
-                                {
-                                    pOptimisedGeometry->InsertVertexIndex(chunkIndex, vil[p]);
-                                    ++newChunk.numIndices;
-                                }
-
-                                pOptimisedGeometry->m_chunks.push_back(newChunk);
-                            }
-                            break;
-
-                        case CT_TRIANGLESTRIP:
-                        case CT_LINESTRIP:
-                        case CT_POLYGON:
-                            {
-                                IndexSet::iterator s = is.begin();
-                                for (; s != is.end(); ++s)
-                                {
-                                    unsigned int chunkIndex = (unsigned int)pOptimisedGeometry->m_chunks.size();
-                                    effectGroups[srcChunk.effect + 1].push_back(chunkIndex);
-
-                                    Chunk newChunk(srcChunk);
-                                    newChunk.startIndex = pOptimisedGeometry->m_numVertexIndices;
-                                    newChunk.numIndices = 0;
-
-                                    VertexIndexList &vil = (*s)->m;
-
-                                    //DebugPrintf("Creating new chunk of type %s...\n", CHUNKTYPENAMES[newChunk.type]);
-
-                                    for (unsigned int p = 0; p < vil.size(); p++)
-                                    {
-                                        pOptimisedGeometry->InsertVertexIndex(chunkIndex, vil[p]);
-                                        ++newChunk.numIndices;
-                                    }
-
-                                    pOptimisedGeometry->m_chunks.push_back(newChunk);
-                                }
-                            }
-                            break;
-                        }*/
-/*
-                        // this isn't quite right; lists (as opposed to strips and polygon) can just use the first element.
-                        IndexSet::iterator s = is.begin();
-                        for (; s != is.end(); ++s)
-                        {
-                            unsigned int chunkIndex = (unsigned int)pOptimisedGeometry->m_chunks.size();
-                            effectGroups[srcChunk.effect + 1].push_back(chunkIndex);
-
-                            Chunk newChunk(srcChunk);
-                            newChunk.startIndex = pOptimisedGeometry->m_numVertexIndices;
-                            newChunk.numIndices = 0;
-
-                            VertexIndexList &vil = (*s)->m;
-
-                            //DebugPrintf("\t\t\t\t\tVertexIndexList size() = %d.\n", vil.size());
-                            //DebugPrintf("\t\t\t\t\t\t");
-
-                            DebugPrintf("Creating new chunk of type %s...\n", CHUNKTYPENAMES[newChunk.type]);
-
-                            switch (newChunk.type)
-                            {
-                            case CT_TRIANGLELIST:
-                            case CT_LINELIST:
-                            case CT_POINTLIST:
-                                {
-                                    for (unsigned int p = 0; p < vil.size(); p++)
-                                    {
-                                        pOptimisedGeometry->InsertVertexIndex(chunkIndex, vil[p]);
-                                        ++newChunk.numIndices;
-                                    }
-                                }
-                                break;
-
-                            case CT_TRIANGLESTRIP:
-                            case CT_LINESTRIP:
-                                {
-                                    for (unsigned int p = 0; p < vil.size(); p++)
-                                    {
-                                        pOptimisedGeometry->InsertVertexIndex(chunkIndex, vil[p]);
-                                        ++newChunk.numIndices;
-                                    }
-                                }
-                                break;
-
-                            case CT_POLYGON:
-                                {
-
-                                }
-                                break;
-                            }
-
-                            if (newChunk.numIndices < 1)
-                                DebugPrintf("new chunk has 0 indices!\n");
-
-                            //DebugPrintf("\n", is.size());
-
-                            pOptimisedGeometry->m_chunks.push_back(newChunk);
-                        }*/
-                    }
-
-                    /*ChunkIndexList &cil = k->second->m;
-                    ChunkIndexList::iterator c = cil.begin();
-                    for (; c != cil.end(); c++)
-                    {
-                        if (c->second->m.empty())
-                            continue;
-
-                        unsigned int srcChunkIndex = c->first;
-                        const Chunk &srcChunk = pGeometry->GetChunk(srcChunkIndex);
-
-                        unsigned int chunkIndex = (unsigned int)pOptimisedGeometry->m_chunks.size();
-                        effectGroups[srcChunk.effect + 1].push_back(chunkIndex);
-
-                        Chunk newChunk(srcChunk);
-                        newChunk.startIndex = pOptimisedGeometry->m_numVertexIndices;
-                        newChunk.numIndices = 0;
-                        newChunk.type = CT_TRIANGLELIST;
-
-                        VertexIndexList &vil = c->second->m;
-                        VertexIndexList::iterator v = c->second->m.begin();
-                        for (; v != vil.end(); v++)
-                        {
-                            pOptimisedGeometry->InsertVertexIndex(chunkIndex, *v);
-                            ++newChunk.numIndices;
-                        }
-
-                        pOptimisedGeometry->m_chunks.push_back(newChunk);
-                    }*/
-
-                    std::vector< std::vector<int> >::iterator e = effectGroups.begin();
-                    for (int effectId = -1; e != effectGroups.end(); ++e, ++effectId)
-                    {
-                        if (e->empty())
-                            continue;
-
-                        RenderGroup *pRenderGroup = new RenderGroup(this);
-                        pRenderGroup->m_order = j->first;
-                        pRenderGroup->m_pGeometry = NULL;
-                        pRenderGroup->m_pOptimisedGeometry = pOptimisedGeometry;
-                        pRenderGroup->m_effectID = effectId;
-                        pRenderGroup->m_techniqueID = -1;
-                        pRenderGroup->m_hasTransform = false;
-                        pRenderGroup->m_materialID = -1;
-                        pRenderGroup->m_startFaceIndex = *e->begin();
-                        pRenderGroup->m_numFaces = e->size();
-
-                        pLeaf->m_renderList.push_back(pRenderGroup);
-
-                        for (unsigned int m = 0; m < pRenderGroup->m_numFaces; m++)
-                        {
-                            pOptimisedGeometry->InsertChunkIndex(0, effectGroups[effectId + 1][m]);
                         }
                     }
                 }
             }
+
+            OutputDebugString("\n===========================================================\n");
         }
-    }
 
-#if 0
-//-----------------------------------------------------------------------
-    void Scene::GenerateLeaf(TreeNode *pNode, _NodeChunkMap *pNodeChunkMap)
-    //-------------------------------------------------------------------
-    {
-        if (!pNode)
-            return;
-
-        int numEffectGroups = m_pResourceManager->GetNumEffects();
-
-        TreeLeaf *pLeaf = new TreeLeaf(pNode);
-        pLeaf->m_min = pNode->m_min;
-        pLeaf->m_max = pNode->m_max;
-
-        pNode->m_leafIndex = m_leafs.size();
-
-        m_leafs.push_back(pLeaf);
-        AddUsedMemory(sizeof(TreeLeaf), "Scene::GenerateLeafs() - TreeLeaf...");
-
-        // if pNodeChunkMap is NULL, the leaf is created, but empty.
-        if (!pNodeChunkMap)
-            return;
-
-        NodeChunkMap &ncm = pNodeChunkMap->m;
-
-        NodeChunkMap::iterator i = ncm.begin();
-        for (; i != ncm.end(); i++)
-        {
-            if ((*i)->m.empty())
-                continue;
-
-            OrderedGeometryMap &orderedGeomMapRef = (*i)->m;
-            OrderedGeometryMap::iterator j = orderedGeomMapRef.begin();
-            for (; j != orderedGeomMapRef.end(); j++)
-            {
-                GeometryMap &gm = j->second->m;
-                GeometryMap::iterator k = gm.begin();
-                for (; k != gm.end(); k++)
-                {
-                    PGEOMETRY pGeometry = k->first;
-
-                    if (k->second->m.empty() || pGeometry->GetNumChunks() < 1 || pGeometry->GetNumVertices() < 1)
-                        continue;
-
-                    // see if pGeometry has an OptimisedGeometry instance in a map
-                    // if not, create one. If so, use it.
-
-                    // Let og be the OptimisedGeometry instance.
-
-                    // for each chunk c in k
-                        // create a new chunk cn and add to og
-                        // add a chunk index to og
-                        // for each vertex v in c
-                            // add a vertex index to og
-
-                    // create a RenderGroup rg and add it to leaf
-
-                    // ---
-
-                    OptimisedGeometryMap::iterator og = m_optimisedGeometry.find(pGeometry);
-                    POPTIMISEDGEOMETRY pOptimisedGeometry = NULL;
-
-                    if (og == m_optimisedGeometry.end())
-                    {
-                        pOptimisedGeometry = new OptimisedGeometry(pGeometry);
-                        m_optimisedGeometry[pGeometry] = pOptimisedGeometry;
-                    }
-                    else
-                    {
-                        pOptimisedGeometry = og->second;
-                    }
-
-                    std::vector< std::vector<int> > effectGroups;
-                    effectGroups.resize(numEffectGroups + 1);
-
-                    ChunkIndexList &cil = k->second->m;
-                    ChunkIndexList::iterator c = cil.begin();
-                    for (; c != cil.end(); c++)
-                    {
-                        if (c->second->m.empty())
-                            continue;
-
-                        unsigned int srcChunkIndex = c->first;
-                        unsigned int chunkIndex = pOptimisedGeometry->GetNumChunks();
-
-                        const Chunk &srcChunk = pGeometry->GetChunk(srcChunkIndex);
-
-                        //pOptimisedGeometry->GetChunkIndices(srcChunkIndex)->push_back(chunkIndex);
-                        pOptimisedGeometry->InsertChunkIndex(srcChunkIndex, chunkIndex);
-
-                        effectGroups[srcChunk.effect + 1].push_back(chunkIndex);
-
-                        Chunk newChunk(srcChunk);
-                        newChunk.startIndex = pOptimisedGeometry->m_numVertexIndices;
-                        newChunk.numIndices = 0;
-                        newChunk.type = CT_TRIANGLELIST;
-
-                        VertexIndexList &vil = c->second->m;
-                        VertexIndexList::iterator v = c->second->m.begin();
-                        for (; v != vil.end(); v++)
-                        {
-                            unsigned int vertexIndex = pOptimisedGeometry->m_numVertexIndices;
-
-                            //pOptimisedGeometry->GetVertexIndices(chunkIndex)->push_back(vertexIndex);
-                            //++pOptimisedGeometry->m_numVertexIndices;
-
-                            pOptimisedGeometry->InsertVertexIndex(chunkIndex, vertexIndex);
-                            ++newChunk.numIndices;
-                        }
-
-                        pOptimisedGeometry->m_chunks.push_back(newChunk);
-                    }
-
-                    std::vector<unsigned int> chunkIndices;
-
-                    std::vector< std::vector<int> >::iterator e = effectGroups.begin();
-                    for (int effectId = -1; e != effectGroups.end(); ++e, ++effectId)
-                    {
-                        if (e->empty())
-                            continue;
-
-                        RenderGroup *pRenderGroup = new RenderGroup(this);
-                        pRenderGroup->m_order = j->first;
-                        pRenderGroup->m_pGeometry = NULL;
-                        pRenderGroup->m_pOptimisedGeometry = pOptimisedGeometry;
-                        pRenderGroup->m_effectID = effectId;
-                        pRenderGroup->m_techniqueID = -1;
-                        pRenderGroup->m_hasTransform = false;
-                        pRenderGroup->m_materialID = -1;
-                        pRenderGroup->m_startFaceIndex = *e->begin();
-                        pRenderGroup->m_numFaces = e->size();
-
-                        pLeaf->m_renderList.push_back(pRenderGroup);
-
-                        for (unsigned int m = 0; m < pRenderGroup->m_numFaces; m++)
-                        {
-                            chunkIndices.push_back(effectGroups[effectId + 1][m]);
-                        }
-                    }
-
-                    pOptimisedGeometry->m_numChunkIndices = chunkIndices.size();
-                    pOptimisedGeometry->m_pChunkIndices = new unsigned int[pOptimisedGeometry->m_numChunkIndices];
-
-                    memcpy(pOptimisedGeometry->m_pChunkIndices, &chunkIndices[0], sizeof(unsigned int) * pOptimisedGeometry->m_numChunkIndices);
-                }
-            }
-        }
+        depth--;
+        OutputDebugString("Partition() :: returning due completion.\n");
+#endif
     }
 #endif
 
-#if 0
+
 //-----------------------------------------------------------------------
     void Scene::GenerateLeafs(TreeNode *node, std::map< PGEOMETRY, Chunk * > &srcChunks, std::map< PGEOMETRY, std::vector< unsigned int > > &newVertexIndices)
     //-------------------------------------------------------------------
@@ -2881,7 +2376,7 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
         if (!node)
             return;
 
-        int numEffectGroups = m_pResourceManager->GetNumEffects();
+        int numEffectGroups = resourceManager->GetNumEffects();
 
         if (node->m_numChildren == 4)
         {
@@ -2908,18 +2403,18 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                 leaf->m_min = node->m_min;
                 leaf->m_max = node->m_max;
 
-                node->m_leafIndex = m_leafs.size();
+                node->m_leafIndex = leafs.size();
 
-                m_leafs.push_back(leaf);
+                leafs.push_back(leaf);
                 AddUsedMemory(sizeof(TreeLeaf), "Scene::GenerateLeafs() - TreeLeaf...");
 
-            if (m_pSettings->optimiseChunks)
+            if (settings->optimiseChunks)
             {
                 DebugPrintf("GenerateLeafs(): Skipping Optimise Chunks case.");
             }
             else
             {
-                NodeChunkMap &ncm = m_nodeChunkMap[node->m_leafIndex]->m;
+                NodeChunkMap &ncm = nodeChunkMap[node->m_leafIndex]->m;
 
                 NodeChunkMap::iterator i = ncm.begin();
                 for (; i != ncm.end(); i++)
@@ -2991,7 +2486,7 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                                 }
                             }
 
-                            pGeometry->Insert(newChunks.size(), 0, 0, 0, &newChunks[0], NULL, NULL, NULL, 0);
+                            pGeometry->Insert(newChunks.size(), 0, 0, 0, 0, &newChunks[0], NULL, NULL, NULL, NULL, 0);
 
                             //g_pSortingChunks = pSrcChunks;
 
@@ -3017,7 +2512,7 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                                 for (unsigned int m = 0; m < group->m_numFaces; m++)
                                     chunkIndices[m] = effectGroups[e][m];
 
-                                pGeometry->Insert(0, 0, effectGroups[e].size(), 0, NULL, NULL, chunkIndices, NULL, 0);
+                                pGeometry->Insert(0, 0, effectGroups[e].size(), 0, 0, NULL, NULL, chunkIndices, NULL, NULL, 0);
 
                                 delete[] chunkIndices;
                             }
@@ -3031,7 +2526,6 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
     }
 
 
-#endif
 #if 0
 //-----------------------------------------------------------------------
     void Scene::GenerateLeafs(TreeNode *node, std::map< PGEOMETRY, Chunk * > &srcChunks)
@@ -3074,27 +2568,27 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                 leafs.push_back(leaf);
                 AddUsedMemory(sizeof(TreeLeaf), "Scene::GenerateLeafs() - TreeLeaf...");
 
-            if (m_pSettings->optimiseChunks)
+            if (settings->optimiseChunks)
             {
                 DebugPrintf("GenerateLeafs(): Skipping Optimise Chunks case.");
             }
             else
             {
-                if (chunkMapIndex >= (int)m_nodeChunkMap.size())
+                if (chunkMapIndex >= (int)nodeChunkMap.size())
                 {
-                    DebugPrintf("Error: chunkMapIndex exceeds m_nodeChunkMap.size().");
+                    DebugPrintf("Error: chunkMapIndex exceeds nodeChunkMap.size().");
                     return;
                 }
 
-                if (m_nodeChunkMap[chunkMapIndex]->m.empty())
+                if (nodeChunkMap[chunkMapIndex]->m.empty())
                 {
-                    DebugPrintf("Error: m_nodeChunkMap[chunkMapIndex] is empty.");
+                    DebugPrintf("Error: nodeChunkMap[chunkMapIndex] is empty.");
                     return;
                 }
 
                 std::map< PGEOMETRY, std::vector< unsigned int > > newVertexIndices;
 
-                NodeChunkMap &ncm = m_nodeChunkMap[chunkMapIndex]->m;
+                NodeChunkMap &ncm = nodeChunkMap[chunkMapIndex]->m;
 
                 NodeChunkMap::iterator i = ncm.begin();
                 for (; i != ncm.end(); i++)
@@ -3254,25 +2748,617 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
 
 #endif
 
+#if 0
+//-----------------------------------------------------------------------
+    void Scene::GenerateLeafs(TreeNode *node)
+    //-------------------------------------------------------------------
+    {
+        if (!node)
+            return;
+
+        int numEffectGroups = resourceManager->GetNumEffects();
+
+        if (node->numChildren == 4)
+        {
+            GenerateLeafs(node->children[0]);
+            GenerateLeafs(node->children[1]);
+            GenerateLeafs(node->children[2]);
+            GenerateLeafs(node->children[3]);
+        }
+        else if (node->numChildren == 8)
+        {
+            GenerateLeafs(node->children[0]);
+            GenerateLeafs(node->children[1]);
+            GenerateLeafs(node->children[2]);
+            GenerateLeafs(node->children[3]);
+            GenerateLeafs(node->children[4]);
+            GenerateLeafs(node->children[5]);
+            GenerateLeafs(node->children[6]);
+            GenerateLeafs(node->children[7]);
+        }
+        else if (node->leafIndex > -1)
+        {
+            DebugPrintf("\nCreating leaf %d for node ( min = (%.2f, %.2f, %.2f), max = (%.2f, %.2f, %.2f) )\n",
+                        node->leafIndex, node->min.x, node->min.y, node->min.z, node->max.x, node->max.y, node->max.z);
+
+            int chunkMapIndex = node->leafIndex;
+
+            // Setup Leaf
+                TreeLeaf *leaf = new TreeLeaf(node);
+                leaf->min = node->min;
+                leaf->max = node->max;
+
+                node->leafIndex = leafs.size();
+
+                leafs.push_back(leaf);
+                AddUsedMemory(sizeof(TreeLeaf), "Scene::GenerateLeafs() - TreeLeaf...");
+
+            if (settings->optimiseChunks)
+            {
+                //OptimiseByOrder(node);
+
+                NodeChunkMap &ncm = nodeChunkMap[chunkMapIndex]->m;
+
+                NodeChunkMap::iterator i = ncm.begin();
+                for (; i != ncm.end(); i++)
+                {
+                    OrderedGeometryMap &ogm = (*i)->m;
+
+                    OrderedGeometryMap::iterator j = ogm.begin();
+                    for (; j != ogm.end(); j++)
+                    {
+                        GeometryMap &gm = j->second->m;
+
+                        GeometryMap::iterator k = gm.begin();
+                        for (; k != gm.end(); k++)
+                        {
+                            if (!k->first || k->first->GetNumChunks() < 1 || k->first->GetNumVertices() < 1)
+                                continue;
+
+                            PGEOMETRY pGeometry = NULL;
+
+                            std::list< std::pair< PGEOMETRY, PGEOMETRY > >::iterator o = optimisedGeometry.begin();
+                            for (; o != optimisedGeometry.end(); o++)
+                            {
+                                std::pair< PGEOMETRY, PGEOMETRY > &gPair = *o;
+
+                                if (o->first == k->first)
+                                {
+                                    pGeometry = o->second;
+                                    break;
+                                }
+
+                                Chunk *chunks = NULL;
+
+                                if (FAILED(k->first->Lock((PVOID*)&chunks, NULL, NULL, NULL)))
+                                    return;
+
+                                std::vector< std::vector<int> > effectGroups;
+                                effectGroups.resize(numEffectGroups + 1);
+
+                                for (int e = 0; e < numEffectGroups + 1; e++)
+                                {
+
+                                }
+                            }
+                        }
+                    }
+                }
+#if 0
+                {
+                std::vector< GeometryMap >::iterator i = nodeChunkMap[chunkMapIndex].begin();
+
+                for (; i != nodeChunkMap[chunkMapIndex].end(); i++)
+                {
+#ifdef _DEBUG
+                    GeometryMap &gmRef = *i;
+#endif
+                    if (i->first->GetNumChunks() < 1 || i->first->GetNumVertices() < 1)
+                        continue;
+
+                    PGEOMETRY pGeometry = NULL;
+
+                    std::list< std::pair<PGEOMETRY, PGEOMETRY> >::iterator o = optimisedGeometry.begin();
+                    for (; o != optimisedGeometry.end(); o++)
+                    {
+#ifdef _DEBUG
+                        std::pair<PGEOMETRY, PGEOMETRY> &geomPaiRef = *o;
+#endif
+                        if (o->first == i->first)
+                        {
+                            pGeometry = o->second;
+                            break;
+                        }
+                    }
+
+                    Chunk *chunks = NULL;
+
+                    if (FAILED(i->first->Lock((PVOID*)&chunks, NULL, NULL, NULL)))
+                        return;
+
+                    std::vector< std::vector<int> > effectGroups;
+                    effectGroups.resize(numEffectGroups + 1);
+
+                    for (int e = 0; e < numEffectGroups + 1; e++)
+                    {
+                        std::vector< std::pair< std::pair< int, int >, int > > triangleList;
+                        std::vector< std::pair< std::pair< int, int >, int > > lineList;
+                        std::vector< std::pair< std::pair< int, int >, int > > pointList;
+
+                        //std::vector< std::vector< std::vector< int > > >::iterator c = i->second.begin();
+                        std::vector< std::vector< int > >::iterator c = i->second.begin();
+                        for (int f = 0; c != i->second.end(); f++, c++)
+                        {
+#ifdef _DEBUG
+                            //std::vector< std::vector< int > > &vOfVofIntsRef = *c;
+#endif
+                            if ((*c).size() < 1)
+                                continue;
+
+                            if (chunks[f].effect != e - 1)
+                                continue;
+
+#ifdef _DEBUG
+                            std::vector< int >::iterator p = (*c)[0].begin();
+                            for (; p != (*c)[0].end(); p++)
+                            {
+                                int &iVal = *p;
+                                triangleList.push_back(std::make_pair(std::make_pair(chunks[f].idTexture0, chunks[f].idTexture1), (*p)));
+                            }
+
+                            p = (*c)[1].begin();
+                            for (; p != (*c)[1].end(); p++)
+                            {
+                                int &iVal = *p;
+                                lineList.push_back(std::make_pair(std::make_pair(chunks[f].idTexture0, chunks[f].idTexture1), (*p)));
+                            }
+
+                            p = (*c)[2].begin();
+                            for (; p != (*c)[2].end(); p++)
+                            {
+                                int &iVal = *p;
+                                pointList.push_back(std::make_pair(std::make_pair(chunks[f].idTexture0, chunks[f].idTexture1), (*p)));
+                            }
+#else
+                            std::vector< int >::iterator p = (*c)[0].begin();
+                            for (; p != (*c)[0].end(); p++)
+                                triangleList.push_back(std::make_pair(std::make_pair(chunks[f].idTexture0, chunks[f].idTexture1), (*p)));
+
+                            p = (*c)[1].begin();
+                            for (; p != (*c)[1].end(); p++)
+                                lineList.push_back(std::make_pair(std::make_pair(chunks[f].idTexture0, chunks[f].idTexture1), (*p)));
+
+                            p = (*c)[2].begin();
+                            for (; p != (*c)[2].end(); p++)
+                                pointList.push_back(std::make_pair(std::make_pair(chunks[f].idTexture0, chunks[f].idTexture1), (*p)));
+#endif
+                        }
+
+                        std::vector< std::pair< std::pair< int, int >, std::vector< int > > > sortedTriangleList;
+                        std::vector< std::pair< std::pair< int, int >, std::vector< int > > > sortedLineList;
+                        std::vector< std::pair< std::pair< int, int >, std::vector< int > > > sortedPointList;
+
+                        // Create Sorted Triangle List
+                        std::vector< std::pair< std::pair< int, int >, int > >::iterator t = triangleList.begin();
+                        for (; t != triangleList.end(); t++)
+                        {
+#ifdef _DEBUG
+                            std::pair< std::pair< int, int >, int > &unsortedTriPairOfPair = *t;
+#endif
+                            std::vector< std::pair< std::pair< int, int >, std::vector< int > > >::iterator s = sortedTriangleList.begin();
+                            for (; s != sortedTriangleList.end(); s++)
+                            {
+#ifdef _DEBUG
+                                std::pair< std::pair< int, int >, std::vector< int > > &sortedTriPairOfPair = *s;
+#endif
+                                if ((*t).first.first != (*s).first.first || (*t).first.second != (*s).first.second)
+                                    continue;
+
+                                (*s).second.push_back((*t).second);
+                                break;
+                            }
+
+                            if (s == sortedTriangleList.end())
+                            {
+                                std::vector<int> list;
+                                list.push_back((*t).second);
+                                sortedTriangleList.push_back(std::make_pair(std::make_pair((*t).first.first,
+                                                            (*t).first.second), list));
+                            }
+                        }
+
+                        // Create Sorted Line List
+                        t = lineList.begin();
+                        for (; t != lineList.end(); t++)
+                        {
+#ifdef _DEBUG
+                            std::pair< std::pair< int, int >, int > &unsortedLinePairOfPair = *t;
+#endif
+                            std::vector< std::pair< std::pair< int, int >, std::vector< int > > >::iterator s = sortedLineList.begin();
+                            for (; s != sortedLineList.end(); s++)
+                            {
+#ifdef _DEBUG
+                                std::pair< std::pair< int, int >, std::vector< int > > &sortedLinePairOfPair = *s;
+#endif
+                                if ((*t).first.first != (*s).first.first || (*t).first.second != (*s).first.second)
+                                    continue;
+
+                                (*s).second.push_back((*t).second);
+                                break;
+                            }
+
+                            if (s == sortedLineList.end())
+                            {
+                                std::vector<int> list;
+                                list.push_back((*t).second);
+                                sortedLineList.push_back(std::make_pair(std::make_pair((*t).first.first,
+                                                        (*t).first.second), list));
+                            }
+                        }
+
+                        // Create Sorted Point List
+                        t = pointList.begin();
+                        for (; t != pointList.end(); t++)
+                        {
+#ifdef _DEBUG
+                            std::pair< std::pair< int, int >, int > &unsortedPointPairOfPair = *t;
+#endif
+                            std::vector< std::pair< std::pair< int, int >, std::vector< int > > >::iterator s = sortedPointList.begin();
+                            for (; s != sortedPointList.end(); s++)
+                            {
+#ifdef _DEBUG
+                                std::pair< std::pair< int, int >, std::vector< int > > &sortedPointPairOfPair = *s;
+#endif
+                                if ((*t).first.first != (*s).first.first || (*t).first.second != (*s).first.second)
+                                    continue;
+
+                                (*s).second.push_back((*t).second);
+                                break;
+                            }
+
+                            if (s == sortedPointList.end())
+                            {
+                                std::vector<int> list;
+                                list.push_back((*t).second);
+                                sortedPointList.push_back(std::make_pair(std::make_pair((*t).first.first,
+                                                         (*t).first.second), list));
+                            }
+                        }
+
+                        effectGroups[e].push_back(pGeometry->GetNumChunks());
+
+                        // Create triangle chunks
+                        std::vector< std::pair< std::pair< int, int >, std::vector< int > > >::iterator s = sortedTriangleList.begin();
+                        for (; s != sortedTriangleList.end(); s++)
+                        {
+#ifdef _DEBUG
+                            std::pair< std::pair< int, int >, std::vector< int > > &sortedTriPairOfPair = *s;
+#endif
+                            int *triangleVertIndices = new int[(*s).second.size()];
+
+                            for (unsigned int v = 0; v < (*s).second.size(); v++)
+                                triangleVertIndices[v] = (*s).second[v];
+
+                            Chunk triangleChunk;
+                            ZeroMemory(&triangleChunk, sizeof(Chunk));
+                            triangleChunk.startIndex = pGeometry->GetNumVertexIndices();
+                            triangleChunk.numVerts = (*s).second.size();
+                            triangleChunk.type = CT_TRIANGLELIST;
+                            triangleChunk.effect = e - 1;
+                            triangleChunk.idTexture0 = (*s).first.first;
+                            triangleChunk.idTexture1 = (*s).first.second;
+                            triangleChunk.material = -1;
+
+                            int triangleChunkIndex = pGeometry->GetNumChunks();
+
+                            RenderGroup *group = new RenderGroup(this);
+                            group->pGeometry = o->first;
+                            group->startFaceIndex = pGeometry->GetNumChunkIndices();
+                            group->numFaces = 1;
+                            group->effectID = e - 1;
+                            group->hasTransform = false;
+
+                            leaf->renderList.push_back(group);
+
+                            pGeometry->Insert(1, 0, 1, (*s).second.size(), &triangleChunk, NULL,
+                                              &triangleChunkIndex, triangleVertIndices, 0);
+
+                            delete[] triangleVertIndices;
+                        }
+
+                        // Create line chunks
+                        s = sortedLineList.begin();
+                        for (; s != sortedLineList.end(); s++)
+                        {
+#ifdef _DEBUG
+                            std::pair< std::pair< int, int >, std::vector< int > > &sortedLinePairOfPair = *s;
+#endif
+                            int *lineVertIndices = new int[(*s).second.size()];
+
+                            for (unsigned int v = 0; v < (*s).second.size(); v++)
+                                lineVertIndices[v] = (*s).second[v];
+
+                            Chunk lineChunk;
+                            ZeroMemory(&lineChunk, sizeof(Chunk));
+                            lineChunk.startIndex = pGeometry->GetNumVertexIndices();
+                            lineChunk.numVerts = (*s).second.size();
+                            lineChunk.type = CT_LINELIST;
+                            lineChunk.effect = e - 1;
+                            lineChunk.idTexture0 = (*s).first.first;
+                            lineChunk.idTexture1 = (*s).first.second;
+                            lineChunk.material = -1;
+
+                            int lineChunkIndex = pGeometry->GetNumChunks();
+
+                            RenderGroup *group = new RenderGroup(this);
+                            group->pGeometry = o->first;
+                            group->startFaceIndex = pGeometry->GetNumChunkIndices();
+                            group->numFaces = 1;
+                            group->effectID = e - 1;
+                            group->hasTransform = false;
+
+                            leaf->renderList.push_back(group);
+
+                            pGeometry->Insert(1, 0, 1, (*s).second.size(), &lineChunk, NULL, &lineChunkIndex, lineVertIndices, 0);
+
+                            delete[] lineVertIndices;
+                        }
+
+                        // Create point chunks
+                        s = sortedPointList.begin();
+                        for (; s != sortedPointList.end(); s++)
+                        {
+#ifdef _DEBUG
+                            std::pair< std::pair< int, int >, std::vector< int > > &sortedPointPairOfPair = *s;
+#endif
+                            int *pointVertIndices = new int[(*s).second.size()];
+
+                            for (unsigned int v = 0; v < (*s).second.size(); v++)
+                                pointVertIndices[v] = (*s).second[v];
+
+                            Chunk pointChunk;
+                            ZeroMemory(&pointChunk, sizeof(Chunk));
+                            pointChunk.startIndex = pGeometry->GetNumVertexIndices();
+                            pointChunk.numVerts = (*s).second.size();
+                            pointChunk.type = CT_POINTLIST;
+                            pointChunk.effect = e - 1;
+                            pointChunk.idTexture0 = (*s).first.first;
+                            pointChunk.idTexture1 = (*s).first.second;
+                            pointChunk.material = -1;
+
+                            int pointChunkIndex = pGeometry->GetNumChunks();
+
+                            RenderGroup *group = new RenderGroup;
+                            group->pGeometry = o->first;
+                            group->startFaceIndex = pGeometry->GetNumChunkIndices();
+                            group->numFaces = 1;
+                            group->effectID = e - 1;
+                            group->hasTransform = false;
+
+                            leaf->renderList.push_back(group);
+
+                            pGeometry->Insert(1, 0, 1, (*s).second.size(), &pointChunk, NULL, &pointChunkIndex, pointVertIndices, 0);
+
+                            delete[] pointVertIndices;
+                        }
+                    }
+
+                    i->first->Unlock();
+                }
+                }
+#endif
+            }
+            else
+            {
+                if (chunkMapIndex >= (int)nodeChunkMap.size())
+                {
+#ifdef _DEBUG
+                    Logf("Error: chunkMapIndex exceeds nodeChunkMap.size().");
+#endif
+                    return;
+                }
+
+                if (nodeChunkMap[chunkMapIndex]->m.empty())
+                {
+#ifdef _DEBUG
+                    Logf("Error: nodeChunkMap[chunkMapIndex] is empty.");
+#endif
+                    return;
+                }
+
+                NodeChunkMap &ncm = nodeChunkMap[chunkMapIndex]->m;
+
+                NodeChunkMap::iterator i = ncm.begin();
+                for (; i != ncm.end(); i++)
+                {
+                    if ((*i)->m.empty())
+                        continue;
+
+                    OrderedGeometryMap &orderedGeomMapRef = (*i)->m;
+                    OrderedGeometryMap::iterator j = orderedGeomMapRef.begin();
+                    for (; j != orderedGeomMapRef.end(); j++)
+                    {
+#ifdef DEBUG_DUMP
+                        char buf[256];
+                        sprintf(buf, "Sorting chunks at order = %d\n", j->first);
+                        OutputDebugString(buf);
+#endif
+                        GeometryMap &gm = j->second->m;
+                        GeometryMap::iterator k = gm.begin();
+                        for (; k != gm.end(); k++)
+                        {
+                            PGEOMETRY pGeometry = k->first;
+
+                            if (pGeometry->GetNumChunks() < 1 || pGeometry->GetNumVertices() < 1)
+                                continue;
+
+                            Chunk *chunks = NULL;
+
+                            if (FAILED(pGeometry->Lock((PVOID*)&chunks, NULL, NULL, NULL)))
+                                return;
+
+                            std::vector< std::vector<int> > effectGroups;
+                            effectGroups.resize(numEffectGroups + 1);
+
+                            ChunkIndexList::iterator c = k->second->m.begin();
+
+                            for (int f = 0; c != k->second->m.end(); f++, c++)
+                            {
+                                if (chunks[f].order != j->first)
+                                    continue;
+
+                                effectGroups[chunks[f].effect + 1].push_back(f);
+                            }
+
+                            g_pSortingChunks = chunks;
+
+                            for (int e = 0; e < numEffectGroups + 1; e++)
+                            {
+                                DebugPrintf("\tCreating RenderGroup for effectGroup %d.", e);
+
+                                if (effectGroups[e].size() < 1)
+                                {
+                                    DebugPrintf("\tSkipping.\n");
+                                    continue;
+                                }
+
+                                sort(effectGroups[e].begin(), effectGroups[e].end(), SortByTechniqueID);
+
+                                int currentTechniqueId = chunks[*effectGroups[e].begin()].technique;
+
+                                RenderGroup *group = new RenderGroup(this);
+                                group->order = j->first;
+                                group->pGeometry = pGeometry;
+                                group->startFaceIndex = pGeometry->GetNumChunkIndices();
+                                group->numFaces = effectGroups[e].size();
+                                group->effectID = e - 1;
+                                //group->techniqueID =
+                                group->hasTransform = false;
+
+                                DebugPrintf(" numChunks = %d.\n", group->numFaces);
+
+                                leaf->renderList.push_back(group);
+
+                                int *chunkIndices = new int[effectGroups[e].size()];
+
+                                for (unsigned int m = 0; m < group->numFaces; m++)
+                                    chunkIndices[m] = effectGroups[e][m];
+
+                                pGeometry->Insert(0, 0, effectGroups[e].size(), 0, NULL, NULL, chunkIndices, NULL, 0);
+
+                                delete[] chunkIndices;
+                            }
+
+                            g_pSortingChunks = NULL;
+                        }
+                    }
+                }
+#if 0
+                {
+                NodeChunkMap &ncm = nodeChunkMap[chunkMapIndex].m;    // typedef std::vector< _OrderedGeometryMap > NodeChunkMap;
+                NodeChunkMap::iterator i = ncm.begin();
+
+                for (; i != nodeChunkMap[chunkMapIndex].m.end(); i++)
+                {
+                    OrderedGeometryMap &orderedGeomMapRef = i->m;    // typedef std::map< unsigned int, _GeometryMap > OrderedGeometryMap;
+                    OrderedGeometryMap::iterator j = orderedGeomMapRef.begin();
+                    for (; j != orderedGeomMapRef.end(); j++)
+                    {
+                        GeometryMap &gm = j->second->m;
+                        GeometryMap::iterator k = gm.begin();
+                        for (; k != gm.end(); k++)
+                        {
+                            PGEOMETRY pGeometry = k->first;
+
+                            if (pGeometry->GetNumChunks() < 1 || pGeometry->GetNumVertices() < 1)
+                                continue;
+
+                            Chunk *chunks = NULL;
+
+                            if (FAILED(pGeometry->Lock((PVOID*)&chunks, NULL, NULL, NULL)))
+                                return;
+
+                            std::vector< std::vector<int> > effectGroups;
+                            effectGroups.resize(numEffectGroups + 1);
+
+                            ChunkIndexList::iterator c;// = k->second.m.begin();
+
+                            //for (int f = 0; c != k->second.m.end(); f++, c++)
+                            int f = 0;
+                            {
+                                VertexIndexList &viList = c->m;
+                                if (viList.size() < 1)
+                                    continue;
+
+                                effectGroups[chunks[f].effect + 1].push_back(f);
+                            }
+
+                            for (int e = 0; e < numEffectGroups + 1; e++)
+                            {
+                                if (effectGroups[e].size() < 1)
+                                    continue;
+
+                                RenderGroup *group = new RenderGroup;
+                                group->pGeometry = pGeometry;
+                                group->startFaceIndex = pGeometry->GetNumChunkIndices();
+                                group->numFaces = effectGroups[e].size();
+                                group->effectID = e - 1;
+                                group->hasTransform = false;
+
+                                leaf->renderList.push_back(group);
+
+                                int *chunkIndices = new int[effectGroups[e].size()];
+
+                                for (unsigned int m = 0; m < group->numFaces; m++)
+                                    chunkIndices[m] = effectGroups[e][m];
+
+                                pGeometry->Insert(0, 0, effectGroups[e].size(), 0, NULL, NULL, chunkIndices, NULL, 0);
+
+                                delete[] chunkIndices;
+                            }
+                        }
+                    }
+                }
+                }
+#endif
+            }
+        }
+
+        if (node->leafIndex > -1 && settings->optimiseChunks)
+        {
+            float nodeVolume = (node->max.x - node->min.x) * (node->max.y - node->min.y) * (node->max.z - node->min.z);
+            float rootVolume = (root->max.x - root->min.x) * (root->max.y - root->min.y) * (root->max.z - root->min.z);
+
+            if (rootVolume > 0)
+            {
+                optimiseChunksProgress += (nodeVolume / rootVolume) * 100.0f;
+
+                if (progressCallback)
+                    progressCallback(PC_SCENE_OPTIMISECHUNKS, optimiseChunksProgress, pProgressCallbackPayload);
+            }
+        }
+    }
+#endif
+
 
 //-----------------------------------------------------------------------
     void Scene::UpdateSpacePartitionProgress(TreeNode *node)
     //-------------------------------------------------------------------
     {
-        if (!node || !m_pRoot)
+        if (!node || !root)
             return;
 
         if (node->m_leafIndex > -1)
         {
             float nodeVolume = (node->m_max.x - node->m_min.x) * (node->m_max.y - node->m_min.y) * (node->m_max.z - node->m_min.z);
-            float rootVolume = (m_pRoot->m_max.x - m_pRoot->m_min.x) * (m_pRoot->m_max.y - m_pRoot->m_min.y) * (m_pRoot->m_max.z - m_pRoot->m_min.z);
+            float rootVolume = (root->m_max.x - root->m_min.x) * (root->m_max.y - root->m_min.y) * (root->m_max.z - root->m_min.z);
 
             if (rootVolume > 0)
             {
-                m_spacePartitionProgress += (nodeVolume / rootVolume) * 100.0f;
+                spacePartitionProgress += (nodeVolume / rootVolume) * 100.0f;
 
-                if (m_pFnProgressCallback)
-                    m_pFnProgressCallback(PC_SCENE_SPACEPARTITIONING, m_spacePartitionProgress, m_pProgressCallbackPayload);
+                if (progressCallback)
+                    progressCallback(PC_SCENE_SPACEPARTITIONING, spacePartitionProgress, pProgressCallbackPayload);
             }
         }
     }
@@ -3282,20 +3368,20 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
     void Scene::UpdateOptimiseChunksProgress(TreeNode *node)
     //-------------------------------------------------------------------
     {
-        if (!node || !m_pRoot)
+        if (!node || !root)
             return;
 
-        if (node->m_leafIndex > -1 && m_pSettings->optimiseChunks)
+        if (node->m_leafIndex > -1 && settings->optimiseChunks)
         {
             float nodeVolume = (node->m_max.x - node->m_min.x) * (node->m_max.y - node->m_min.y) * (node->m_max.z - node->m_min.z);
-            float rootVolume = (m_pRoot->m_max.x - m_pRoot->m_min.x) * (m_pRoot->m_max.y - m_pRoot->m_min.y) * (m_pRoot->m_max.z - m_pRoot->m_min.z);
+            float rootVolume = (root->m_max.x - root->m_min.x) * (root->m_max.y - root->m_min.y) * (root->m_max.z - root->m_min.z);
 
             if (rootVolume > 0)
             {
-                m_optimiseChunksProgress += (nodeVolume / rootVolume) * 100.0f;
+                optimiseChunksProgress += (nodeVolume / rootVolume) * 100.0f;
 
-                if (m_pFnProgressCallback)
-                    m_pFnProgressCallback(PC_SCENE_OPTIMISECHUNKS, m_optimiseChunksProgress, m_pProgressCallbackPayload);
+                if (progressCallback)
+                    progressCallback(PC_SCENE_OPTIMISECHUNKS, optimiseChunksProgress, pProgressCallbackPayload);
             }
         }
     }
@@ -3378,8 +3464,8 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
         geometry->Insert(nChunks, nVerts, nChunkIndices, nVertexIndices,
                          pChunks, pVerts, pChunkIndices, pVertexIndices, flags);
 
-        m_pRoot->min = geometry->min;
-        m_pRoot->max = geometry->max;
+        root->min = geometry->min;
+        root->max = geometry->max;
 
         return S_OK;
     }
@@ -3391,8 +3477,8 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
     {
         geometry->Insert(nChunks, nVerts, pChunks, pVerts, flags);
 
-        m_pRoot->min = geometry->min;
-        m_pRoot->max = geometry->max;
+        root->min = geometry->min;
+        root->max = geometry->max;
 
         return S_OK;
     }
@@ -3404,8 +3490,8 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
     {
         geometry->Insert(pGeometry, flags);
 
-        m_pRoot->min = geometry->min;
-        m_pRoot->max = geometry->max;
+        root->min = geometry->min;
+        root->max = geometry->max;
 
         return S_OK;
     }
@@ -3427,17 +3513,17 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
         }
 
         //pTree->numLeafFaces = numLeafFaces;
-        pTree->numTreeNodes = m_numNodes;
+        pTree->numTreeNodes = numNodes;
         pTree->numTreeLeafs = leafs.size();
 
         if (pTree)
         {
             //memcpy(pTree->leafFaces, leafFaceIndices, numLeafFaces * sizeof(int));
 
-            if (m_pRoot)
+            if (root)
             {
                 std::vector<TreeNodeOutput> outputNodes;
-                RecurseOutputPartition(m_pRoot, outputNodes);
+                RecurseOutputPartition(root, outputNodes);
                 pTree->treeNodes = new TreeNodeOutput[outputNodes.size()];
 
                 std::vector<TreeNodeOutput>::iterator i = outputNodes.begin();
@@ -3478,60 +3564,46 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
         if (!pGeometry)
             return E_FAIL;
 
-        pGeometry->SetScene(this, true);
+        geometry.push_back(pGeometry);
 
-        m_sourceGeometry.push_back(pGeometry);
-
-        if (m_pSettings->optimiseChunks)
+        if (settings->optimiseChunks)
         {
-            /*Geometry *pOptimisedGeometry = new Geometry(D3DDevice);
-            optimisedGeometry.push_back(std::make_pair(pGeometry, pOptimisedGeometry));*/
+            Geometry *pOptimisedGeometry = new Geometry(D3DDevice);
+            optimisedGeometry.push_back(std::make_pair(pGeometry, pOptimisedGeometry));
         }
 
-        if (m_sourceGeometry.size() == 1)
+        if (geometry.size() == 1)
         {
-            m_pRoot->m_min = pGeometry->GetMin();
-            m_pRoot->m_max = pGeometry->GetMax();
+            root->m_min = pGeometry->m_min;
+            root->m_max = pGeometry->m_max;
         }
         else
-        {
-            Math::SortMinMax(pGeometry->GetMin(), pGeometry->GetMax(), m_pRoot->m_min, m_pRoot->m_max);
-        }
+            Math::SortMinMax(pGeometry->m_min, pGeometry->m_max, root->m_min, root->m_max);
 
         return S_OK;
     }
 
 
 //-----------------------------------------------------------------------
-    HRESULT Scene::RemoveGeometry(PGEOMETRY pGeometry, bool notify)
+    HRESULT Scene::RemoveGeometry(PGEOMETRY pGeometry)
     //-------------------------------------------------------------------
     {
-        // TODO: Go through Sub-Geometries and remove any that reference pGeometry.
-
         if (!pGeometry)
             return E_FAIL;
 
-        GeometryList::iterator i = m_sourceGeometry.begin();
-        for (; i != m_sourceGeometry.end();)
+        std::list<PGEOMETRY>::iterator i = geometry.begin();
+        for (; i != geometry.end();)
         {
             if ((*i) == pGeometry)
-            {
-                if (notify)
-                {
-                    (*i)->SetScene(NULL, false);
-                }
-                i = m_sourceGeometry.erase(i);
-            }
+                i = geometry.erase(i);
             else
-            {
                 i++;
-            }
         }
 
-        if (m_pSettings->optimiseChunks)
+        if (settings->optimiseChunks)
         {
-            /*std::list< std::pair<PGEOMETRY, PGEOMETRY> >::iterator o = optimisedGeometry.begin();
-            for (; o != optimisedGeometry.end();)
+            std::list< std::pair<PGEOMETRY, PGEOMETRY> >::iterator o = optimisedGeometry.begin();
+            for (; o != optimisedGeometry.end(); )
             {
                 if (o->first == pGeometry)
                 {
@@ -3544,11 +3616,11 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                 {
                     o++;
                 }
-            }*/
+            }
         }
 
-        std::vector<TreeLeaf *>::iterator leaf = m_leafs.begin();
-        for (; leaf != m_leafs.end(); leaf++)
+        std::vector<TreeLeaf *>::iterator leaf = leafs.begin();
+        for (; leaf != leafs.end(); leaf++)
         {
             if (!(*leaf))
                 continue;
@@ -3592,10 +3664,10 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
     HRESULT Scene::InsertEntity(PENTITY pEntity)
     //-------------------------------------------------------------------
     {
-         if (!pEntity || !m_pSceneGraphRoot)
+         if (!pEntity || !sceneGraphRoot)
             return E_FAIL;
 
-        m_pSceneGraphRoot->AttachChild(pEntity);
+        sceneGraphRoot->AttachChild(pEntity);
 
         return S_OK;
     }
@@ -3605,16 +3677,15 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
     HRESULT Scene::RemoveEntity(PENTITY pEntity)
     //-------------------------------------------------------------------
     {
-        if (!pEntity || !m_pSceneGraphRoot)
+        if (!pEntity || !sceneGraphRoot)
             return E_FAIL;
 
-        m_pSceneGraphRoot->DetachChild(pEntity);
+        sceneGraphRoot->DetachChild(pEntity);
 
         return S_OK;
     }
 
 
-#if 0
 //-----------------------------------------------------------------------
     HRESULT Scene::InsertPatch(PPATCH pPatch)
     //-------------------------------------------------------------------
@@ -3626,20 +3697,20 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
 
         return S_OK;
     }
-#endif
+
 
 //-----------------------------------------------------------------------
     HRESULT Scene::GetWorldBounds(Vector3 *pMin, Vector3 *pMax)
     //-------------------------------------------------------------------
     {
-        if (!m_pRoot)
+        if (!root)
             return E_FAIL;
 
         if (pMin)
-            *pMin = m_pRoot->m_min;
+            *pMin = root->m_min;
 
         if (pMax)
-            *pMax = m_pRoot->m_max;
+            *pMax = root->m_max;
 
         return S_OK;
     }
@@ -3654,26 +3725,26 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
         if (!pCollisionInfo)
             return E_FAIL;
 /*
-        int numCollisions = m_bodyCollisions.size() + m_worldCollisions.size();
+        int numCollisions = bodyCollisions.size() + worldCollisions.size();
         *pCollisionInfo = new CollisionInfo[numCollisions];
 
-        for (int i = 0; i < m_bodyCollisions.size(); i++)
+        for (int i = 0; i < bodyCollisions.size(); i++)
         {
-            CollisionInfo info = m_bodyCollisions[i];
+            CollisionInfo info = bodyCollisions[i];
             memcpy((*pCollisionInfo) + sizeof(CollisionInfo) * i, &info, sizeof(CollisionInfo));
         }
 
         for (; i < numCollisions; i++)
         {
-            CollisionInfo info = m_worldCollisions[i - m_bodyCollisions.size()];
+            CollisionInfo info = worldCollisions[i - bodyCollisions.size()];
             memcpy((*pCollisionInfo) + sizeof(CollisionInfo) * i, &info, sizeof(CollisionInfo));
         }
 
         if (pNumCollisions)
             *pNumCollisions = numCollisions;
 
-        m_bodyCollisions.clear();
-        m_worldCollisions.clear();
+        bodyCollisions.clear();
+        worldCollisions.clear();
 */
         return S_OK;
     }
@@ -3683,8 +3754,8 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
     HRESULT Scene::GetGeometry(ConstGeometryIterator *begin, ConstGeometryIterator *end)
     //-------------------------------------------------------------------
     {
-        *begin = m_sourceGeometry.begin();
-        *end = m_sourceGeometry.end();
+        *begin = geometry.begin();
+        *end = geometry.end();
 
         return S_OK;
     }
@@ -3694,10 +3765,10 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
     HRESULT Scene::GetSpacePartitionOutlineGeometry(PGEOMETRY *ppGeometry)
     //-------------------------------------------------------------------
     {
-        if (!ppGeometry || !m_pSpacePartitionOutline)
+        if (!ppGeometry || !spacePartitionOutline)
             return E_FAIL;
 
-        (*ppGeometry) = m_pSpacePartitionOutline;
+        (*ppGeometry) = spacePartitionOutline;
 
         return S_OK;
     }
@@ -3707,10 +3778,10 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
     HRESULT Scene::GetSceneGraphRootEntity(PENTITY *ppEntity)
     //-------------------------------------------------------------------
     {
-        if (!ppEntity || !m_pSceneGraphRoot)
+        if (!ppEntity || !sceneGraphRoot)
             return E_FAIL;
 
-        (*ppEntity) = m_pSceneGraphRoot;
+        (*ppEntity) = sceneGraphRoot;
 
         return S_OK;
     }
@@ -3720,7 +3791,7 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
     int Scene::GetSubdivisionsExecuted()
     //-------------------------------------------------------------------
     {
-        return m_subdivisionsExecuted;
+        return subdivisionsExecuted;
     }
 
 
@@ -3728,7 +3799,7 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
     int Scene::GetNumLeafs()
     //-------------------------------------------------------------------
     {
-        return m_leafs.size();
+        return leafs.size();
     }
 
 
@@ -3743,13 +3814,13 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
         ZeroMemory(pOutputScene, sizeof(OutputScene));
 
         pOutputScene->size = sizeof(OutputScene);
-        pOutputScene->settings = *m_pSettings;
+        pOutputScene->settings = *settings;
 
-        pOutputScene->numGeometry = m_sourceGeometry.size();
+        pOutputScene->numGeometry = geometry.size();
         pOutputScene->pGeometryIDs = new unsigned int[pOutputScene->numGeometry];
 
-        GeometryList::iterator g = m_sourceGeometry.begin();
-        for (int n = 0; g != m_sourceGeometry.end(); g++, n++)
+        std::list<PGEOMETRY>::iterator g = geometry.begin();
+        for (int n = 0; g != geometry.end(); g++, n++)
         {
             std::vector< std::pair< PGEOMETRY, int > >::iterator i = geometryMap.begin();
             for (; i != geometryMap.end(); i++)
@@ -3765,7 +3836,7 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
         std::vector< std::pair< PGEOMETRY, int > >::iterator i = geometryMap.begin();
         for (; i != geometryMap.end(); i++)
         {
-            if (m_pSpacePartitionOutline == i->first)
+            if (spacePartitionOutline == i->first)
             {
                 pOutputScene->spacePartitionGeometryID = i->second;
                 break;
@@ -3775,11 +3846,11 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
         if (1) // (flags & SPACEPARTITION)
         {
             // Tree Nodes
-                pOutputScene->numTreeNodes = m_numNodes;
+                pOutputScene->numTreeNodes = numNodes;
 
                 std::vector<OutputTreeNode> outputTreeNodes;
 
-                RecurseOutputPartition(m_pRoot, outputTreeNodes);
+                RecurseOutputPartition(root, outputTreeNodes);
 
                 pOutputScene->nodes = new OutputTreeNode[outputTreeNodes.size()];
                 pOutputScene->size += outputTreeNodes.size() * sizeof(OutputTreeNode);
@@ -3789,24 +3860,24 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                     pOutputScene->nodes[n] = *i;
 
             // Tree Leafs
-                pOutputScene->numTreeLeafs = m_leafs.size();
+                pOutputScene->numTreeLeafs = leafs.size();
 
-                pOutputScene->leafs = new OutputTreeLeaf[m_leafs.size()];
-                pOutputScene->size += m_leafs.size() * sizeof(OutputTreeLeaf);
+                pOutputScene->leafs = new OutputTreeLeaf[leafs.size()];
+                pOutputScene->size += leafs.size() * sizeof(OutputTreeLeaf);
 
-                std::vector<TreeLeaf *>::iterator leafItr = m_leafs.begin();
-                for (int n = 0; leafItr != m_leafs.end(); leafItr++, n++)
+                std::vector<TreeLeaf *>::iterator q = leafs.begin();
+                for (int n = 0; q != leafs.end(); q++, n++)
                 {
                     OutputTreeLeaf leaf;
-                    leaf.min = (*leafItr)->m_min;
-                    leaf.max = (*leafItr)->m_max;
-                    leaf.renderList = new OutputRenderGroup[(*leafItr)->m_renderList.size()];
-                    leaf.numRenderGroups = (*leafItr)->m_renderList.size();
-                    leaf.size = (*leafItr)->m_renderList.size() * sizeof(OutputRenderGroup);
+                    leaf.min = (*q)->m_min;
+                    leaf.max = (*q)->m_max;
+                    leaf.renderList = new OutputRenderGroup[(*q)->m_renderList.size()];
+                    leaf.numRenderGroups = (*q)->m_renderList.size();
+                    leaf.size = (*q)->m_renderList.size() * sizeof(OutputRenderGroup);
                     pOutputScene->size += leaf.size;
 
-                    std::list<RenderGroup *>::iterator r = (*leafItr)->m_renderList.begin();
-                    for (int v = 0; r != (*leafItr)->m_renderList.end(); r++)
+                    std::list<RenderGroup *>::iterator r = (*q)->m_renderList.begin();
+                    for (int v = 0; r != (*q)->m_renderList.end(); r++)
                     {
                         OutputRenderGroup group;
 
@@ -3833,13 +3904,13 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
 
         if (1) // (flags & PVS)
         {
-            /*pOutputScene->numPVSClusters = numClusters;
+            pOutputScene->numPVSClusters = numClusters;
             pOutputScene->bytesPerPVSCluster = bytesPerCluster;
 
             pOutputScene->PVS = new byte[numClusters * bytesPerCluster];
             memcpy(pOutputScene->PVS, PVS, numClusters * bytesPerCluster);
 
-            pOutputScene->size += numClusters * bytesPerCluster;*/
+            pOutputScene->size += numClusters * bytesPerCluster;
         }
 
         return S_OK;
@@ -3862,10 +3933,10 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
             for (unsigned int i = 0; i < pOutputScene->numGeometry; i++)
             {
                 if (pOutputScene->pGeometryIDs[i] == g->second)
-                    m_sourceGeometry.push_back(g->first);
+                    geometry.push_back(g->first);
 
                 if (pOutputScene->spacePartitionGeometryID == g->second)
-                    m_pSpacePartitionOutline = g->first;
+                    spacePartitionOutline = g->first;
             }
         }
 
@@ -3873,29 +3944,29 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
         for (; e != entityMap.end(); e++)
         {
             if (pOutputScene->sceneGraphRootEntityID == e->second)
-                m_pSceneGraphRoot = e->first;
+                sceneGraphRoot = e->first;
         }
 
         if (1) // (flags & SPACEPARTITION)
         {
             if (pOutputScene->numTreeNodes)
             {
-                if (m_pRoot)
+                if (root)
                 {
-                    delete m_pRoot;
-                    m_pRoot = new TreeNode;
+                    delete root;
+                    root = new TreeNode;
 
-                    m_numNodes = 1;
+                    numNodes = 1;
                 }
 
-                m_pRoot->m_numChildren = pOutputScene->nodes[0].numChildren;
-                m_pRoot->m_leafIndex = pOutputScene->nodes[0].leafIndex;
-                m_pRoot->m_min = pOutputScene->nodes[0].min;
-                m_pRoot->m_max = pOutputScene->nodes[0].max;
-                m_pRoot->m_pParent = NULL;
-                m_pRoot->m_id = 0;
+                root->m_numChildren = pOutputScene->nodes[0].numChildren;
+                root->m_leafIndex = pOutputScene->nodes[0].leafIndex;
+                root->m_min = pOutputScene->nodes[0].min;
+                root->m_max = pOutputScene->nodes[0].max;
+                root->m_pParent = NULL;
+                root->m_id = 0;
 
-                RecurseInputPartition(m_pRoot, pOutputScene->nodes, m_numNodes);
+                RecurseInputPartition(root, pOutputScene->nodes, numNodes);
             }
 
             if (pOutputScene->numTreeLeafs)
@@ -3935,18 +4006,18 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                         leaf->m_renderList.push_back(group);
                     }
 
-                    m_leafs.push_back(leaf);
+                    leafs.push_back(leaf);
                 }
             }
         }
 
         if (/*flags & PVS &&*/ pOutputScene->numPVSClusters && pOutputScene->bytesPerPVSCluster)
         {
-            /*numClusters = pOutputScene->numPVSClusters;
+            numClusters = pOutputScene->numPVSClusters;
             bytesPerCluster = pOutputScene->bytesPerPVSCluster;
 
             PVS = new byte[numClusters * bytesPerCluster];
-            memcpy(PVS, pOutputScene->PVS, numClusters * bytesPerCluster);*/
+            memcpy(PVS, pOutputScene->PVS, numClusters * bytesPerCluster);
         }
 
         return S_OK;
@@ -3968,10 +4039,10 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
             for (int i = 0; i < node->m_numChildren; i++)
                 CreateNodeRenderList(node->m_pChildren[i], renderList, pViewport);
         }
-        else if (!m_leafs.empty())
+        else if (leafs.size() > 0)
         {
             if (node->m_leafIndex > -1)
-                CreateLeafRenderList(m_leafs[node->m_leafIndex], renderList);
+                CreateLeafRenderList(leafs[node->m_leafIndex], renderList);
         }
     }
 
@@ -3990,7 +4061,7 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
 
             if (entity->GetVisualID() > -1)
             {
-                PVISUAL pVisual = m_pResourceManager->GetVisual(entity->GetVisualID());
+                PVISUAL pVisual = resourceManager->GetVisual(entity->GetVisualID());
 
                 Vector3 visualMin = pVisual->GetMin();
                 Vector3 visualMax = pVisual->GetMax();
@@ -4023,15 +4094,6 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
         std::list<RenderGroup *>::iterator r = leaf->m_renderList.begin();
         for (; r != leaf->m_renderList.end(); r++)
         {
-            if (!(*r))
-                continue;
-
-            if (!((*r)->m_pGeometry || (*r)->m_pOptimisedGeometry))
-                continue;
-
-            if ((*r)->m_pGeometry && (*r)->m_pGeometry->IsHidden())
-                continue;
-
             renderList.push_back(*(*r));
         }
     }
@@ -4052,84 +4114,50 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
         if (FAILED(pViewport->GetSettings(&vps)))
             return E_FAIL;
 
-        if (vps.drawSpacePartition && m_pSpacePartitionOutline)
+        if (vps.drawSpacePartition)
         {
-            if (m_activeLeafID > -1 && m_leafs[m_activeLeafID]->m_pParent)
+            if (spacePartitionOutline && spacePartitionOutline->GetNumVertexIndices())
             {
-                if (vps.spacePartitionMode & VS_EDGE)
+                if (activeLeafID > -1 && leafs[activeLeafID]->m_pParent)
                 {
-                    RenderGroup outlineListLines(this);
-                    outlineListLines.m_order = 0;
-                    outlineListLines.m_pGeometry = m_pSpacePartitionOutline;
-                    outlineListLines.m_startFaceIndex = m_leafs[m_activeLeafID]->m_pParent->m_partitionOutlineChunkId;
-                    outlineListLines.m_effectID = vps.boundingEdgeEffectId;
-                    outlineListLines.m_numFaces = 1;
+                    RenderGroup outlineList(this);
+                    outlineList.m_pGeometry = spacePartitionOutline;
+                    outlineList.m_startFaceIndex = leafs[activeLeafID]->m_pParent->m_partitionOutlineChunkId;
+                    outlineList.m_effectID = -1;
+                    outlineList.m_numFaces = 1;
 
-                    renderList.push_back(outlineListLines);
+                    renderList.push_back(outlineList);
                 }
-
-                if (vps.spacePartitionMode & VS_FACE)
+                else
                 {
-                    RenderGroup outlineListFaces(this);
-                    outlineListFaces.m_order = 9;
-                    outlineListFaces.m_pGeometry = m_pSpacePartitionOutline;
-                    outlineListFaces.m_startFaceIndex = m_leafs[m_activeLeafID]->m_pParent->m_partitionOutlineChunkId + m_leafs.size();
-                    outlineListFaces.m_effectID = vps.boundingFaceEffectId;
-                    outlineListFaces.m_numFaces = 1;
+                    RenderGroup outlineList(this);
+                    outlineList.m_pGeometry = spacePartitionOutline;
+                    outlineList.m_startFaceIndex = 0;
+                    outlineList.m_effectID = -1;
+                    outlineList.m_numFaces = spacePartitionOutline->GetNumChunkIndices();
 
-                    renderList.push_back(outlineListFaces);
-                }
-            }
-            else
-            {
-                if (vps.spacePartitionMode & VS_EDGE)
-                {
-                    RenderGroup outlineListLines(this);
-                    outlineListLines.m_order = 0;
-                    outlineListLines.m_pGeometry = m_pSpacePartitionOutline;
-                    outlineListLines.m_startFaceIndex = 0;
-                    outlineListLines.m_effectID = vps.boundingEdgeEffectId;
-                    outlineListLines.m_numFaces = m_leafs.size();
-
-                    renderList.push_back(outlineListLines);
-                }
-
-                if (vps.spacePartitionMode & VS_FACE)
-                {
-                    RenderGroup outlineListFaces(this);
-                    outlineListFaces.m_order = 9;
-                    outlineListFaces.m_pGeometry = m_pSpacePartitionOutline;
-                    outlineListFaces.m_startFaceIndex = m_leafs.size();
-                    outlineListFaces.m_effectID = vps.boundingFaceEffectId;
-                    outlineListFaces.m_numFaces = m_leafs.size();
-
-                    renderList.push_back(outlineListFaces);
+                    renderList.push_back(outlineList);
                 }
             }
         }
 
-        if (m_pSettings->visibilityMode == SS_ENABLED)
+        if (settings->visibilityMode == SS_ENABLED)
         {
-            for (unsigned int i = 0; i < m_leafs.size(); i++)
+            for (unsigned int i = 0; i < leafs.size(); i++)
             {
-                byte *pCluster = m_PVS[i];
-
-                if (!pCluster)
-                    continue;
-
-                if (Math::AABBPointCollision(Math::AABB(m_leafs[i]->m_min, m_leafs[i]->m_max), pViewport->GetCamera()->GetPosition()))
+                if (Math::AABBPointCollision(Math::AABB(leafs[i]->m_min, leafs[i]->m_max), pViewport->GetCamera()->GetPosition()))
                 {
-                    for (unsigned int n = 0; n < m_leafs.size(); n++)
+                    for (unsigned int n = 0; n < leafs.size(); n++)
                     {
-                        if (*(pCluster + (n / 8)) & (1 << (n & 7)))
+                        if (PVS[i * bytesPerCluster + (n / 8)] & (1 << (n & 7)))
                         {
-                            Vector3 cMin = m_leafs[n]->m_min;
-                            Vector3 cMax = m_leafs[n]->m_max;
+                            Vector3 cMin = leafs[n]->m_min;
+                            Vector3 cMax = leafs[n]->m_max;
 
                             if (!pViewport->GetCamera()->CheckBoxFrustum(cMin, cMax))
                                 continue;
 
-                            CreateLeafRenderList(m_leafs[n], renderList);
+                            CreateLeafRenderList(leafs[n], renderList);
                         }
                     }
 
@@ -4139,17 +4167,17 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
         }
         else
         {
-            if (m_activeLeafID == -1)
+            if (activeLeafID == -1)
             {
-                CreateNodeRenderList(m_pRoot, renderList, pViewport);
+                CreateNodeRenderList(root, renderList, pViewport);
             }
-            else if (m_activeLeafID < (int)m_leafs.size())
+            else if (activeLeafID < (int)leafs.size())
             {
-                CreateLeafRenderList(m_leafs[m_activeLeafID], renderList);
+                CreateLeafRenderList(leafs[activeLeafID], renderList);
             }
         }
 
-        CreateEntityRenderList(m_pSceneGraphRoot, renderList, pViewport);
+        CreateEntityRenderList(sceneGraphRoot, renderList, pViewport);
 
         // TODO: sort render list by depth bias
 
@@ -4161,12 +4189,12 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
     HRESULT Scene::Update(const float deltaTime)
     //-------------------------------------------------------------------
     {
-        if (m_pSceneGraphRoot)
-            m_pSceneGraphRoot->Update(deltaTime);
+        if (sceneGraphRoot)
+            sceneGraphRoot->Update(deltaTime);
 
         /*
-        m_bodyCollisions.clear();
-        m_worldCollisions.clear();
+        bodyCollisions.clear();
+        worldCollisions.clear();
 
         std::vector<CollisionInfo> collisions;
         collisions.clear();
@@ -4285,7 +4313,7 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                                 result->relativeVelocity = body->velocity;
                                 result->relativeNormalVelocity = Dot(result->relativeVelocity, result->collisionNormal);
 
-                                m_worldCollisions.push_back(*result);
+                                worldCollisions.push_back(*result);
                                 collisions.push_back(*result);
                                 numEntityCollisions[iEntity]++;
                                 delete result;
@@ -4442,7 +4470,7 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                                             result->relativeVelocity = body->velocity - body2->velocity;
                                             result->relativeNormalVelocity = Dot(result->relativeVelocity, result->collisionNormal);
 
-                                            m_bodyCollisions.push_back(*result);
+                                            bodyCollisions.push_back(*result);
                                             collisions.push_back(*result);
                                             delete result;
                                         }
@@ -4520,98 +4548,68 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
 
 
 //-----------------------------------------------------------------------
-    void Scene::RecurseCreateDrawPartition(TreeNode *pNode, std::vector<Vector3> &verts, std::vector<Chunk> &lineChunks,
-                                           std::vector<Chunk> &faceChunks, std::vector<unsigned int> &vertexIndices)
+    void Scene::RecurseDrawPartition(TreeNode *&node, std::vector<Vector3> &verts, std::vector<Chunk> &chunks)
     //-------------------------------------------------------------------
     {
-        if (!pNode)
+        if (!node)
             return;
 
-        if (pNode->m_leafIndex > -1)
-        {
-            pNode->m_partitionOutlineChunkId = lineChunks.size();
+        Vector3 a = node->m_min;
+        Vector3 b = node->m_max;
 
-            unsigned int lineVertexOffset = lineChunks.size() * 8;
-            unsigned int chunkVertexOffset = m_leafs.size() * 8 + lineVertexOffset;
+        node->m_partitionOutlineChunkId = chunks.size();
 
-            // Vertices
-                Vector3 &a = pNode->m_min;
-                Vector3 &b = pNode->m_max;
+        Chunk lines;
+        lines.depthBias = 0;
+        lines.idTexture0 = -1;
+        lines.idTexture1 = -1;
+        lines.numVerts = 24;
+        lines.startIndex = (int)verts.size();
+        lines.effect = -1;
+        lines.type = CT_LINELIST;
+        chunks.push_back(lines);
 
-                verts.push_back(Vector3(a.x, b.y, b.z));
-                verts.push_back(Vector3(a.x, a.y, b.z));
-                verts.push_back(Vector3(b.x, a.y, b.z));
-                verts.push_back(b);
+        // Bottom face
+        verts.push_back(a);
+        verts.push_back(Vector3(b.x, a.y, a.z));
 
-                verts.push_back(Vector3(a.x, b.y, a.z));
-                verts.push_back(a);
-                verts.push_back(Vector3(b.x, a.y, a.z));
-                verts.push_back(Vector3(b.x, b.y, a.z));
+        verts.push_back(Vector3(b.x, a.y, a.z));
+        verts.push_back(Vector3(b.x, a.y, b.z));
 
-            // Lines Chunk
-                Chunk lines(-1, -1, -1, -1, -1, (int)lineChunks.size() * 24, 24, 1, CT_LINELIST);
-                lineChunks.push_back(lines);
+        verts.push_back(Vector3(b.x, a.y, b.z));
+        verts.push_back(Vector3(a.x, a.y, b.z));
 
-            // Faces Chunk
-                Chunk faces(lines);
-                faces.order = 9;
-                faces.startIndex = (int)m_leafs.size() * 24 + (int)faceChunks.size() * 36;
-                faces.numIndices = 36;
-                faces.type = CT_TRIANGLELIST;
-                faces.depthBias = 0;
-                faceChunks.push_back(faces);
+        verts.push_back(Vector3(a.x, a.y, b.z));
+        verts.push_back(a);
 
-            // Line Vert Indices
-                // Top
-                    vertexIndices[lines.startIndex] = lineVertexOffset + 0;            vertexIndices[lines.startIndex + 1] = lineVertexOffset + 1;
-                    vertexIndices[lines.startIndex + 2] = lineVertexOffset + 1;        vertexIndices[lines.startIndex + 3] = lineVertexOffset + 2;
-                    vertexIndices[lines.startIndex + 4] = lineVertexOffset + 2;        vertexIndices[lines.startIndex + 5] = lineVertexOffset + 3;
-                    vertexIndices[lines.startIndex + 6] = lineVertexOffset + 3;        vertexIndices[lines.startIndex + 7] = lineVertexOffset + 0;
+        // Top face
+        verts.push_back(Vector3(a.x, b.y, a.z));
+        verts.push_back(Vector3(b.x, b.y, a.z));
 
-                // Sides
-                    vertexIndices[lines.startIndex + 8] = lineVertexOffset + 0;        vertexIndices[lines.startIndex + 9] = lineVertexOffset + 4;
-                    vertexIndices[lines.startIndex + 10] = lineVertexOffset + 1;    vertexIndices[lines.startIndex + 11] = lineVertexOffset + 5;
-                    vertexIndices[lines.startIndex + 12] = lineVertexOffset + 2;    vertexIndices[lines.startIndex + 13] = lineVertexOffset + 6;
-                    vertexIndices[lines.startIndex + 14] = lineVertexOffset + 3;    vertexIndices[lines.startIndex + 15] = lineVertexOffset + 7;
+        verts.push_back(Vector3(b.x, b.y, a.z));
+        verts.push_back(Vector3(b.x, b.y, b.z));
 
-                // Bottom
-                    vertexIndices[lines.startIndex + 16] = lineVertexOffset + 4;    vertexIndices[lines.startIndex + 17] = lineVertexOffset + 5;
-                    vertexIndices[lines.startIndex + 18] = lineVertexOffset + 5;    vertexIndices[lines.startIndex + 19] = lineVertexOffset + 6;
-                    vertexIndices[lines.startIndex + 20] = lineVertexOffset + 6;    vertexIndices[lines.startIndex + 21] = lineVertexOffset + 7;
-                    vertexIndices[lines.startIndex + 22] = lineVertexOffset + 7;    vertexIndices[lines.startIndex + 23] = lineVertexOffset + 4;
+        verts.push_back(Vector3(b.x, b.y, b.z));
+        verts.push_back(Vector3(a.x, b.y, b.z));
 
-            // Face Vert Indices
-                // Top
-                    vertexIndices[faces.startIndex] = chunkVertexOffset + 0;    vertexIndices[faces.startIndex + 1] = chunkVertexOffset + 2;    vertexIndices[faces.startIndex + 2] = chunkVertexOffset + 1;
-                    vertexIndices[faces.startIndex + 3] = chunkVertexOffset + 0;    vertexIndices[faces.startIndex + 4] = chunkVertexOffset + 3;    vertexIndices[faces.startIndex + 5] = chunkVertexOffset + 2;
+        verts.push_back(Vector3(a.x, b.y, b.z));
+        verts.push_back(Vector3(a.x, b.y, a.z));
 
-                // Bottom
-                    vertexIndices[faces.startIndex + 6] = chunkVertexOffset + 7;    vertexIndices[faces.startIndex + 7] = chunkVertexOffset + 5;    vertexIndices[faces.startIndex + 8] = chunkVertexOffset + 6;
-                    vertexIndices[faces.startIndex + 9] = chunkVertexOffset + 7;    vertexIndices[faces.startIndex + 10] = chunkVertexOffset + 4;    vertexIndices[faces.startIndex + 11] = chunkVertexOffset + 5;
+        // side edges
+        verts.push_back(Vector3(a.x, a.y, a.z));
+        verts.push_back(Vector3(a.x, b.y, a.z));
 
-                // Left
-                    vertexIndices[faces.startIndex + 12] = chunkVertexOffset + 4;    vertexIndices[faces.startIndex + 13] = chunkVertexOffset + 1;    vertexIndices[faces.startIndex + 14] = chunkVertexOffset + 5;
-                    vertexIndices[faces.startIndex + 15] = chunkVertexOffset + 4;    vertexIndices[faces.startIndex + 16] = chunkVertexOffset + 0;    vertexIndices[faces.startIndex + 17] = chunkVertexOffset + 1;
+        verts.push_back(Vector3(b.x, a.y, a.z));
+        verts.push_back(Vector3(b.x, b.y, a.z));
 
-                // Right
-                    vertexIndices[faces.startIndex + 18] = chunkVertexOffset + 3;    vertexIndices[faces.startIndex + 19] = chunkVertexOffset + 6;    vertexIndices[faces.startIndex + 20] = chunkVertexOffset + 2;
-                    vertexIndices[faces.startIndex + 21] = chunkVertexOffset + 3;    vertexIndices[faces.startIndex + 22] = chunkVertexOffset + 7;    vertexIndices[faces.startIndex + 23] = chunkVertexOffset + 6;
+        verts.push_back(Vector3(b.x, a.y, b.z));
+        verts.push_back(Vector3(b.x, b.y, b.z));
 
-                // Front
-                    vertexIndices[faces.startIndex + 24] = chunkVertexOffset + 1;    vertexIndices[faces.startIndex + 25] = chunkVertexOffset + 6;    vertexIndices[faces.startIndex + 26] = chunkVertexOffset + 5;
-                    vertexIndices[faces.startIndex + 27] = chunkVertexOffset + 1;    vertexIndices[faces.startIndex + 28] = chunkVertexOffset + 2;    vertexIndices[faces.startIndex + 29] = chunkVertexOffset + 6;
+        verts.push_back(Vector3(a.x, a.y, b.z));
+        verts.push_back(Vector3(a.x, b.y, b.z));
 
-                // Back
-                    vertexIndices[faces.startIndex + 30] = chunkVertexOffset + 4;    vertexIndices[faces.startIndex + 31] = chunkVertexOffset + 3;    vertexIndices[faces.startIndex + 32] = chunkVertexOffset + 0;
-                    vertexIndices[faces.startIndex + 33] = chunkVertexOffset + 4;    vertexIndices[faces.startIndex + 34] = chunkVertexOffset + 7;    vertexIndices[faces.startIndex + 35] = chunkVertexOffset + 3;
-        }
-        else
-        {
-            for (int i = 0; i < pNode->m_numChildren; i++)
-            {
-                RecurseCreateDrawPartition(pNode->m_pChildren[i], verts, lineChunks, faceChunks, vertexIndices);
-            }
-        }
+        for (int i = 0; i < node->m_numChildren; i++)
+            RecurseDrawPartition(node->m_pChildren[i], verts, chunks);
     }
 
 
@@ -4641,7 +4639,7 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
 
 
 //-----------------------------------------------------------------------
-    void Scene::RecurseInputPartition(TreeNode *node, OutputTreeNode *outputNodes, int &m_numNodes)
+    void Scene::RecurseInputPartition(TreeNode *node, OutputTreeNode *outputNodes, int &numNodes)
     //-------------------------------------------------------------------
     {
         if (!node || !outputNodes)
@@ -4654,17 +4652,17 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
         {
             int childID = outputNodes[node->m_id].children[i];
 
-            node->m_pChildren[i] = new TreeNode(outputNodes[childID].min, outputNodes[childID].max, node, m_numNodes);
+            node->m_pChildren[i] = new TreeNode(outputNodes[childID].min, outputNodes[childID].max, node, numNodes);
             node->m_pChildren[i]->m_leafIndex = outputNodes[childID].leafIndex;
             node->m_pChildren[i]->m_numChildren = outputNodes[childID].numChildren;
             node->m_pChildren[i]->m_min = outputNodes[childID].min;
             node->m_pChildren[i]->m_max = outputNodes[childID].max;
             node->m_pChildren[i]->m_pParent = node;
-            node->m_pChildren[i]->m_id = m_numNodes;
+            node->m_pChildren[i]->m_id = numNodes;
 
-            m_numNodes++;
+            numNodes++;
 
-            RecurseInputPartition(node->m_pChildren[i], outputNodes, m_numNodes);
+            RecurseInputPartition(node->m_pChildren[i], outputNodes, numNodes);
         }
     }
 
@@ -4808,11 +4806,11 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
                 float leafWidth = 0;
                 float leafHeight = 0;
 
-                if (m_pSettings->spacePartitionAxis == SS_AXIS_X)
+                if (settings->spacePartitionAxis == SS_AXIS_X)
                     upVector = Vector3(1, 0, 0);
-                else if (m_pSettings->spacePartitionAxis == SS_AXIS_Y)
+                else if (settings->spacePartitionAxis == SS_AXIS_Y)
                     upVector = Vector3(0, 1, 0);
-                else if (m_pSettings->spacePartitionAxis == SS_AXIS_Z)
+                else if (settings->spacePartitionAxis == SS_AXIS_Z)
                     upVector = Vector3(0, 0, 1);
 
                 Vector3 f = Math::Normalise(leafCenter - nodeCenter);
@@ -4874,9 +4872,9 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
         if (!Math::AABBRayCollision(Math::AABB(node->m_min, node->m_max), rayPos, rayDir))
             return false;
 
-        if (node->m_leafIndex > -1 && node->m_leafIndex < (int)m_leafs.size())
+        if (node->m_leafIndex > -1 && node->m_leafIndex < (int)leafs.size())
         {
-            TreeLeaf *pLeaf = m_leafs[node->m_leafIndex];
+            TreeLeaf *pLeaf = leafs[node->m_leafIndex];
 
             if (pLeaf)
             {
@@ -4925,10 +4923,10 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
     bool Scene::Intersect(std::list<IntersectionResult> &results, const Vector3 &rayPos, const Vector3 &rayDir, DWORD flags)
     //-------------------------------------------------------------------
     {
-        if (!m_pRoot)
+        if (!root)
             return false;
 
-        bool found = RecurseTestIntersect(m_pRoot, results, rayPos, rayDir, flags, false);
+        bool found = RecurseTestIntersect(root, results, rayPos, rayDir, flags, false);
 
         return found;
     }
@@ -4938,12 +4936,12 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
     bool Scene::Intersect(IntersectionResult &result, const Vector3 &rayPos, const Vector3 &rayDir, DWORD flags)
     //-------------------------------------------------------------------
     {
-        if (!m_pRoot)
+        if (!root)
             return false;
 
         std::list<IntersectionResult> results;
 
-        bool found = RecurseTestIntersect(m_pRoot, results, rayPos, rayDir, flags, true);
+        bool found = RecurseTestIntersect(root, results, rayPos, rayDir, flags, true);
 
         if (results.size() < 1)
             return false;
@@ -4952,170 +4950,5 @@ pResult (return value) [out] NodeChunkMap contains all geometry within the given
 
         return found;
     }
-
-
-//-----------------------------------------------------------------------
-    void Scene::GeneratePVS(void *pData, std::vector< byte * > *pResults,
-                            ProgressCallbackFunc progressCallbackFunc, void *pProgressCallbackPayload)
-    //-------------------------------------------------------------------
-    {
-/*
-        if (progressCallbackFunc)
-            progressCallbackFunc(PC_SCENE_PVS, pvsProgress, pProgressCallbackPayload);
-
-        numClusters = leafs.size();
-        //numClusters = m_numNodes;
-
-        bytesPerCluster = (int)ceil((float)numClusters / 8);
-        m_PVS = new byte[numClusters * bytesPerCluster];
-        AddUsedMemory(numClusters * bytesPerCluster, "Scene::SubdivideWorld() - Clusters...");
-
-        //ZeroMemory(PVS, numClusters * bytesPerCluster);
-        memset(PVS, 0xffffffff, numClusters * bytesPerCluster);
-
-        int x = 0;
-        std::vector<TreeLeaf *>::iterator i;
-        for (i = leafs.begin(); i != leafs.end(); i++, x++)
-        {
-            pvsProgress = ((float)x / (leafs.size())) * 100.0f;
-
-            if (progressCallback)
-                progressCallback(PC_SCENE_PVS, pvsProgress, pProgressCallbackPayload);
-
-            RecursePVS(m_pRoot, (*i));
-        }
-*/
-/*
-        int x = 0;
-        std::vector<TreeLeaf *>::iterator i, j;
-        for (i = leafs.begin(); i != leafs.end(); i++, x++)
-        {
-            int y = 0;
-            for (j = leafs.begin(); j != leafs.end(); j++, y++)
-            {
-                DWORD progress = ((float)(x * leafs.size() + y) / (leafs.size() * leafs.size())) * 100.0f;
-
-                if (progressCallback)
-                    progressCallback(PC_SCENE_PVS, progress);
-
-                if (TestVisibilityLeaf((*i), (*j)))
-                    PVS[x * bytesPerCluster + (y / 8)] |= (1 << (y & 7));
-            }
-        }
-*/
-    }
-
-#ifdef _DEBUG
-//-----------------------------------------------------------------------
-    void Scene::DumpNodeChunkMap(const _NodeChunkMap *pNodeChunkMap, const unsigned int index) const
-    //-------------------------------------------------------------------
-    {
-        if (!pNodeChunkMap)
-            return;
-
-        const NodeChunkMap &ncm = pNodeChunkMap->m;
-        NodeChunkMap::const_iterator ncmItr = ncm.begin();
-
-        DebugPrintf(_T("\tNodeChunkMap [%3d] : size = %d\n"), index, ncm.size());
-
-        unsigned int ogmIndex = 0;
-        for (; ncmItr != ncm.end(); ++ncmItr, ++ogmIndex)
-        {
-            const OrderedGeometryMap &ogm = (*ncmItr)->m;
-            OrderedGeometryMap::const_iterator ogmItr = ogm.begin();
-
-            DebugPrintf(_T("\t\tOrderedGeometryMap [%3d] : size = %d\n"), ogmIndex, ogm.size());
-
-            unsigned int gmIndex = 0;
-            for (; ogmItr != ogm.end(); ++ogmItr, ++gmIndex)
-            {
-                const unsigned int order = ogmItr->first;
-                const GeometryMap &gm = ogmItr->second->m;
-
-                GeometryMap::const_iterator gmItr = gm.begin();
-
-                DebugPrintf(_T("\t\t\tGeometryMap [%3d] : order = %d, size = %d\n"), gmIndex, order, gm.size());
-
-                unsigned int cilIndex = 0;
-                for (; gmItr != gm.end(); ++gmItr, ++cilIndex)
-                {
-                    const PGEOMETRY pGM = gmItr->first;
-                    const ChunkIndexList &cil = gmItr->second->m;
-                    ChunkIndexList::const_iterator cilItr = cil.begin();
-
-                    DebugPrintf(_T("\t\t\t\tChunkIndexList [%3d] : PGEOMETRY = 0x%8.8x, size = %d\n"), cilIndex, DWORD(pGM), cil.size());
-
-                    unsigned int isIndex = 0;
-                    for (; cilItr != cil.end(); ++cilItr, ++isIndex)
-                    {
-                        const ChunkIndex chunkIndex = cilItr->first;
-                        const IndexSet &is = cilItr->second->m;
-                        IndexSet::const_iterator isItr = is.begin();
-
-                        DebugPrintf(_T("\t\t\t\t\tIndexSet [%3d] : ChunkIndex = %d, size = %d\n"), isIndex, chunkIndex, is.size());
-
-                        unsigned int vilIndex = 0;
-                        for (; isItr != is.end(); ++isItr)
-                        {
-                            const VertexIndexList &vil = (*isItr)->m;
-                            VertexIndexList::const_iterator vilItr = vil.begin();
-
-                            DebugPrintf(_T("\t\t\t\t\t\tVertexIndexList [%3d] : size = %d\n"), vilIndex, vil.size());
-
-                            unsigned int indexCount = 0;
-                            for (; vilItr != vil.end(); ++vilItr)
-                            {
-                                if (indexCount == 0)
-                                {
-                                    DebugPrintf(_T("\t\t\t\t\t\t\t"));
-                                }
-
-                                DebugPrintf(_T("%d, "), *vilItr);
-
-                                ++indexCount;
-                                if (indexCount >= 10)
-                                {
-                                    DebugPrintf(_T("\n"));
-                                    indexCount = 0;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-
-//-----------------------------------------------------------------------
-    void Scene::DumpNodeChunkMap() const
-    //-------------------------------------------------------------------
-    {
-        DebugPrintf(_T("Scene 0x%8.8x : NodeChunkMap : size = %d\n"), DWORD(this), m_nodeChunkMap.size());
-
-        unsigned int ncmIndex = 0;
-        std::vector< _NodeChunkMap * >::const_iterator ncmvItr = m_nodeChunkMap.begin();
-        for (; ncmvItr != m_nodeChunkMap.end(); ++ncmvItr, ++ncmIndex)
-        {
-            DumpNodeChunkMap(*ncmvItr, ncmIndex);
-        }
-    }
-
-
-//-----------------------------------------------------------------------
-    void Scene::DumpPartitionTree() const
-    //-------------------------------------------------------------------
-    {
-    }
-
-
-//-----------------------------------------------------------------------
-    void Scene::DumpLeafs() const
-    //-------------------------------------------------------------------
-    {
-    }
-
-
-#endif
 
 // EOF

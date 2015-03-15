@@ -11,117 +11,117 @@ static char THIS_FILE[] = __FILE__;
 using namespace KSR;
 
 //-----------------------------------------------------------------------
-	Timer::Timer()
-	//-------------------------------------------------------------------
-	{
-		AddUsedMemory(sizeof(Timer), "Timer::Timer()");
+    Timer::Timer()
+    //-------------------------------------------------------------------
+    {
+        AddUsedMemory(sizeof(Timer), "Timer::Timer()");
 
-		INT64 timerFrequency;
-		if (QueryPerformanceFrequency((LARGE_INTEGER*)&timerFrequency))
-		{
-			m_useHFCounter = true;
-			m_timeScale = 1.0f / timerFrequency;
-		}
-		else
-		{
-			m_timeScale = 1.0f / 1000;
-			m_useHFCounter = false;
-		}
+        INT64 timerFrequency;
+        if (QueryPerformanceFrequency((LARGE_INTEGER*)&timerFrequency))
+        {
+            m_useHFCounter = true;
+            m_timeScale = 1.0f / timerFrequency;
+        }
+        else
+        {
+            m_timeScale = 1.0f / 1000;
+            m_useHFCounter = false;
+        }
 
-		Stop();
-	}
-
-
-//-----------------------------------------------------------------------
-	void Timer::Start()
-	//-------------------------------------------------------------------
-	{
-		if (m_useHFCounter)
-		{
-			INT64 newTime;
-			QueryPerformanceCounter((LARGE_INTEGER *)&newTime);
-			m_currentTime = (DWORD)newTime;
-		}
-		else
-		{
-			m_currentTime = timeGetTime();
-		}
-
-		m_thisFrameTime = m_currentTime;
-		m_lastSecond = m_currentTime;
-	}
+        Stop();
+    }
 
 
 //-----------------------------------------------------------------------
-	void Timer::Update()
-	//-------------------------------------------------------------------
-	{
-		if (m_currentTime == 0)
-			return;
+    void Timer::Start()
+    //-------------------------------------------------------------------
+    {
+        if (m_useHFCounter)
+        {
+            INT64 newTime;
+            QueryPerformanceCounter((LARGE_INTEGER *)&newTime);
+            m_currentTime = (DWORD)newTime;
+        }
+        else
+        {
+            m_currentTime = timeGetTime();
+        }
 
-		if (m_useHFCounter)
-		{
-			INT64 newTime;
-			QueryPerformanceCounter((LARGE_INTEGER *)&newTime);
-			m_currentTime = (DWORD)newTime;
-		}
-		else
-		{
-			m_currentTime = timeGetTime();
-		}
-
-		m_deltaTime = (m_currentTime - m_thisFrameTime) * m_timeScale;
-		m_thisFrameTime = m_currentTime;
-
-		m_fpsCurrent++;
-
-		if ((m_currentTime - m_lastSecond) * m_timeScale > 1.0f)
-		{
-			m_lastSecond = m_currentTime;
-			m_fpsLast = m_fpsCurrent;
-			m_fpsCurrent = 0;
-		}
-	}
+        m_thisFrameTime = m_currentTime;
+        m_lastSecond = m_currentTime;
+    }
 
 
 //-----------------------------------------------------------------------
-	void Timer::Stop()
-	//-------------------------------------------------------------------
-	{
-		m_currentTime = m_thisFrameTime = m_fpsCurrent = m_fpsLast = m_lastSecond = 0;
-		m_deltaTime = 0.0f;
-	}
+    void Timer::Update()
+    //-------------------------------------------------------------------
+    {
+        if (m_currentTime == 0)
+            return;
+
+        if (m_useHFCounter)
+        {
+            INT64 newTime;
+            QueryPerformanceCounter((LARGE_INTEGER *)&newTime);
+            m_currentTime = (DWORD)newTime;
+        }
+        else
+        {
+            m_currentTime = timeGetTime();
+        }
+
+        m_deltaTime = (m_currentTime - m_thisFrameTime) * m_timeScale;
+        m_thisFrameTime = m_currentTime;
+
+        m_fpsCurrent++;
+
+        if ((m_currentTime - m_lastSecond) * m_timeScale > 1.0f)
+        {
+            m_lastSecond = m_currentTime;
+            m_fpsLast = m_fpsCurrent;
+            m_fpsCurrent = 0;
+        }
+    }
 
 
 //-----------------------------------------------------------------------
-	void Timer::Step(float timeDelta)
-	//-------------------------------------------------------------------
-	{
-		m_deltaTime = timeDelta;
-	}
+    void Timer::Stop()
+    //-------------------------------------------------------------------
+    {
+        m_currentTime = m_thisFrameTime = m_fpsCurrent = m_fpsLast = m_lastSecond = 0;
+        m_deltaTime = 0.0f;
+    }
 
 
 //-----------------------------------------------------------------------
-	const float Timer::GetTime() const
-	//-------------------------------------------------------------------
-	{
-		return (float)m_currentTime;
-	}
+    void Timer::Step(float timeDelta)
+    //-------------------------------------------------------------------
+    {
+        m_deltaTime = timeDelta;
+    }
 
 
 //-----------------------------------------------------------------------
-	const float Timer::GetDeltaTime() const
-	//-------------------------------------------------------------------
-	{
-		return m_deltaTime;
-	}
+    const float Timer::GetTime() const
+    //-------------------------------------------------------------------
+    {
+        return (float)m_currentTime;
+    }
 
 
 //-----------------------------------------------------------------------
-	const float Timer::GetFramesPerSecond() const
-	//-------------------------------------------------------------------
-	{
-		return (float)m_fpsLast;
-	}
+    const float Timer::GetDeltaTime() const
+    //-------------------------------------------------------------------
+    {
+        return m_deltaTime;
+    }
+
+
+//-----------------------------------------------------------------------
+    const float Timer::GetFramesPerSecond() const
+    //-------------------------------------------------------------------
+    {
+        return (float)m_fpsLast;
+    }
 
 // EOF

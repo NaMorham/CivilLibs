@@ -3,7 +3,7 @@
 
 #include <crtdbg.h>
 
-#ifdef _DEBUG	// we don't want this in release
+#ifdef _DEBUG    // we don't want this in release
 //#define _DO_MEMORY_DEBUG
 #endif
 

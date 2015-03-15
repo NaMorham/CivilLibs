@@ -1,10 +1,10 @@
 /*! \file */
 /*-----------------------------------------------------------------------
-	ksrx.h
+    ksrx.h
 
-	Description: Keays Simulation & Rendering Extensions API external header
-	Author:		 Julian McKinlay
-	---------------------------------------------------------------------*/
+    Description: Keays Simulation & Rendering Extensions API external header
+    Author:         Julian McKinlay
+    ---------------------------------------------------------------------*/
 
 #pragma once
 #pragma warning (disable: 4786)
@@ -13,13 +13,13 @@
 #pragma comment(lib, "winmm.lib")
 
 #ifdef DEBUG
-	#ifdef MT_DLL
-		#pragma comment(lib, "d3dx9dt.lib")
-	#else
-		#pragma comment(lib, "d3dx9d.lib")
-	#endif
+    #ifdef MT_DLL
+        #pragma comment(lib, "d3dx9dt.lib")
+    #else
+        #pragma comment(lib, "d3dx9d.lib")
+    #endif
 #else
-	#pragma comment(lib, "d3dx9.lib")
+    #pragma comment(lib, "d3dx9.lib")
 #endif
 
 namespace KSRX

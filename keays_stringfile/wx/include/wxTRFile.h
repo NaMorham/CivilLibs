@@ -13,11 +13,11 @@
 #define _WX_TRFILE_H
 
 // Includes
-#include <string>		// std::string
+#include <string>        // std::string
 
-#include <wx/file.h>	// wxFile
+#include <wx/file.h>    // wxFile
 
-#include <File.h>		// keays::stringfile::File
+#include <File.h>        // keays::stringfile::File
 
 
 namespace keays
@@ -30,28 +30,28 @@ namespace wx
 class TRFile : public StringFile
 {
 public:
-	/* Implementation of StringFile interface */
-	static bool Read ( const std::string & filename, 
-					   keays::stringfile::Data * stringData,
-					   bool progress, bool userAbort );
-	
-	static bool Save ( const std::string & filename, 
-					   keays::stringfile::Data * stringData,
-					   bool progress, bool userAbort );
+    /* Implementation of StringFile interface */
+    static bool Read ( const std::string & filename,
+                       keays::stringfile::Data * stringData,
+                       bool progress, bool userAbort );
 
-	static bool CanLoadExt( const std::string & extension );
-	/* End Implementation of StringFile interface */
+    static bool Save ( const std::string & filename,
+                       keays::stringfile::Data * stringData,
+                       bool progress, bool userAbort );
 
-	static bool PointToString( const keays::stringfile::Point & point,
-		  					   wxString & result );
+    static bool CanLoadExt( const std::string & extension );
+    /* End Implementation of StringFile interface */
+
+    static bool PointToString( const keays::stringfile::Point & point,
+                                 wxString & result );
 private:
-	
-	/*
-	 * Read a line (until the next \n) from the current position in file, 
-	 * putting the read data in buffer, up to a maximum size of bufSize. 
-	 * Return the number of bytes read or -1 on failure.
-	 */
-	static int ReadLine( wxFile & file, char * buffer, int bufSize );	
+
+    /*
+     * Read a line (until the next \n) from the current position in file,
+     * putting the read data in buffer, up to a maximum size of bufSize.
+     * Return the number of bytes read or -1 on failure.
+     */
+    static int ReadLine( wxFile & file, char * buffer, int bufSize );
 };
 
 } // namespace wx

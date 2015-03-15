@@ -7,23 +7,23 @@
  * used in conjunction with the WatchManager callback function.
  * Example:
  *
-	UINT TheWatcherFunction( UINT id, const std::string & path )
-	{
-		wxWatchEvent event(wxEVT_WATCH_CHANGED);
-		event.SetFullname( path.c_str() );
-		event.SetId( id );
+    UINT TheWatcherFunction( UINT id, const std::string & path )
+    {
+        wxWatchEvent event(wxEVT_WATCH_CHANGED);
+        event.SetFullname( path.c_str() );
+        event.SetId( id );
 
-		::wxPostEvent( pPostToHere, event );
-		return 0;
-	}
+        ::wxPostEvent( pPostToHere, event );
+        return 0;
+    }
  *
  */
 
 #ifdef _HAVE_WXWIDGETS
 
-/* undef this if you don't have wxWidgets and therefore 
+/* undef this if you don't have wxWidgets and therefore
  * don't want to build this file */
-#define __WXMSW__	
+#define __WXMSW__
 
 #ifdef __WXMSW__
 
@@ -40,8 +40,8 @@ static char THIS_FILE[] = __FILE__;
 IMPLEMENT_DYNAMIC_CLASS(wxWatchEvent, wxEvent)
 
 // create some new events
-const wxEventType wxEVT_WATCH_CHANGED		= wxNewEventType();
+const wxEventType wxEVT_WATCH_CHANGED        = wxNewEventType();
 
-#endif	// __WXMSW__
+#endif    // __WXMSW__
 
 #endif // #ifdef _HAVE_WXWIDGETS

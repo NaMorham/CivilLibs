@@ -1,10 +1,10 @@
 /*! \file */
 /*-----------------------------------------------------------------------
-	ksrxutil.h
+    ksrxutil.h
 
-	Description: Keays Simulation & Rendering Extensions API utilities header
-	Author:		 Julian McKinlay
-	---------------------------------------------------------------------*/
+    Description: Keays Simulation & Rendering Extensions API utilities header
+    Author:         Julian McKinlay
+    ---------------------------------------------------------------------*/
 
 #pragma once
 

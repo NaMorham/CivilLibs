@@ -11,30 +11,30 @@ static char THIS_FILE[] = __FILE__;
 using namespace KSR;
 
 //-----------------------------------------------------------------------
-	SwapChain::SwapChain()
-	//-------------------------------------------------------------------
-	:	m_pSwapChain(NULL), m_pZBuffer(NULL), m_renderPaused(false)
-	//-------------------------------------------------------------------
-	{
-		AddUsedMemory(sizeof(SwapChain), "SwapChain::SwapChain()");
+    SwapChain::SwapChain()
+    //-------------------------------------------------------------------
+    :    m_pSwapChain(NULL), m_pZBuffer(NULL), m_renderPaused(false)
+    //-------------------------------------------------------------------
+    {
+        AddUsedMemory(sizeof(SwapChain), "SwapChain::SwapChain()");
 
-		ZeroMemory(&m_presentParameters, sizeof(D3DPRESENT_PARAMETERS));
-	}
+        ZeroMemory(&m_presentParameters, sizeof(D3DPRESENT_PARAMETERS));
+    }
 
 
 //-----------------------------------------------------------------------
-	SwapChain::~SwapChain()
-	//-------------------------------------------------------------------
-	{
-		FreeUsedMemory(sizeof(SwapChain), "SwapChain::~SwapChain()");
+    SwapChain::~SwapChain()
+    //-------------------------------------------------------------------
+    {
+        FreeUsedMemory(sizeof(SwapChain), "SwapChain::~SwapChain()");
 
-		Logf("Destroying Swap Chain...");
+        Logf("Destroying Swap Chain...");
 
-		if (m_pSwapChain)
-			m_pSwapChain->Release();
+        if (m_pSwapChain)
+            m_pSwapChain->Release();
 
-		if (m_pZBuffer)
-			m_pZBuffer->Release();
-	}
+        if (m_pZBuffer)
+            m_pZBuffer->Release();
+    }
 
 // EOF

@@ -16,30 +16,30 @@
 
 class StringData;
 
-class URFile 
+class URFile
 {
 public:
 
-	URFile ( std::string fullname, std::string path, std::string filename,
-			 StringData *stringData );
-	~URFile ( );
+    URFile ( std::string fullname, std::string path, std::string filename,
+             StringData *stringData );
+    ~URFile ( );
 
-	bool Read ( bool progress );
-	
-	bool SaveAs ( std::string fname, bool progress );
-	bool Save ( bool progress );
+    bool Read ( bool progress );
 
-	std::string GetPath() { return m_Path; };
-	std::string GetFullPath() { return m_Fullpath; };
-	std::string GetFilename() { return m_Filename; };
-	
+    bool SaveAs ( std::string fname, bool progress );
+    bool Save ( bool progress );
+
+    std::string GetPath() { return m_Path; };
+    std::string GetFullPath() { return m_Fullpath; };
+    std::string GetFilename() { return m_Filename; };
+
 private:
-	
-	std::string		m_Fullpath;	// full path, including filename
-	std::string		m_Path;		// just the path
-	std::string		m_Filename;	// just the filename
 
-	StringData		*m_StringData;
+    std::string        m_Fullpath;    // full path, including filename
+    std::string        m_Path;        // just the path
+    std::string        m_Filename;    // just the filename
+
+    StringData        *m_StringData;
 };
 
 #endif

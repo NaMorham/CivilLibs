@@ -13,5 +13,5 @@
 
 #pragma once
 
-#include "mathhelp.h"	// mathhelp.h that is part of keays_math
-#include "geometry.h"	// geometry functions
+#include "mathhelp.h"    // mathhelp.h that is part of keays_math
+#include "geometry.h"    // geometry functions

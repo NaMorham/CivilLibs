@@ -26,4 +26,4 @@
 
 #endif
 
-#endif	// #ifndef _KEAYS_STRINGFILE_H
+#endif    // #ifndef _KEAYS_STRINGFILE_H

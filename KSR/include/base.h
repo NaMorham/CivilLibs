@@ -1,9 +1,9 @@
 /*-----------------------------------------------------------------------
-	base.h
+    base.h
 
-	Description: KSR internal header
-	Author:		 Julian McKinlay
-	---------------------------------------------------------------------*/
+    Description: KSR internal header
+    Author:         Julian McKinlay
+    ---------------------------------------------------------------------*/
 
 #pragma once
 #pragma warning(disable: 4786)

@@ -13,30 +13,30 @@
 #define _WX_URFILE_H
 
 // Includes
-#include <string>		// std::string
-#include <File.h>		// keays::stringfile::File
+#include <string>        // std::string
+#include <File.h>        // keays::stringfile::File
 
 namespace keays
 {
 namespace stringfile
 {
 namespace wx
-{	
+{
 
 class URFile : public StringFile
 {
 public:
-	/* Implementation of StringFile interface */
-	static bool Read ( const std::string & filename, 
-					   keays::stringfile::Data * stringData,
-					   bool progress, bool userAbort );	
+    /* Implementation of StringFile interface */
+    static bool Read ( const std::string & filename,
+                       keays::stringfile::Data * stringData,
+                       bool progress, bool userAbort );
 
-	static bool Save ( const std::string & filename, 
-					   keays::stringfile::Data * stringData,
-					   bool progress, bool userAbort );	
-	
-	static bool CanLoadExt( const std::string & extension );
-	/* End Implementation of StringFile interface */
+    static bool Save ( const std::string & filename,
+                       keays::stringfile::Data * stringData,
+                       bool progress, bool userAbort );
+
+    static bool CanLoadExt( const std::string & extension );
+    /* End Implementation of StringFile interface */
 }; // class wxURFile
 
 } // namespace wx

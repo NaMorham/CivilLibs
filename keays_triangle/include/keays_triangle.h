@@ -4,4 +4,4 @@
 #include ".\triangle.h"
 #include ".\UTFile.h"
 
-#endif	// #ifndef _KEAYS_TRIANGLE
+#endif    // #ifndef _KEAYS_TRIANGLE

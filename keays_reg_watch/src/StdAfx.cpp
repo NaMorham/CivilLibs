@@ -1,6 +1,6 @@
 // stdafx.cpp : source file that includes just the standard includes
-//	keays_reg_watch.pch will be the pre-compiled header
-//	stdafx.obj will contain the pre-compiled type information
+//    keays_reg_watch.pch will be the pre-compiled header
+//    stdafx.obj will contain the pre-compiled type information
 
 #include "..\include\stdafx.h"
 

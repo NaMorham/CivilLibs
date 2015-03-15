@@ -1,10 +1,10 @@
 /*! \file */
 /*-----------------------------------------------------------------------
-	ksr.h
+    ksr.h
 
-	Description: Keays Simulation & Rendering API external header
-	Author:		 Julian McKinlay
-	---------------------------------------------------------------------*/
+    Description: Keays Simulation & Rendering API external header
+    Author:         Julian McKinlay
+    ---------------------------------------------------------------------*/
 
 #pragma once
 #pragma warning (disable: 4786)
@@ -13,16 +13,16 @@
 #pragma comment(lib, "winmm.lib")
 
 #ifdef _DEBUG
-	#pragma comment(lib, "d3dx9d.lib")
-	#if 0
-		#ifdef MT_DLL
-			#pragma comment(lib, "d3dx9dt.lib")
-		#else
-			#pragma comment(lib, "d3dx9d.lib")
-		#endif
-	#endif
+    #pragma comment(lib, "d3dx9d.lib")
+    #if 0
+        #ifdef MT_DLL
+            #pragma comment(lib, "d3dx9dt.lib")
+        #else
+            #pragma comment(lib, "d3dx9d.lib")
+        #endif
+    #endif
 #else
-	#pragma comment(lib, "d3dx9.lib")
+    #pragma comment(lib, "d3dx9.lib")
 #endif
 
 #ifdef _DEBUG
@@ -62,18 +62,18 @@ namespace KSR
 
 //! \brief Logs a string
 /*! \param fmt Format-control string
-	\param [argument] Optional arguments */
+    \param [argument] Optional arguments */
 void Logf(LPCTSTR fmt, ...);
 
 //! \brief Logs a level-determined string
 /*! \param level Log level of this string
-	\param fmt Format-control string
-	\param [argument] Optional arguments */
+    \param fmt Format-control string
+    \param [argument] Optional arguments */
 void Logf(ubyte level, LPCTSTR fmt, ...);
 
 //! \brief Outputs a debug string
 /*! \param fmt Format-control string
-	\param [argument] Optional arguments */
+    \param [argument] Optional arguments */
 void DebugPrintf(LPCTSTR fmt, ...);
 
 #include "ksrmath.h"
@@ -98,11 +98,11 @@ void DebugPrintf(LPCTSTR fmt, ...);
 #include "interface.h"
 
 /*
-	\brief Typedef progress function for use in function that may take to long to process.
-	Takes:
-		- a float as the percentage of total loading
-		- a LPCTSTR (const char/w_char_t *) as a message
-		- a void * for progress payload to be passed to the callback function
+    \brief Typedef progress function for use in function that may take to long to process.
+    Takes:
+        - a float as the percentage of total loading
+        - a LPCTSTR (const char/w_char_t *) as a message
+        - a void * for progress payload to be passed to the callback function
  */
 typedef unsigned int (*pProgressUpdateFn)(const float, LPCTSTR, void *);
 
@@ -114,20 +114,20 @@ typedef unsigned int (*pProgressUpdateFn)(const float, LPCTSTR, void *);
 #endif
 */
 
-	//! \brief Creates an Interface
-	/*! returns S_OK on success and E_FAIL on failure.
-	\param hWnd Handle to the top level window of the application.
-	\param logFilename [in] Pointer to a string containing the name of the log file to log to.
-	\param maxLogSize Maximum number of entries in the log before it is front truncated.
-	\param pCoreSettings [in] Pointer to a CoreSettings structure containing creation parameters.
-	\param pKSR [out] Address of a pointer to a Interface structure, representing the created interface. */
-	HRESULT CreateInterface(HWND hWnd, LPCTSTR logFilename, int maxLogSize,
-							PCORESETTINGS pCoreSettings, PINTERFACE *pKSR);
+    //! \brief Creates an Interface
+    /*! returns S_OK on success and E_FAIL on failure.
+    \param hWnd Handle to the top level window of the application.
+    \param logFilename [in] Pointer to a string containing the name of the log file to log to.
+    \param maxLogSize Maximum number of entries in the log before it is front truncated.
+    \param pCoreSettings [in] Pointer to a CoreSettings structure containing creation parameters.
+    \param pKSR [out] Address of a pointer to a Interface structure, representing the created interface. */
+    HRESULT CreateInterface(HWND hWnd, LPCTSTR logFilename, int maxLogSize,
+                            PCORESETTINGS pCoreSettings, PINTERFACE *pKSR);
 
-	//! \brief Destroys a KSRInterface
-	/*! returns S_OK on success and E_FAIL on failure.
-	\param pKSR [in] Pointer to an Interface structure, representing the interface to be destroyed. */
-	HRESULT DestroyInterface(PINTERFACE pKSR);
+    //! \brief Destroys a KSRInterface
+    /*! returns S_OK on success and E_FAIL on failure.
+    \param pKSR [in] Pointer to an Interface structure, representing the interface to be destroyed. */
+    HRESULT DestroyInterface(PINTERFACE pKSR);
 };
 
 // EOF

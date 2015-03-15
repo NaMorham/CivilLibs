@@ -23,43 +23,43 @@
 /*
  * wxWatchEvent class. Extents from wxEvent and carries information
  * about the file or directory that changed.
- */ 
+ */
 class wxWatchEvent : public wxEvent
 {
 public:
-	DECLARE_DYNAMIC_CLASS(wxWatchEvent)
-	
-	wxWatchEvent() : wxEvent( wxID_ANY, wxEVT_NULL ) 
-	{ 
-		m_Fullname = wxEmptyString; 
-		m_WatchId = 0; 
-	}
-	
-	wxWatchEvent( WXTYPE type ) : wxEvent ( wxID_ANY, type ) 
-	{ 
-		m_Fullname = wxEmptyString;
-		m_WatchId = 0; 
-	}
+    DECLARE_DYNAMIC_CLASS(wxWatchEvent)
 
-	wxWatchEvent( const wxWatchEvent & rhs ) : wxEvent(rhs)
-	{
-		m_WatchId = rhs.m_WatchId;
-		m_Fullname = rhs.m_Fullname;
-	}
+    wxWatchEvent() : wxEvent( wxID_ANY, wxEVT_NULL )
+    {
+        m_Fullname = wxEmptyString;
+        m_WatchId = 0;
+    }
 
-	~wxWatchEvent( ) {}
+    wxWatchEvent( WXTYPE type ) : wxEvent ( wxID_ANY, type )
+    {
+        m_Fullname = wxEmptyString;
+        m_WatchId = 0;
+    }
+
+    wxWatchEvent( const wxWatchEvent & rhs ) : wxEvent(rhs)
+    {
+        m_WatchId = rhs.m_WatchId;
+        m_Fullname = rhs.m_Fullname;
+    }
+
+    ~wxWatchEvent( ) {}
 
     virtual wxEvent *Clone() const { return new wxWatchEvent(*this); }
-	
-	void	 SetFullname( const wxString & name ) { m_Fullname = name; }
-	wxString GetFullname( ) { return m_Fullname; }
 
-	void	SetId( UINT id ) { m_WatchId = id; }
-	UINT	GetId() { return m_WatchId; }
+    void     SetFullname( const wxString & name ) { m_Fullname = name; }
+    wxString GetFullname( ) { return m_Fullname; }
+
+    void    SetId( UINT id ) { m_WatchId = id; }
+    UINT    GetId() { return m_WatchId; }
 
 private:
-	UINT		m_WatchId;		// id of file/directory that changed
-	wxString	m_Fullname;		// full path to file/directory that changed
+    UINT        m_WatchId;        // id of file/directory that changed
+    wxString    m_Fullname;        // full path to file/directory that changed
 };
 
 extern const wxEventType wxEVT_WATCH_CHANGED;
@@ -76,5 +76,5 @@ typedef void (wxEvtHandler::*wxWatchEventFunction)(wxWatchEvent&);
 
 #endif // #ifdef _HAVE_WXWIDGETS
 
-#endif	//#ifndef _FILE_WATCHER_EVENTS
-#endif	//#ifdef __WXMSW__
+#endif    //#ifndef _FILE_WATCHER_EVENTS
+#endif    //#ifdef __WXMSW__
